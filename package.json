@@ -1,0 +1,20 @@
+{
+  "name": "lector-codigo-barras",
+  "version": "2.0.0",
+  "description": "Lector de códigos de barras con inventario, cuentas y roles en Cloudflare Workers + D1",
+  "type": "module",
+  "scripts": {
+    "preparar": "mkdir -p public/vendor && cp node_modules/@zxing/browser/umd/zxing-browser.min.js public/vendor/",
+    "dev": "npm run preparar && wrangler dev",
+    "db:migrar:local": "wrangler d1 migrations apply lector-inventario --local",
+    "db:migrar": "wrangler d1 migrations apply lector-inventario --remote",
+    "deploy": "npm run preparar && wrangler deploy"
+  },
+  "private": true,
+  "devDependencies": {
+    "@playwright/test": "^1.64.1",
+    "@zxing/browser": "^0.2.1",
+    "@zxing/library": "^0.23.0",
+    "wrangler": "^4.151.0"
+  }
+}

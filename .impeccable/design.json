@@ -1,0 +1,528 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-19T03:13:33.723Z",
+  "title": "Design System: Lector de códigos de barras",
+  "extensions": {
+    "colorMeta": {
+      "fondo": {
+        "role": "neutral",
+        "displayName": "Escritorio",
+        "canonical": "oklch(0.975 0.004 255)",
+        "tonalRamp": [
+          "oklch(0.15 0.004 255)",
+          "oklch(0.28 0.004 255)",
+          "oklch(0.4 0.004 255)",
+          "oklch(0.52 0.004 255)",
+          "oklch(0.64 0.004 255)",
+          "oklch(0.76 0.004 255)",
+          "oklch(0.87 0.004 255)",
+          "oklch(0.95 0.004 255)"
+        ]
+      },
+      "superficie": {
+        "role": "neutral",
+        "displayName": "Hoja",
+        "canonical": "oklch(1 0 0)",
+        "tonalRamp": [
+          "oklch(0.15 0 0)",
+          "oklch(0.28 0 0)",
+          "oklch(0.4 0 0)",
+          "oklch(0.52 0 0)",
+          "oklch(0.64 0 0)",
+          "oklch(0.76 0 0)",
+          "oklch(0.87 0 0)",
+          "oklch(0.95 0 0)"
+        ]
+      },
+      "superficie-hundida": {
+        "role": "neutral",
+        "displayName": "Hoja hundida",
+        "canonical": "oklch(0.965 0.005 255)",
+        "tonalRamp": [
+          "oklch(0.15 0.005 255)",
+          "oklch(0.28 0.005 255)",
+          "oklch(0.4 0.005 255)",
+          "oklch(0.52 0.005 255)",
+          "oklch(0.64 0.005 255)",
+          "oklch(0.76 0.005 255)",
+          "oklch(0.87 0.005 255)",
+          "oklch(0.95 0.005 255)"
+        ]
+      },
+      "texto": {
+        "role": "neutral",
+        "displayName": "Tinta",
+        "canonical": "oklch(0.23 0.015 260)",
+        "tonalRamp": [
+          "oklch(0.15 0.015 260)",
+          "oklch(0.28 0.015 260)",
+          "oklch(0.4 0.015 260)",
+          "oklch(0.52 0.015 260)",
+          "oklch(0.64 0.015 260)",
+          "oklch(0.76 0.015 260)",
+          "oklch(0.87 0.015 260)",
+          "oklch(0.95 0.015 260)"
+        ]
+      },
+      "texto-suave": {
+        "role": "neutral",
+        "displayName": "Tinta suave",
+        "canonical": "oklch(0.5 0.015 260)",
+        "tonalRamp": [
+          "oklch(0.15 0.015 260)",
+          "oklch(0.28 0.015 260)",
+          "oklch(0.4 0.015 260)",
+          "oklch(0.52 0.015 260)",
+          "oklch(0.64 0.015 260)",
+          "oklch(0.76 0.015 260)",
+          "oklch(0.87 0.015 260)",
+          "oklch(0.95 0.015 260)"
+        ]
+      },
+      "borde-suave": {
+        "role": "neutral",
+        "displayName": "Línea de cuaderno",
+        "canonical": "oklch(0.92 0.006 260)",
+        "tonalRamp": [
+          "oklch(0.15 0.006 260)",
+          "oklch(0.28 0.006 260)",
+          "oklch(0.4 0.006 260)",
+          "oklch(0.52 0.006 260)",
+          "oklch(0.64 0.006 260)",
+          "oklch(0.76 0.006 260)",
+          "oklch(0.87 0.006 260)",
+          "oklch(0.95 0.006 260)"
+        ]
+      },
+      "borde-control": {
+        "role": "neutral",
+        "displayName": "Borde de control",
+        "canonical": "oklch(0.66 0.01 260)",
+        "tonalRamp": [
+          "oklch(0.15 0.01 260)",
+          "oklch(0.28 0.01 260)",
+          "oklch(0.4 0.01 260)",
+          "oklch(0.52 0.01 260)",
+          "oklch(0.64 0.01 260)",
+          "oklch(0.76 0.01 260)",
+          "oklch(0.87 0.01 260)",
+          "oklch(0.95 0.01 260)"
+        ]
+      },
+      "acento": {
+        "role": "primary",
+        "displayName": "Azul de tinta",
+        "canonical": "oklch(0.53 0.19 262)",
+        "tonalRamp": [
+          "oklch(0.15 0.19 262)",
+          "oklch(0.28 0.19 262)",
+          "oklch(0.4 0.19 262)",
+          "oklch(0.52 0.19 262)",
+          "oklch(0.64 0.19 262)",
+          "oklch(0.76 0.19 262)",
+          "oklch(0.87 0.19 262)",
+          "oklch(0.95 0.19 262)"
+        ]
+      },
+      "acento-hover": {
+        "role": "primary",
+        "displayName": "Azul de tinta (hover)",
+        "canonical": "oklch(0.48 0.18 262)",
+        "tonalRamp": [
+          "oklch(0.15 0.18 262)",
+          "oklch(0.28 0.18 262)",
+          "oklch(0.4 0.18 262)",
+          "oklch(0.52 0.18 262)",
+          "oklch(0.64 0.18 262)",
+          "oklch(0.76 0.18 262)",
+          "oklch(0.87 0.18 262)",
+          "oklch(0.95 0.18 262)"
+        ]
+      },
+      "acento-texto": {
+        "role": "primary",
+        "displayName": "Azul de tinta para texto",
+        "canonical": "oklch(0.5 0.19 262)",
+        "tonalRamp": [
+          "oklch(0.15 0.19 262)",
+          "oklch(0.28 0.19 262)",
+          "oklch(0.4 0.19 262)",
+          "oklch(0.52 0.19 262)",
+          "oklch(0.64 0.19 262)",
+          "oklch(0.76 0.19 262)",
+          "oklch(0.87 0.19 262)",
+          "oklch(0.95 0.19 262)"
+        ]
+      },
+      "acento-suave": {
+        "role": "primary",
+        "displayName": "Azul de papel",
+        "canonical": "oklch(0.955 0.018 262)",
+        "tonalRamp": [
+          "oklch(0.15 0.018 262)",
+          "oklch(0.28 0.018 262)",
+          "oklch(0.4 0.018 262)",
+          "oklch(0.52 0.018 262)",
+          "oklch(0.64 0.018 262)",
+          "oklch(0.76 0.018 262)",
+          "oklch(0.87 0.018 262)",
+          "oklch(0.95 0.018 262)"
+        ]
+      },
+      "sobre-solido": {
+        "role": "neutral",
+        "displayName": "Blanco sobre sólido",
+        "canonical": "oklch(1 0 0)",
+        "tonalRamp": [
+          "oklch(0.15 0 0)",
+          "oklch(0.28 0 0)",
+          "oklch(0.4 0 0)",
+          "oklch(0.52 0 0)",
+          "oklch(0.64 0 0)",
+          "oklch(0.76 0 0)",
+          "oklch(0.87 0 0)",
+          "oklch(0.95 0 0)"
+        ]
+      },
+      "exito-texto": {
+        "role": "secondary",
+        "displayName": "Verde de visto bueno",
+        "canonical": "oklch(0.46 0.12 152)",
+        "tonalRamp": [
+          "oklch(0.15 0.12 152)",
+          "oklch(0.28 0.12 152)",
+          "oklch(0.4 0.12 152)",
+          "oklch(0.52 0.12 152)",
+          "oklch(0.64 0.12 152)",
+          "oklch(0.76 0.12 152)",
+          "oklch(0.87 0.12 152)",
+          "oklch(0.95 0.12 152)"
+        ]
+      },
+      "exito-suave": {
+        "role": "secondary",
+        "displayName": "Verde suave",
+        "canonical": "oklch(0.955 0.04 152)",
+        "tonalRamp": [
+          "oklch(0.15 0.04 152)",
+          "oklch(0.28 0.04 152)",
+          "oklch(0.4 0.04 152)",
+          "oklch(0.52 0.04 152)",
+          "oklch(0.64 0.04 152)",
+          "oklch(0.76 0.04 152)",
+          "oklch(0.87 0.04 152)",
+          "oklch(0.95 0.04 152)"
+        ]
+      },
+      "exito-brillante": {
+        "role": "secondary",
+        "displayName": "Verde brillante",
+        "canonical": "oklch(0.78 0.17 152)",
+        "tonalRamp": [
+          "oklch(0.15 0.17 152)",
+          "oklch(0.28 0.17 152)",
+          "oklch(0.4 0.17 152)",
+          "oklch(0.52 0.17 152)",
+          "oklch(0.64 0.17 152)",
+          "oklch(0.76 0.17 152)",
+          "oklch(0.87 0.17 152)",
+          "oklch(0.95 0.17 152)"
+        ]
+      },
+      "peligro-texto": {
+        "role": "tertiary",
+        "displayName": "Rojo de borrado (texto)",
+        "canonical": "oklch(0.52 0.19 27)",
+        "tonalRamp": [
+          "oklch(0.15 0.19 27)",
+          "oklch(0.28 0.19 27)",
+          "oklch(0.4 0.19 27)",
+          "oklch(0.52 0.19 27)",
+          "oklch(0.64 0.19 27)",
+          "oklch(0.76 0.19 27)",
+          "oklch(0.87 0.19 27)",
+          "oklch(0.95 0.19 27)"
+        ]
+      },
+      "peligro-solido": {
+        "role": "tertiary",
+        "displayName": "Rojo de borrado (sólido)",
+        "canonical": "oklch(0.55 0.2 27)",
+        "tonalRamp": [
+          "oklch(0.15 0.2 27)",
+          "oklch(0.28 0.2 27)",
+          "oklch(0.4 0.2 27)",
+          "oklch(0.52 0.2 27)",
+          "oklch(0.64 0.2 27)",
+          "oklch(0.76 0.2 27)",
+          "oklch(0.87 0.2 27)",
+          "oklch(0.95 0.2 27)"
+        ]
+      },
+      "peligro-suave": {
+        "role": "tertiary",
+        "displayName": "Rojo suave",
+        "canonical": "oklch(0.96 0.018 27)",
+        "tonalRamp": [
+          "oklch(0.15 0.018 27)",
+          "oklch(0.28 0.018 27)",
+          "oklch(0.4 0.018 27)",
+          "oklch(0.52 0.018 27)",
+          "oklch(0.64 0.018 27)",
+          "oklch(0.76 0.018 27)",
+          "oklch(0.87 0.018 27)",
+          "oklch(0.95 0.018 27)"
+        ]
+      },
+      "visor": {
+        "role": "neutral",
+        "displayName": "Visor",
+        "canonical": "oklch(0.2 0.01 260)",
+        "tonalRamp": [
+          "oklch(0.15 0.01 260)",
+          "oklch(0.28 0.01 260)",
+          "oklch(0.4 0.01 260)",
+          "oklch(0.52 0.01 260)",
+          "oklch(0.64 0.01 260)",
+          "oklch(0.76 0.01 260)",
+          "oklch(0.87 0.01 260)",
+          "oklch(0.95 0.01 260)"
+        ]
+      },
+      "visor-texto": {
+        "role": "neutral",
+        "displayName": "Texto del visor",
+        "canonical": "oklch(0.8 0.01 260)",
+        "tonalRamp": [
+          "oklch(0.15 0.01 260)",
+          "oklch(0.28 0.01 260)",
+          "oklch(0.4 0.01 260)",
+          "oklch(0.52 0.01 260)",
+          "oklch(0.64 0.01 260)",
+          "oklch(0.76 0.01 260)",
+          "oklch(0.87 0.01 260)",
+          "oklch(0.95 0.01 260)"
+        ]
+      },
+      "laser": {
+        "role": "secondary",
+        "displayName": "Láser",
+        "canonical": "oklch(0.72 0.16 262)",
+        "tonalRamp": [
+          "oklch(0.15 0.16 262)",
+          "oklch(0.28 0.16 262)",
+          "oklch(0.4 0.16 262)",
+          "oklch(0.52 0.16 262)",
+          "oklch(0.64 0.16 262)",
+          "oklch(0.76 0.16 262)",
+          "oklch(0.87 0.16 262)",
+          "oklch(0.95 0.16 262)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "titulo": {
+        "displayName": "Título",
+        "purpose": "Nombre de la app en el encabezado y el acceso."
+      },
+      "encabezado": {
+        "displayName": "Encabezado de panel",
+        "purpose": "Escáner, Producto, Inventario, Usuarios."
+      },
+      "producto": {
+        "displayName": "Producto",
+        "purpose": "Nombre del producto en la tarjeta."
+      },
+      "cifra": {
+        "displayName": "Cifra",
+        "purpose": "Cantidad en el contador."
+      },
+      "cuerpo": {
+        "displayName": "Cuerpo",
+        "purpose": "Texto corrido."
+      },
+      "etiqueta": {
+        "displayName": "Etiqueta",
+        "purpose": "Etiquetas de campo y botones chicos."
+      },
+      "nota": {
+        "displayName": "Nota",
+        "purpose": "Pastillas, ayudas, encabezados de tabla."
+      },
+      "codigo": {
+        "displayName": "Código",
+        "purpose": "Códigos de barras en monoespaciada."
+      }
+    },
+    "shadows": [
+      {
+        "name": "borde-de-hoja",
+        "value": "0 0 0 1px oklch(0 0 0 / 0.06), 0 1px 2px -1px oklch(0 0 0 / 0.06), 0 2px 4px 0 oklch(0 0 0 / 0.04)",
+        "purpose": "Paneles, botones secundarios y pestaña activa. En tema oscuro: 0 0 0 1px oklch(1 0 0 / 0.08)."
+      },
+      {
+        "name": "borde-de-hoja-hover",
+        "value": "0 0 0 1px oklch(0 0 0 / 0.08), 0 1px 2px -1px oklch(0 0 0 / 0.08), 0 2px 4px 0 oklch(0 0 0 / 0.06)",
+        "purpose": "Botones secundarios con puntero fino."
+      },
+      {
+        "name": "resplandor-laser",
+        "value": "0 0 12px 2px oklch(0.72 0.16 262)",
+        "purpose": "Línea láser dentro del visor."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-out",
+        "value": "cubic-bezier(0.23, 1, 0.32, 1)",
+        "purpose": "Entradas y respuesta inmediata (300 ms entrar, 150 ms salir)."
+      },
+      {
+        "name": "ease-icono",
+        "value": "cubic-bezier(0.2, 0, 0, 1)",
+        "purpose": "Cambio de icono, de escala 0.25 a 1 en 300 ms."
+      },
+      {
+        "name": "presionar",
+        "value": "scale 0.96 en 150 ms",
+        "purpose": "Respuesta física al presionar botones."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "celular-chico",
+        "value": "359px"
+      },
+      {
+        "name": "tabla-tarjetas",
+        "value": "639px"
+      },
+      {
+        "name": "encabezado-apilado",
+        "value": "640px"
+      },
+      {
+        "name": "dos-columnas",
+        "value": "860px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Botón",
+      "kind": "button",
+      "refersTo": "boton",
+      "description": "Acción secundaria: hoja blanca con borde de sombra.",
+      "html": "<button class=\"ds-boton\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M5 12h14\"/><path d=\"M12 5v14\"/></svg>Agregar</button>",
+      "css": ".ds-boton { font: inherit; font-weight: 600; min-height: 40px; padding: 0 16px; border: 1px solid transparent; border-radius: 10px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: scale 150ms cubic-bezier(0.23, 1, 0.32, 1), background-color 150ms ease, box-shadow 150ms ease; background: var(--color-surface, oklch(1 0 0)); box-shadow: var(--shadow-border, 0 0 0 1px oklch(0 0 0 / 0.06), 0 1px 2px -1px oklch(0 0 0 / 0.06), 0 2px 4px 0 oklch(0 0 0 / 0.04)); color: var(--color-text, oklch(0.23 0.015 260)); } .ds-boton:hover { box-shadow: 0 0 0 1px oklch(0 0 0 / 0.08), 0 1px 2px -1px oklch(0 0 0 / 0.08), 0 2px 4px 0 oklch(0 0 0 / 0.06); } .ds-boton:active { scale: 0.96; } .ds-boton:focus-visible { outline: 2px solid var(--color-accent-solid, oklch(0.53 0.19 262)); outline-offset: 2px; }"
+    },
+    {
+      "name": "Botón primario",
+      "kind": "button",
+      "refersTo": "boton-primario",
+      "description": "La única acción principal de una vista.",
+      "html": "<button class=\"ds-boton-primario\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M20 6 9 17l-5-5\"/></svg>Guardar producto</button>",
+      "css": ".ds-boton-primario { font: inherit; font-weight: 600; min-height: 40px; padding: 0 16px; border: 1px solid transparent; border-radius: 10px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: scale 150ms cubic-bezier(0.23, 1, 0.32, 1), background-color 150ms ease, box-shadow 150ms ease; background: var(--color-accent-solid, oklch(0.53 0.19 262)); box-shadow: none; color: var(--color-on-solid, oklch(1 0 0)); } .ds-boton-primario:hover { background: var(--color-accent-solid-hover, oklch(0.48 0.18 262)); } .ds-boton-primario:active { scale: 0.96; } .ds-boton-primario:focus-visible { outline: 2px solid var(--color-accent-solid, oklch(0.53 0.19 262)); outline-offset: 2px; }"
+    },
+    {
+      "name": "Campo de texto",
+      "kind": "input",
+      "refersTo": "campo",
+      "description": "Campo con etiqueta, borde de control y ayuda.",
+      "html": "<div class=\"ds-campo\"><label for=\"ds-n\">Nombre</label><input id=\"ds-n\" class=\"ds-input\" value=\"Leche 1 litro\"><p class=\"ds-ayuda\">1 a 250 caracteres.</p></div>",
+      "css": ".ds-campo label { display: block; margin-bottom: 6px; font-size: 0.875rem; font-weight: 600; } .ds-input { width: 100%; min-height: 42px; padding: 0 12px; border: 1px solid var(--color-border-control, oklch(0.66 0.01 260)); border-radius: 10px; background: var(--color-surface, oklch(1 0 0)); color: var(--color-text, oklch(0.23 0.015 260)); font: inherit; box-sizing: border-box; transition: border-color 150ms ease; } .ds-input:focus-visible { outline: 2px solid var(--color-accent-solid, oklch(0.53 0.19 262)); outline-offset: 2px; } .ds-ayuda { margin: 6px 0 0; color: var(--color-text-muted, oklch(0.5 0.015 260)); font-size: 0.8125rem; }"
+    },
+    {
+      "name": "Pastilla de estado",
+      "kind": "chip",
+      "refersTo": "pastilla-exito",
+      "description": "Estado breve con tono: éxito, acento o peligro.",
+      "html": "<span class=\"ds-pastilla\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M20 6 9 17l-5-5\"/></svg>Producto registrado</span>",
+      "css": ".ds-pastilla { display: inline-flex; align-items: center; gap: 8px; padding: 4px 12px 4px 10px; border-radius: 999px; background: var(--color-success-subtle, oklch(0.955 0.04 152)); color: var(--color-success-text, oklch(0.46 0.12 152)); font-size: 0.8125rem; font-weight: 600; }"
+    },
+    {
+      "name": "Panel",
+      "kind": "card",
+      "refersTo": "panel",
+      "description": "Hoja blanca que contiene cada sección.",
+      "html": "<section class=\"ds-panel\"><h2>Producto</h2><p>Escanea un producto para registrarlo.</p></section>",
+      "css": ".ds-panel { padding: 20px; border: 1px solid transparent; border-radius: 16px; background: var(--color-surface, oklch(1 0 0)); box-shadow: var(--shadow-border, 0 0 0 1px oklch(0 0 0 / 0.06), 0 1px 2px -1px oklch(0 0 0 / 0.06), 0 2px 4px 0 oklch(0 0 0 / 0.04)); color: var(--color-text, oklch(0.23 0.015 260)); } .ds-panel h2 { margin: 0 0 8px; font-size: 1.0625rem; font-weight: 650; } .ds-panel p { margin: 0; color: var(--color-text-muted, oklch(0.5 0.015 260)); font-size: 0.9375rem; }"
+    },
+    {
+      "name": "Contador de cantidad",
+      "kind": "custom",
+      "refersTo": "contador",
+      "description": "Franja hundida con la cantidad en cifra grande tabular.",
+      "html": "<div class=\"ds-contador\"><span class=\"ds-etiqueta\">Cantidad</span><span class=\"ds-cifra\">12</span></div>",
+      "css": ".ds-contador { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 12px 16px; border-radius: 12px; background: var(--color-surface-sunken, oklch(0.965 0.005 255)); } .ds-etiqueta { color: var(--color-text-muted, oklch(0.5 0.015 260)); font-weight: 600; } .ds-cifra { font-size: 2.5rem; font-weight: 700; line-height: 1.1; font-variant-numeric: tabular-nums; color: var(--color-text, oklch(0.23 0.015 260)); }"
+    },
+    {
+      "name": "Pestañas",
+      "kind": "nav",
+      "refersTo": "pestana-activa",
+      "description": "Control segmentado de dos opciones (Iniciar sesión / Crear cuenta).",
+      "html": "<div class=\"ds-pestanas\" role=\"tablist\"><button class=\"ds-pestana\" role=\"tab\" aria-selected=\"true\">Iniciar sesión</button><button class=\"ds-pestana\" role=\"tab\" aria-selected=\"false\">Crear cuenta</button></div>",
+      "css": ".ds-pestanas { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; border-radius: 12px; background: var(--color-surface-sunken, oklch(0.965 0.005 255)); } .ds-pestana { min-height: 36px; border: 1px solid transparent; border-radius: 8px; background: transparent; color: var(--color-text-muted, oklch(0.5 0.015 260)); font: inherit; font-weight: 600; cursor: pointer; transition: background-color 150ms ease, color 150ms ease, box-shadow 150ms ease; } .ds-pestana[aria-selected=\"true\"] { background: var(--color-surface, oklch(1 0 0)); box-shadow: var(--shadow-border, 0 0 0 1px oklch(0 0 0 / 0.06), 0 1px 2px -1px oklch(0 0 0 / 0.06), 0 2px 4px 0 oklch(0 0 0 / 0.04)); color: var(--color-text, oklch(0.23 0.015 260)); } .ds-pestana:focus-visible { outline: 2px solid var(--color-accent-solid, oklch(0.53 0.19 262)); outline-offset: 2px; }"
+    },
+    {
+      "name": "Visor del escáner",
+      "kind": "custom",
+      "refersTo": "visor",
+      "description": "Cámara con marco de esquinas, láser de barrido y sello al capturar.",
+      "html": "<div class=\"ds-visor\"><div class=\"ds-marco\"><i class=\"ds-e ds-ai\"></i><i class=\"ds-e ds-ad\"></i><i class=\"ds-e ds-bi\"></i><i class=\"ds-e ds-bd\"></i></div><div class=\"ds-laser\"></div></div>",
+      "css": ".ds-visor { position: relative; aspect-ratio: 4 / 3; overflow: hidden; border-radius: 12px; background: var(--color-visor, oklch(0.2 0.01 260)); } .ds-marco { position: absolute; inset: 16% 10%; } .ds-e { position: absolute; width: 28px; height: 28px; border: 0 solid oklch(1 0 0 / 0.9); } .ds-ai { top: 0; left: 0; border-top-width: 3px; border-left-width: 3px; border-top-left-radius: 10px; } .ds-ad { top: 0; right: 0; border-top-width: 3px; border-right-width: 3px; border-top-right-radius: 10px; } .ds-bi { bottom: 0; left: 0; border-bottom-width: 3px; border-left-width: 3px; border-bottom-left-radius: 10px; } .ds-bd { bottom: 0; right: 0; border-bottom-width: 3px; border-right-width: 3px; border-bottom-right-radius: 10px; } .ds-laser { position: absolute; top: 50%; left: 4%; right: 4%; height: 2px; border-radius: 2px; background: var(--color-laser, oklch(0.72 0.16 262)); box-shadow: 0 0 12px 2px var(--color-laser, oklch(0.72 0.16 262)); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "El cuaderno de inventario",
+    "overview": "El inventario se lee como un cuaderno bien llevado: hojas blancas sobre un escritorio gris azulado, texto oscuro y sereno, y un solo color que señala dónde actuar. Los componentes son refinados y silenciosos: casi no tienen sombra, la jerarquía la dan la tipografía y el espacio, y el movimiento apenas se nota. Nada compite con el escáner ni con el número que el dueño necesita ver.\n\nLa densidad es media. En escritorio, el escáner y el producto comparten fila (5 : 6) y el inventario ocupa todo el ancho debajo; en celular todo se apila y cada fila de la tabla se convierte en una tarjeta compacta. La interfaz sigue el tema del sistema (claro u oscuro) sin selector propio.\n\nSe descarta explícitamente cualquier emoji o mascota: los iconos son siempre Lucide, de trazo `currentColor`.",
+    "keyCharacteristics": [
+      "Superficies planas con un borde de sombra casi invisible, no sombras de elevación.",
+      "Un solo acento azul-violeta (matiz 262) para la acción principal, el foco y el estado seleccionado.",
+      "Estados con tono propio (éxito, acento, peligro) siempre en pares texto/fondo suave.",
+      "Cifras tabulares en todo lo que se compara: precio, cantidad, código.",
+      "Movimiento corto, con las mismas curvas y duraciones en todo el producto."
+    ],
+    "rules": [
+      {
+        "name": "The One Voice Rule",
+        "body": "El azul de tinta marca la acción principal y el foco; no se usa como decoración. Los demás tonos solo aparecen para comunicar estado.",
+        "section": "colors"
+      },
+      {
+        "name": "The Role Token Rule",
+        "body": "Los colores se usan únicamente a través de los tokens de `:root` en `styles.css`, nombrados por rol. Un par texto/fondo nuevo se mide en ambos temas: texto ≥ 4.5:1, bordes de controles ≥ 3:1.",
+        "section": "colors"
+      },
+      {
+        "name": "The Tabular Rule",
+        "body": "Todo número que se compara o cambia (precio, cantidad, contadores de caracteres) lleva `font-variant-numeric: tabular-nums` para que no salte al actualizarse.",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat-By-Default Rule",
+        "body": "Las superficies están planas en reposo. La sombra de borde solo se intensifica con el puntero, y el botón principal no lleva sombra.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "**Do** usar solo tokens de color de `:root`, en OKLCH y por rol; mide el contraste en ambos temas.",
+      "**Do** mantener el movimiento con valores fijos: entrar 300 ms con `--ease-out`, salir 150 ms, presionar `scale: 0.96` en 150 ms, cambio de icono de 0.25 a 1 en 300 ms con `--ease-icono`.",
+      "**Do** poner movimiento, escala y desenfoque solo dentro de `@media (prefers-reduced-motion: no-preference)`; con movimiento reducido queda solo la opacidad.",
+      "**Do** poner `:hover` solo dentro de `@media (hover: hover) and (pointer: fine)`.",
+      "**Do** usar iconos del sprite Lucide con trazo `currentColor`.",
+      "**Do** dejar sin animación lo que se repite muchas veces seguidas (−/+, escribir, cambiar de pestaña); como mucho, un cambio de color de 150 ms.",
+      "**Do** hacer las acciones destructivas con mantener presionado 2 s."
+    ],
+    "donts": [
+      "**Don't** usar emojis ni mascotas en la interfaz.",
+      "**Don't** usar `transition: all`.",
+      "**Don't** usar `<script>` ni `<style>` en línea, ni atributos `style=` (la CSP lo bloquea).",
+      "**Don't** insertar datos del usuario con `innerHTML`; usa `textContent` o `append`.",
+      "**Don't** usar `confirm()` para eliminar.",
+      "**Don't** usar el azul de tinta como decoración ni agregar sombras de elevación a las hojas.",
+      "**Don't** reconstruir la tabla del inventario completa: se reutilizan las filas para no perder el foco.",
+      "**Don't** mostrar el error de un campo cuando el foco sale hacia el botón de enviar: movería el botón y se perdería el clic."
+    ]
+  }
+}

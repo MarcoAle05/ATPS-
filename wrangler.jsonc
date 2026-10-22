@@ -1,0 +1,29 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "inventario",
+  "main": "src/worker.js",
+  "compatibility_date": "2026-10-13",
+  "upload_source_maps": true,
+  "observability": { "enabled": true },
+  // Los archivos de public/ se sirven directo; solo /api/* ejecuta el Worker.
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    "run_worker_first": ["/api/*"]
+  },
+  // Un único Durable Object reparte los avisos en tiempo real a las páginas abiertas.
+  "durable_objects": {
+    "bindings": [{ "name": "DIFUSOR", "class_name": "Difusor" }]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Difusor"] }],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "lector-inventario",
+      "database_id": "c2e224ab-02bb-4981-bf4d-7817b84d0faf",
+      "migrations_dir": "migrations"
+    }
+  ]
+  // Secretos (no van en este archivo): PIMIENTA y CODIGO_CONFIGURACION.
+  // En local se leen de .dev.vars; en Cloudflare se guardan como secretos del Worker.
+}
