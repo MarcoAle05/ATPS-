@@ -20,6 +20,11 @@ paths:
   - `:hover` solo dentro de `@media (hover: hover) and (pointer: fine)`.
   - Nunca `transition: all`.
   - Lo que se usa muchas veces seguidas (−/+, escribir, cambiar de pestaña) va sin animación; como mucho, un cambio de color de 150 ms.
+- Diálogos modales: sigue el patrón del asistente (`<dialog id="asistente">` en `index.html`, `abrir()` y `cerrar()` en `asistente.js`).
+  - `showModal()`; hoja inferior en celular y panel lateral derecho desde 860 px.
+  - Entra por abajo o por la derecha con los valores de entrar; sale en 150 ms con `fill: 'forwards'` y solo entonces `close()`.
+  - El fondo es `::backdrop` con el token `--color-velo`, y se anima aparte con `pseudoElement: '::backdrop'` dentro de un `try`.
+  - Mientras está abierto, la página de atrás no se desplaza (`html:has(.asistente[open]) { overflow: hidden; }`). Un clic en el fondo lo cierra y el foco vuelve al botón que lo abrió.
 - Acciones destructivas con `crearBotonSostener` de `comun.js` (mantener presionado 2 s), no con `confirm()`.
 - Formularios: el error de un campo aparece después de tocarlo. Si el foco sale del campo hacia el botón de enviar, no lo muestres en ese momento: movería el botón y el clic se perdería.
 - La interfaz según el rol usa `estado.puedeEditar` en `app.js` y `data-rol` en `#app`, pero quien decide los permisos es el servidor.

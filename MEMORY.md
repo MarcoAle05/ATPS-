@@ -9,6 +9,7 @@ Decisiones tomadas con el usuario y datos que no se deducen del código. Agrega 
 - Base D1 `lector-inventario` (región WNAM) y Durable Object `Difusor` (migración `v1`).
 - Secretos del Worker: `PIMIENTA` y `CODIGO_CONFIGURACION`. El código de configuración ya se usó: la cuenta de administrador del dueño existe desde el 2026-10-16.
 - No se pudo consultar la suscripción de Cloudflare; se asume el plan gratuito de Workers (10 ms de CPU por petición).
+- 2026-11-11 · Secreto nuevo `DEEPSEEK_API_KEY` para el asistente, todavía sin crear en producción. El asistente aún no está publicado.
 
 ## Decisiones
 
@@ -29,6 +30,26 @@ Decisiones tomadas con el usuario y datos que no se deducen del código. Agrega 
   - las esquinas del visor (las toma por bordes laterales);
   - el brillo de la línea láser;
   - el video que llena el visor de borde a borde.
+- **2026-11-10 · Asistente del inventario.** Chat con DeepSeek para hacer preguntas sobre el inventario.
+  - Es solo para el administrador.
+  - Solo consulta el inventario: no agrega, edita ni elimina nada.
+  - El historial vive en la página, no en D1.
+  - LangChain.js, por petición del usuario. Se usa `bindTools` con un bucle propio en vez de `createAgent`, por los límites del plan gratuito.
+  - DeepSeek no ofrece embeddings.
+  - El usuario sigue en el plan gratuito hasta que algún límite lo obligue a cambiar.
+  - El usuario aceptó que se guarden las preguntas y respuestas; se hará en una etapa futura.
+- **2026-11-10 · Asistente: cifras medidas.**
+  - Worker: pasó de 10.64 KiB a 585.37 KiB comprimido (límite: 3 MB).
+  - Arranque en frío: de 4 ms a 108 ms, medido en Node.
+  - CPU por mensaje, estimado en Node con un DeepSeek simulado: unos 3.5 ms con una consulta y respuesta corta, y unos 18 ms con una consulta y una respuesta de 800 fragmentos. No está medido en producción.
+  - Versiones: `@langchain/deepseek` 1.1.24, `@langchain/core` 1.3.7 y `zod` 4.6.7. No hicieron falta el paquete `langchain` ni `nodejs_compat`.
+- **2026-11-11 · Asistente: prueba con DeepSeek real.** Modelo `deepseek-flash` (DeepSeek-V4.1-Flash), confirmado en `GET /models`.
+  - Las cifras y los productos de cuatro preguntas coincidieron con SQL: agotados, valor del inventario, "cafe" sin acento y los 3 más caros.
+  - Declinó una pregunta fuera de tema y "ponle 5 a la leche", y la tabla `productos` quedó igual.
+  - Respondió sin Markdown ni emojis, con precios como `$1,234.50`.
+  - No llega `reasoning_content`.
+  - Un mensaje con una consulta hace dos llamadas: unos 2 600 tokens en total, casi todos de entrada y la mayoría desde la caché de DeepSeek (1 223 + 1 310 de entrada y 24 + 34 de salida). La respuesta completa tardó de 1 a 2 s.
+  - En el navegador funcionó una pregunta de seguimiento que dependía de la anterior.
 
 ## Historial
 
@@ -38,8 +59,12 @@ Decisiones tomadas con el usuario y datos que no se deducen del código. Agrega 
 - 2026-10-16 · Actualización en tiempo real con Durable Objects.
 - 2026-10-18 · Pase de pulido con la skill impeccable.
 - 2026-10-19 · Se instaló `@playwright/test` como dependencia de desarrollo y Chromium (fuera del proyecto, en la caché de Playwright) para probar la interfaz en un navegador. Aún no hay pruebas escritas ni configuración. Arch Linux no está soportado oficialmente; usa la compilación de ubuntu24.04 y arrancó bien.
+- 2026-11-10 · Asistente del inventario con DeepSeek y LangChain.js (etapa 0): ruta `POST /api/asistente` e interfaz de chat. El 2026-11-11 se probó contra DeepSeek real.
 
 ## Pendiente
 
 - ~~No existe `PRODUCT.md`~~ Creado el 2026-10-18 con `/impeccable init`. `DESIGN.md` (con `.impeccable/design.json`) creado el mismo día con `/impeccable document`: Estrella polar "El cuaderno de inventario", componentes "refinados y silenciosos", anti-referencia: emojis y mascotas.
 - No hay pruebas automatizadas en el repositorio. Las verificaciones se hicieron con scripts que están fuera del proyecto.
+- El plan de las etapas siguientes del asistente está en `PLAN.md`, en la raíz de la carpeta principal del repositorio.
+- Asistente: medir el CPU ya publicado.
+- Asistente: no se pudo verificar en la interfaz el teclado virtual y el área segura de iOS, lectores de pantalla reales, Safari ni Firefox.

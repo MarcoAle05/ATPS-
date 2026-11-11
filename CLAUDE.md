@@ -20,7 +20,7 @@ Reglas por carpeta en `.claude/rules/` (se cargan solas al trabajar con esos arc
 | Ver registros en producción | `npx wrangler tail inventario` |
 
 - `dev` y `deploy` ejecutan antes `npm run preparar`, que copia el lector ZXing de `node_modules` a `public/vendor/`.
-- `npm run dev` necesita `.dev.vars` con `PIMIENTA` y `CODIGO_CONFIGURACION` (valores solo locales; Wrangler no los sube).
+- `npm run dev` necesita `.dev.vars` con `PIMIENTA`, `CODIGO_CONFIGURACION` y `DEEPSEEK_API_KEY` (valores solo locales; Wrangler no los sube). Sin `DEEPSEEK_API_KEY` la app funciona igual, pero el asistente responde 503. El modelo del asistente es la variable `MODELO_ASISTENTE` de `wrangler.jsonc`, no un secreto.
 - Publicar usa la sesión OAuth de Wrangler del usuario; si expiró, él debe correr `npx wrangler login`. La conexión MCP de Cloudflare no puede subir archivos estáticos ni crear tokens, así que no sirve para publicar.
 - No hay pruebas automatizadas, linter ni paso de compilación en el repositorio. Para verificar: `node --check <archivo>` y probar contra `npm run dev` (la API con `curl`, la interfaz en un navegador). La cookie de sesión es `Secure` con prefijo `__Host-`: usa `http://localhost:8787`, no `127.0.0.1`.
 
@@ -40,6 +40,8 @@ Reglas por carpeta en `.claude/rules/` (se cargan solas al trabajar con esos arc
 
 **Tiempo real** (`src/tiempo-real.js` y `public/js/tiempo-real.js`): un Durable Object `Difusor` (`getByName('inventario')`) mantiene un WebSocket por página abierta, con la API de hibernación y respuesta automática a `ping`. Cada socket lleva las etiquetas `usuario:<id>`, `sesion:<hash>` y `rol:<rol>`. Un aviso de producto solo dice `{ tipo: 'producto', codigo }`: el navegador vuelve a pedir ese producto (`refrescarProducto` en `app.js`, que agrupa avisos repetidos), así los cambios simultáneos nunca dejan un valor viejo. Cerrar con código 4001 significa "sesión terminada" (bloqueo, cuenta eliminada o cierre de sesión).
 
+**Asistente** (`src/asistente.js`): `POST /api/asistente`, nivel `admin`, porque cada mensaje gasta saldo de DeepSeek. Usa LangChain.js con `ChatDeepSeek`, `bindTools` y un bucle propio: hasta 4 llamadas al modelo y 6 consultas por mensaje, y la última llamada va sin herramientas. Las herramientas (`buscar_productos` y `resumen_inventario`) viven en `src/consultas-inventario.js`, que calcula los totales en SQL para que el modelo no tenga que sumar. La respuesta es `text/event-stream` con eventos `data: {json}`: `texto` (un fragmento), `consulta` (se consultó el inventario), `fin` y `error`. El historial vive en la memoria de la página: el navegador lo reenvía completo en cada pregunta (`validarConversacion`) y se pierde al recargar. El cliente es `public/js/asistente.js`, con el `<dialog id="asistente">` de `index.html`.
+
 **Cliente** (`public/js/`): `inicio.js` comprueba la sesión y muestra `sesion.js` (acceso) o la app: `app.js` (cámara, panel de producto, formulario e inventario), `usuarios.js` (panel del admin) y `tiempo-real.js`. Lo compartido está en `comun.js` (llamadas a la API, animaciones, iconos, botón de mantener presionado). `api()` lanza los eventos `sesion-perdida` y `permisos-cambiados` en `window`, e `inicio.js` responde recargando la página.
 
 ## Restricciones que no son obvias
@@ -47,4 +49,9 @@ Reglas por carpeta en `.claude/rules/` (se cargan solas al trabajar con esos arc
 - **Nunca cambies ni regeneres el secreto `PIMIENTA`**: invalidaría todas las contraseñas guardadas.
 - **CPU:** el plan de Cloudflare da 10 ms por petición. Iniciar sesión usa unos 20 ms por PBKDF2 y se tolera porque es ocasional; no agregues más trabajo de CPU a las rutas de cuentas.
 - Toda mutación de productos debe llamar a `avisarCambioDeProducto`, y los cambios de cuentas a sus avisos de `tiempo-real.js`; si no, las otras páginas abiertas no se enteran.
+- **Asistente:**
+  - `src/worker.js` importa `asistente.js` de forma estática a propósito: así LangChain se evalúa al arrancar el Worker y no dentro de la primera petición al asistente, que tiene 10 ms de CPU. No lo cambies por un `import()` dinámico.
+  - Cada fragmento de la respuesta cuesta CPU (unos 20 µs en la estimación local): no agregues trabajo por fragmento.
+  - El razonamiento de DeepSeek va desactivado con `modelKwargs: { thinking: { type: 'disabled' } }`. Con razonamiento y herramientas, DeepSeek exige que se le devuelva `reasoning_content`, y el conversor de mensajes de LangChain no lo manda.
+  - Lo que el asistente puede hacer lo limitan sus herramientas, no el prompt: solo leen la tabla `productos`. Una herramienta nueva amplía lo que puede conseguir cualquier texto que llegue al modelo, incluidos los nombres de producto.
 - El sistema visual salió de las skills instaladas en `.claude/skills/` (Emil Kowalski, `better-*` de Jakub Krehel e `impeccable`). Sus valores concretos están en `.claude/rules/interfaz.md`.
