@@ -123,14 +123,15 @@ export async function borrarSesion(env, sesionId) {
 
 const ahora = () => Math.floor(Date.now() / 1000);
 
-export async function comprobarLimite(env, clave, maximo, ventana) {
+// motivo: inicio del mensaje de error ("Demasiados intentos" en las rutas de cuentas).
+export async function comprobarLimite(env, clave, maximo, ventana, { motivo = 'Demasiados intentos' } = {}) {
   const fila = await env.DB.prepare('SELECT COUNT(*) AS n, MIN(momento) AS primero FROM intentos WHERE clave = ? AND momento > ?')
     .bind(clave, ahora() - ventana)
     .first();
   if (fila.n < maximo) return;
   const espera = Math.max(60, fila.primero + ventana - ahora());
   const minutos = Math.ceil(espera / 60);
-  throw new ErrorApi(429, `Demasiados intentos. Vuelve a intentarlo en ${minutos} ${minutos === 1 ? 'minuto' : 'minutos'}.`, {
+  throw new ErrorApi(429, `${motivo}. Vuelve a intentarlo en ${minutos} ${minutos === 1 ? 'minuto' : 'minutos'}.`, {
     cabeceras: { 'Retry-After': String(espera) },
   });
 }

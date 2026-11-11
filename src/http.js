@@ -32,13 +32,14 @@ export function exigir(resultado, campo) {
 
 const TAMANO_MAXIMO = 10 * 1024;
 
-export async function leerJson(request) {
+// tamanoMaximo: en caracteres del texto recibido. Las rutas que necesitan más que el valor normal lo indican.
+export async function leerJson(request, tamanoMaximo = TAMANO_MAXIMO) {
   const tipo = request.headers.get('Content-Type') ?? '';
   if (!tipo.toLowerCase().startsWith('application/json')) {
     throw new ErrorApi(415, 'Envía los datos en formato JSON.');
   }
   const texto = await request.text();
-  if (texto.length > TAMANO_MAXIMO) throw new ErrorApi(413, 'Los datos enviados son demasiado grandes.');
+  if (texto.length > tamanoMaximo) throw new ErrorApi(413, 'Los datos enviados son demasiado grandes.');
   let datos;
   try {
     datos = JSON.parse(texto);

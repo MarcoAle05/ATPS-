@@ -1,4 +1,4 @@
-// Reglas de validación compartidas por el navegador (app.js) y el servidor (server.js).
+// Reglas de validación compartidas por el navegador (app.js) y el Worker (src/).
 // Cada validador devuelve { ok: true, valor } o { ok: false, error }.
 
 export const NOMBRE_MAX = 250;
@@ -221,4 +221,42 @@ export function validarCodigoConfiguracion(entrada) {
   if (codigo === '') return falla('Escribe el código de configuración.');
   if (!/^[A-Z0-9]{16}$/.test(codigo)) return falla('El código tiene 16 letras y números (por ejemplo, ABCD-EFGH-JKLM-NPQR).');
   return ok(codigo);
+}
+
+// ---------- Asistente ----------
+
+// El navegador guarda la conversación y la manda completa en cada pregunta.
+export const ASISTENTE_MENSAJES_MAX = 20;
+export const ASISTENTE_PREGUNTA_MAX = 500;
+export const ASISTENTE_RESPUESTA_MAX = 4000;
+// Tamaño máximo del cuerpo de POST /api/asistente (como lo mide leerJson en el Worker).
+// Si la conversación no cabe, el navegador debe quitar los mensajes más viejos.
+export const ASISTENTE_CUERPO_MAX = 32 * 1024;
+
+const LIMITES_ASISTENTE = { usuario: ASISTENTE_PREGUNTA_MAX, asistente: ASISTENTE_RESPUESTA_MAX };
+const CONVERSACION_INVALIDA = 'La conversación no tiene un formato válido. Empieza una nueva.';
+
+// Solo existen los roles "usuario" y "asistente": el navegador no puede mandar mensajes de sistema ni de herramienta.
+// Devuelve los mensajes con el texto en NFC y sin espacios en los extremos (los saltos de línea internos se conservan).
+export function validarConversacion(entrada) {
+  if (!Array.isArray(entrada) || entrada.length === 0) return falla('Escribe una pregunta.');
+  if (entrada.length > ASISTENTE_MENSAJES_MAX) {
+    return falla(`La conversación es demasiado larga (máximo ${ASISTENTE_MENSAJES_MAX} mensajes). Empieza una nueva.`);
+  }
+  const mensajes = [];
+  for (const mensaje of entrada) {
+    if (!mensaje || typeof mensaje !== 'object' || Array.isArray(mensaje)) return falla(CONVERSACION_INVALIDA);
+    const { rol, texto } = mensaje;
+    if (!Object.hasOwn(LIMITES_ASISTENTE, rol) || typeof texto !== 'string') return falla(CONVERSACION_INVALIDA);
+    const limpio = texto.normalize('NFC').replace(/\r\n?/g, '\n').trim();
+    if (limpio === '') return falla(rol === 'usuario' ? 'Escribe una pregunta.' : CONVERSACION_INVALIDA);
+    if (longitud(limpio) > LIMITES_ASISTENTE[rol]) {
+      return falla(rol === 'usuario'
+        ? `La pregunta no puede pasar de ${ASISTENTE_PREGUNTA_MAX} caracteres.`
+        : 'Una respuesta anterior es demasiado larga. Empieza una nueva conversación.');
+    }
+    mensajes.push({ rol, texto: limpio });
+  }
+  if (mensajes.at(-1).rol !== 'usuario') return falla('El último mensaje debe ser tu pregunta.');
+  return ok(mensajes);
 }

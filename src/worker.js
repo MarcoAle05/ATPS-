@@ -3,6 +3,9 @@ import { ErrorApi, respuestaDeError, json } from './http.js';
 import { leerSesion } from './seguridad.js';
 import * as cuentas from './cuentas.js';
 import * as productos from './productos.js';
+// Importación normal, no dinámica: así LangChain se evalúa al arrancar el Worker (límite de 1 s)
+// y no dentro de la primera petición al asistente (límite de 10 ms de CPU).
+import { conversar } from './asistente.js';
 import { conectar as conectarTiempoReal } from './tiempo-real.js';
 
 export { Difusor } from './tiempo-real.js';
@@ -30,6 +33,9 @@ const RUTAS = [
   ['GET', /^\/api\/usuarios$/, 'admin', cuentas.listarUsuarios],
   ['PATCH', /^\/api\/usuarios\/(\d{1,15})$/, 'admin', cuentas.actualizarUsuario],
   ['DELETE', /^\/api\/usuarios\/(\d{1,15})$/, 'admin', cuentas.eliminarUsuario],
+
+  // Cada mensaje gasta saldo de DeepSeek: solo el administrador.
+  ['POST', /^\/api\/asistente$/, 'admin', conversar],
 ];
 
 function buscarRuta(metodo, camino) {

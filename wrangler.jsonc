@@ -23,7 +23,10 @@
       "database_id": "c2e224ab-02bb-4981-bf4d-7817b84d0faf",
       "migrations_dir": "migrations"
     }
-  ]
-  // Secretos (no van en este archivo): PIMIENTA y CODIGO_CONFIGURACION.
+  ],
+  // Modelo de DeepSeek que usa el asistente (src/asistente.js).
+  "vars": { "MODELO_ASISTENTE": "deepseek-flash" }
+  // Secretos (no van en este archivo): PIMIENTA, CODIGO_CONFIGURACION y DEEPSEEK_API_KEY.
+  // Sin DEEPSEEK_API_KEY la app funciona igual, pero el asistente responde 503 (asistente-sin-configurar).
   // En local se leen de .dev.vars; en Cloudflare se guardan como secretos del Worker.
 }
