@@ -27,6 +27,9 @@ const CABECERAS_FLUJO = {
 };
 
 const OCUPADO = 'El asistente está ocupado. Intenta de nuevo en unos segundos.';
+// Se agrega al final si la respuesta se cortó (por max_tokens o por el máximo de texto). Su espacio está reservado
+// dentro de ASISTENTE_RESPUESTA_MAX, así que siempre cabe.
+const AVISO_INCOMPLETA = '\n\n(La respuesta quedó incompleta. Pide menos detalle.)';
 
 // Crear el formateador cuesta CPU: se hace una sola vez por instancia del Worker.
 const FORMATO_FECHA = new Intl.DateTimeFormat('es-MX', { dateStyle: 'full', timeZone: 'America/Mexico_City' });
@@ -210,13 +213,17 @@ async function responder(conversacion, primera, emitir) {
   const { herramientas, historial, control } = conversacion;
   // El navegador vuelve a mandar esta respuesta en la conversación: no puede pasar del máximo que acepta el validador.
   // Se cuenta en unidades UTF-16, que nunca son menos que los caracteres que cuenta validarConversacion.
+  // El texto del modelo llega como mucho hasta el tope; el resto queda para AVISO_INCOMPLETA.
+  const TOPE_TEXTO = ASISTENTE_RESPUESTA_MAX - AVISO_INCOMPLETA.length;
   let escrito = 0;
-  const emitirTexto = (texto) => {
-    const restante = ASISTENTE_RESPUESTA_MAX - escrito;
+  const emitirTexto = (texto, tope = TOPE_TEXTO) => {
+    const restante = tope - escrito;
     if (restante <= 0) return false;
-    const parte = texto.length > restante ? [...texto].slice(0, restante).join('') : texto;
+    let parte = texto.length > restante ? texto.slice(0, restante) : texto;
+    // Sin partir un par sustituto (un emoji, por ejemplo): se quita la mitad que quedó sola.
+    if (parte.length < texto.length && /[\uD800-\uDBFF]$/.test(parte)) parte = parte.slice(0, -1);
     escrito += parte.length;
-    emitir({ tipo: 'texto', texto: parte });
+    if (parte) emitir({ tipo: 'texto', texto: parte });
     return parte === texto;
   };
 
@@ -261,7 +268,7 @@ async function responder(conversacion, primera, emitir) {
         emitir({ tipo: 'error', error: 'El asistente no pudo completar la respuesta. Intenta con una pregunta más concreta.' });
         return;
       }
-      if (razon === 'length') emitirTexto('\n\n(La respuesta quedó incompleta. Pide menos detalle.)');
+      if (recortado || razon === 'length') emitirTexto(AVISO_INCOMPLETA, ASISTENTE_RESPUESTA_MAX);
       emitir({ tipo: 'fin' });
       return;
     }

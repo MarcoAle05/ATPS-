@@ -40,6 +40,9 @@
     <symbol id="i-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/></symbol>
     <symbol id="i-circle-check" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8.5 12 2.5 2.5 4.5-5"/></symbol>
     <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></symbol>
+    <symbol id="i-message-square-text" viewBox="0 0 24 24"><path d="M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z"/><path d="M7 11h10"/><path d="M7 15h6"/><path d="M7 7h8"/></symbol>
+    <symbol id="i-arrow-up" viewBox="0 0 24 24"><path d="m5 12 7-7 7 7"/><path d="M12 19V5"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol>
     <symbol id="i-package" viewBox="0 0 24 24"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></symbol>
   </svg>
 
@@ -216,6 +219,11 @@
         <span class="cuenta-nombre" id="cuenta-nombre"></span>
         <span class="insignia" id="cuenta-rol"></span>
       </span>
+      <!-- Solo el administrador lo ve (inicio.js lo muestra). -->
+      <button type="button" class="boton chico" id="btn-asistente" aria-haspopup="dialog" aria-controls="asistente" hidden>
+        <svg class="icono" aria-hidden="true"><use href="#i-message-square-text"/></svg>
+        Asistente
+      </button>
       <button type="button" class="boton chico" id="btn-salir">
         <svg class="icono" aria-hidden="true"><use href="#i-log-out"/></svg>
         Salir
@@ -448,6 +456,54 @@
       </p>
     </section>
   </main>
+
+  <!-- Asistente del inventario (solo administrador). La conversación vive en la memoria de la página. -->
+  <dialog class="asistente" id="asistente" aria-labelledby="asistente-titulo">
+    <div class="asistente-cabecera">
+      <h2 id="asistente-titulo">Asistente del inventario</h2>
+      <button type="button" class="boton chico" id="btn-asistente-nueva" disabled>
+        <svg class="icono" aria-hidden="true"><use href="#i-plus"/></svg>
+        Nueva<span class="texto-amplio"> conversación</span>
+      </button>
+      <button type="button" class="boton cuadrado asistente-cerrar" id="btn-asistente-cerrar" aria-label="Cerrar el asistente">
+        <svg class="icono" aria-hidden="true"><use href="#i-x"/></svg>
+      </button>
+    </div>
+
+    <div class="asistente-mensajes" id="asistente-mensajes">
+      <div class="asistente-vacio" id="asistente-vacio">
+        <p class="vista-texto">Pregunta por productos, cantidades, precios o el valor del inventario. El asistente solo consulta: no cambia nada.</p>
+        <ul class="sugerencias" aria-label="Preguntas sugeridas">
+          <li><button type="button" class="sugerencia">¿Qué productos están agotados?</button></li>
+          <li><button type="button" class="sugerencia">¿Cuánto vale mi inventario?</button></li>
+          <li><button type="button" class="sugerencia">¿Cuáles son los 5 productos con más existencias?</button></li>
+        </ul>
+      </div>
+      <ol class="conversacion" id="asistente-conversacion" aria-label="Conversación"></ol>
+    </div>
+
+    <!-- Solo para lectores de pantalla: "Consultando el inventario…" y, al terminar, la respuesta completa. -->
+    <p class="solo-lector" id="asistente-anuncio" role="status"></p>
+
+    <form class="asistente-formulario" id="asistente-formulario" novalidate>
+      <label class="solo-lector" for="asistente-pregunta">Tu pregunta</label>
+      <div class="asistente-campo">
+        <textarea id="asistente-pregunta" rows="1" maxlength="500" enterkeyhint="send" autocomplete="off"
+                  placeholder="Pregunta sobre tu inventario" aria-describedby="asistente-ayuda asistente-limite"></textarea>
+        <button type="submit" class="boton primario asistente-enviar" id="btn-asistente-enviar" data-activa="false" aria-label="Enviar pregunta" aria-disabled="true">
+          <span class="icono-par" aria-hidden="true">
+            <svg class="icono icono-a"><use href="#i-arrow-up"/></svg>
+            <svg class="icono icono-b"><use href="#i-stop"/></svg>
+          </span>
+        </button>
+      </div>
+      <p class="ayuda" id="asistente-ayuda">
+        <span class="asistente-atajo">Enter envía. Mayús + Enter hace un salto de línea.</span>
+        <span class="contador-caracteres" id="asistente-contador" hidden></span>
+      </p>
+      <p class="error" id="asistente-limite" aria-live="polite"></p>
+    </form>
+  </dialog>
   </div>
 </body>
 </html>

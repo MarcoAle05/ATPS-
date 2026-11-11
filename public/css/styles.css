@@ -31,6 +31,9 @@
   --color-visor-guia: oklch(1 0 0 / 0.9);
   --color-laser: oklch(0.72 0.16 262);
   --color-selection: oklch(0.87 0.05 262);
+  /* Fondo detrás del diálogo del asistente: tinta translúcida sobre el escritorio.
+     Hoja contra la página velada: 3.47:1 en claro; en oscuro 1.14:1, y la separa el anillo del borde. */
+  --color-velo: oklch(0.23 0.015 260 / 0.5);
 
   --shadow-border:
     0px 0px 0px 1px oklch(0 0 0 / 0.06),
@@ -68,6 +71,7 @@
     --color-danger-subtle: oklch(0.27 0.05 27);
     --color-visor: oklch(0.13 0.01 260);
     --color-selection: oklch(0.4 0.1 262);
+    --color-velo: oklch(0.08 0.01 260 / 0.7);
 
     --shadow-border: 0 0 0 1px oklch(1 0 0 / 0.08);
     --shadow-border-hover: 0 0 0 1px oklch(1 0 0 / 0.13);
@@ -926,6 +930,8 @@ input::placeholder { color: var(--color-text-muted); }
     border-top: 1px solid var(--color-border-subtle);
   }
   .cuenta .boton { margin-left: auto; }
+  /* Con «Asistente» visible, «Salir» queda junto a él a la derecha (el margen automático lo lleva el primero). */
+  .cuenta .boton:not([hidden]) ~ .boton { margin-left: 0; }
 }
 
 /* Aviso para cuentas de solo lectura. */
@@ -975,4 +981,175 @@ input::placeholder { color: var(--color-text-muted); }
   /* Correo y fechas, uno por línea. */
   .usuario-detalle .separador { display: none; }
   .usuario-detalle > span { display: block; }
+}
+
+/* ---------- Asistente ---------- */
+
+/* La página de atrás no se desplaza mientras el diálogo está abierto. */
+html:has(.asistente[open]) { overflow: hidden; }
+
+/* Hoja inferior en celular; panel lateral derecho desde 860 px. */
+.asistente {
+  position: fixed;
+  inset: auto 0 0;
+  width: 100%;
+  max-width: none;
+  height: min(85dvh, 760px);
+  max-height: calc(100dvh - 16px);
+  margin: 0;
+  padding: 0;
+  border: 1px solid transparent; /* el modo de alto contraste pinta este borde */
+  border-radius: var(--radio-panel) var(--radio-panel) 0 0;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-border-hover); /* el anillo más marcado: en oscuro es lo que separa la hoja del fondo */
+  color: var(--color-text);
+  overflow: hidden;
+}
+.asistente[open] { display: flex; flex-direction: column; }
+.asistente::backdrop { background: var(--color-velo); }
+
+@media (min-width: 860px) {
+  .asistente {
+    inset: 0 0 0 auto;
+    width: min(480px, 100vw);
+    height: 100dvh;
+    max-height: none;
+    border-radius: var(--radio-panel) 0 0 var(--radio-panel);
+  }
+}
+
+.asistente-cabecera {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 12px 12px 20px;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+.asistente-cabecera h2 { flex: 1; min-width: 0; margin: 0; font-size: 1.0625rem; font-weight: 650; }
+
+.asistente-mensajes {
+  flex: 1;
+  min-height: 0;
+  padding: 20px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.asistente-vacio .vista-texto { max-width: 40ch; margin: 0; }
+.sugerencias { display: grid; gap: 8px; margin: 16px 0 0; padding: 0; list-style: none; }
+.sugerencia {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 14px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radio-control);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-size: 0.9375rem;
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition: background-color 150ms ease, scale 150ms var(--ease-out);
+}
+@media (hover: hover) and (pointer: fine) {
+  .sugerencia:hover { background: var(--color-surface-sunken); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .sugerencia:active { scale: 0.96; }
+}
+
+.conversacion { display: grid; gap: 24px; margin: 0; padding: 0; list-style: none; }
+.turno { display: grid; gap: 10px; min-width: 0; }
+
+/* Códigos de 64 caracteres y nombres de 250: se parten donde haga falta. */
+.pregunta,
+.respuesta-texto {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.pregunta {
+  justify-self: end;
+  max-width: 85%;
+  min-width: 0;
+  padding: 8px 12px;
+  border-radius: 12px 12px 4px 12px;
+  background: var(--color-surface-sunken);
+}
+.respuesta { min-width: 0; }
+
+.respuesta-progreso {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 0.9375rem;
+}
+.respuesta-progreso .icono { width: 16px; height: 16px; }
+.respuesta-texto + .respuesta-progreso { margin-top: 8px; }
+
+.respuesta-cierre:empty { display: none; }
+.respuesta-cierre { display: grid; justify-items: start; gap: 8px; margin-top: 8px; }
+.respuesta-nota { margin: 0; color: var(--color-text-muted); font-size: 0.8125rem; font-weight: 600; }
+.respuesta-error { margin: 0; overflow-wrap: anywhere; }
+
+.asistente-formulario {
+  padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--color-border-subtle);
+}
+.asistente-campo { display: flex; align-items: flex-end; gap: 8px; }
+.asistente-campo textarea {
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  max-height: 9.5rem;
+  padding: 9px 12px;
+  border: 1px solid var(--color-border-control);
+  border-radius: var(--radio-control);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-size: 1rem; /* 16 px o más: iOS no acerca la página al enfocar */
+  line-height: 1.5;
+  resize: none;
+  overflow-y: auto;
+  transition: border-color 150ms ease;
+}
+.asistente-campo textarea::placeholder { color: var(--color-text-muted); }
+.asistente-enviar { width: 44px; min-height: 44px; padding: 0; flex: none; }
+.asistente-enviar[aria-disabled="true"] { opacity: 0.45; cursor: not-allowed; }
+@media (prefers-reduced-motion: no-preference) {
+  .asistente-enviar[aria-disabled="true"]:active { scale: 1; }
+}
+@media (hover: hover) and (pointer: fine) {
+  .boton.primario.asistente-enviar[aria-disabled="true"]:hover { background: var(--color-accent-solid); }
+}
+.asistente-formulario .ayuda { margin-top: 6px; }
+.contador-caracteres[data-tope="true"] { color: var(--color-danger-text); font-weight: 600; }
+.asistente-formulario .error { margin-top: 4px; }
+
+/* En el celular: cerrar con área táctil de 44 px y el atajo de teclado no aplica. */
+@media (max-width: 859px) {
+  .boton.asistente-cerrar { width: 44px; min-height: 44px; }
+  .asistente-cerrar .icono { width: 20px; height: 20px; }
+}
+@media (pointer: coarse) {
+  .asistente-atajo { visibility: hidden; }
+}
+@media (max-width: 479px) {
+  .asistente-cabecera { padding-left: 16px; }
+  .asistente-mensajes { padding: 16px; }
+  .asistente-formulario { padding-inline: 12px; }
+  /* «Nueva conversación» se ve como «Nueva»; el nombre accesible sigue completo. */
+  .texto-amplio {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
 }

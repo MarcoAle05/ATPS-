@@ -3,6 +3,7 @@ import { $, api, iniciales, TEXTO_ROL, TONO_ROL } from './comun.js';
 import { mostrarAcceso } from './sesion.js';
 import { iniciarInventario, refrescarProducto, resincronizarInventario } from './app.js';
 import { iniciarUsuarios, recargarUsuarios } from './usuarios.js';
+import { iniciarAsistente } from './asistente.js';
 import { conectarTiempoReal, detenerTiempoReal } from './tiempo-real.js';
 
 const el = {
@@ -43,7 +44,10 @@ function mostrarApp(usuario) {
   document.title = 'Inventario · Lector de códigos de barras';
   iniciarInventario(usuario);
   const esAdmin = usuario.rol === 'admin';
-  if (esAdmin) iniciarUsuarios();
+  if (esAdmin) {
+    iniciarUsuarios();
+    iniciarAsistente();
+  }
   conectarTiempoReal({
     alCambiarProducto: refrescarProducto,
     alCambiarUsuarios: esAdmin ? recargarUsuarios : undefined,

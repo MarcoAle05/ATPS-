@@ -9,7 +9,23 @@ const formatoFecha = new Intl.DateTimeFormat('es-MX', { day: 'numeric', month: '
 // D1 guarda fechas UTC como "AAAA-MM-DD HH:MM:SS".
 export const formatearFecha = (texto) => (texto ? formatoFecha.format(new Date(`${texto.replace(' ', 'T')}Z`)) : '');
 
+export const SIN_CONEXION = 'No hay conexión con el servidor. Revisa tu internet e inténtalo de nuevo.';
+
+// Convierte una respuesta fallida (y su cuerpo JSON, si lo hubo) en un Error con status, campo y codigo.
 // Si el servidor dice que la sesión terminó o que cambiaron los permisos, avisa a inicio.js.
+export function errorDeRespuesta(respuesta, datos) {
+  // Sin mensaje propio (p. ej., Cloudflare cortó la petición por límite de recursos): pedir reintentar.
+  const mensaje = datos?.error
+    || (respuesta.status >= 500 ? 'El servidor no pudo responder. Inténtalo de nuevo en unos segundos.' : `Error ${respuesta.status}`);
+  const error = new Error(mensaje);
+  error.status = respuesta.status;
+  error.campo = datos?.campo;
+  error.codigo = datos?.codigo;
+  if (datos?.codigo === 'sin-sesion') window.dispatchEvent(new CustomEvent('sesion-perdida'));
+  if (datos?.codigo === 'sin-permiso') window.dispatchEvent(new CustomEvent('permisos-cambiados'));
+  return error;
+}
+
 export async function api(url, { method = 'GET', body } = {}) {
   const opciones = { method, credentials: 'same-origin' };
   if (body !== undefined) {
@@ -20,21 +36,10 @@ export async function api(url, { method = 'GET', body } = {}) {
   try {
     respuesta = await fetch(url, opciones);
   } catch {
-    throw new Error('No hay conexión con el servidor. Revisa tu internet e inténtalo de nuevo.');
+    throw new Error(SIN_CONEXION);
   }
   const datos = respuesta.status === 204 ? null : await respuesta.json().catch(() => null);
-  if (!respuesta.ok) {
-    // Sin mensaje propio (p. ej., Cloudflare cortó la petición por límite de recursos): pedir reintentar.
-    const mensaje = datos?.error
-      || (respuesta.status >= 500 ? 'El servidor no pudo responder. Inténtalo de nuevo en unos segundos.' : `Error ${respuesta.status}`);
-    const error = new Error(mensaje);
-    error.status = respuesta.status;
-    error.campo = datos?.campo;
-    error.codigo = datos?.codigo;
-    if (datos?.codigo === 'sin-sesion') window.dispatchEvent(new CustomEvent('sesion-perdida'));
-    if (datos?.codigo === 'sin-permiso') window.dispatchEvent(new CustomEvent('permisos-cambiados'));
-    throw error;
-  }
+  if (!respuesta.ok) throw errorDeRespuesta(respuesta, datos);
   return datos;
 }
 
