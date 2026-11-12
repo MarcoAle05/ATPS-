@@ -6,6 +6,8 @@ Inventario con lector de códigos de barras en el navegador, publicado en Cloudf
 
 Decisiones tomadas con el usuario, datos de la publicación e historial: @MEMORY.md
 
+Plan de las etapas siguientes del asistente, forma de trabajo entre sesiones y siguiente paso: `PLAN.md`, en la raíz de la carpeta principal (`/home/marco05/Lectorcodigodebarras/PLAN.md`). Léelo antes de planear o de empezar un encargo.
+
 Reglas por carpeta en `.claude/rules/` (se cargan solas al trabajar con esos archivos): `backend.md` (`src/`), `datos.md` (validación y migraciones) e `interfaz.md` (`public/`).
 
 ## Comandos
