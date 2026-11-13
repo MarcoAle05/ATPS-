@@ -2,12 +2,21 @@
 // DeepSeek, por medio de LangChain.js, decide qué consultar con las herramientas de consultas-inventario.js;
 // el Worker ejecuta esas consultas en D1 y le devuelve las filas. El modelo nunca recibe el inventario completo.
 // Solo consulta: ninguna herramienta modifica datos. El historial vive en el navegador y llega en cada petición.
+// Cada pregunta que llega a llamar al modelo deja una fila en el registro de ejecuciones (ejecuciones-asistente.js);
+// la respuesta lleva su id en la cabecera X-Ejecucion.
 import { ChatDeepSeek } from '@langchain/deepseek';
 import { AIMessage, HumanMessage, SystemMessage, ToolMessage } from '@langchain/core/messages';
+import { convertToOpenAITool } from '@langchain/core/utils/function_calling';
 import { ErrorApi, exigir, leerJson } from './http.js';
-import { validarConversacion, ASISTENTE_CUERPO_MAX, ASISTENTE_RESPUESTA_MAX } from '../public/js/validacion.js';
+import {
+  validarConversacion,
+  validarOrigenAsistente,
+  ASISTENTE_CUERPO_MAX,
+  ASISTENTE_RESPUESTA_MAX,
+} from '../public/js/validacion.js';
 import { comprobarLimite, anotarIntento } from './seguridad.js';
-import { crearHerramientas, ejecutarLlamada } from './consultas-inventario.js';
+import { DEFINICIONES, crearHerramientas, ejecutarLlamada } from './consultas-inventario.js';
+import { abrirRegistro, calcularVersion } from './ejecuciones-asistente.js';
 
 // Cada mensaje gasta saldo de DeepSeek.
 const MENSAJES_POR_VENTANA = 30;
@@ -20,6 +29,14 @@ const EJECUCIONES_MAX = 6;
 const ESPERA_INICIO = 20_000; // ms para que DeepSeek empiece a responder, en cada llamada
 const ESPERA_TOTAL = 60_000; // ms para todo el mensaje
 
+// Parámetros fijos de cada llamada a DeepSeek; forman parte de la versión de las instrucciones.
+// Sin razonamiento: menos espera y menos CPU. LangChain pasa modelKwargs tal cual en el cuerpo.
+const PARAMETROS_MODELO = {
+  temperature: 0.2,
+  maxTokens: 800,
+  modelKwargs: { thinking: { type: 'disabled' } },
+};
+
 const CABECERAS_FLUJO = {
   'Content-Type': 'text/event-stream; charset=utf-8',
   'Cache-Control': 'no-store',
@@ -30,14 +47,16 @@ const OCUPADO = 'El asistente está ocupado. Intenta de nuevo en unos segundos.'
 // Se agrega al final si la respuesta se cortó (por max_tokens o por el máximo de texto). Su espacio está reservado
 // dentro de ASISTENTE_RESPUESTA_MAX, así que siempre cabe.
 const AVISO_INCOMPLETA = '\n\n(La respuesta quedó incompleta. Pide menos detalle.)';
+// Respuesta a una llamada de herramienta cuando ya no queda cupo de consultas.
+const SIN_CUPO = 'Se alcanzó el límite de consultas para esta pregunta. Responde con los datos que ya tienes.';
 
 // Crear el formateador cuesta CPU: se hace una sola vez por instancia del Worker.
 const FORMATO_FECHA = new Intl.DateTimeFormat('es-MX', { dateStyle: 'full', timeZone: 'America/Mexico_City' });
 
-function instrucciones() {
-  const hoy = FORMATO_FECHA.format(new Date());
-  return `Eres el asistente del inventario de un negocio pequeño. Solo respondes preguntas sobre ese inventario.
-Hoy es ${hoy}.
+// La fecha cambia cada día: la plantilla lleva esta marca y la fecha se pone en cada petición.
+const MARCA_FECHA = '{fecha}';
+const PLANTILLA = `Eres el asistente del inventario de un negocio pequeño. Solo respondes preguntas sobre ese inventario.
+Hoy es ${MARCA_FECHA}.
 
 Datos:
 - Toda cifra que des (productos, precios, cantidades, valores, totales) debe salir de las herramientas buscar_productos o resumen_inventario. Consulta antes de responder.
@@ -55,7 +74,18 @@ Formato:
 Límites:
 - Solo puedes consultar el inventario. No puedes agregar, editar ni eliminar productos, ni cambiar cantidades o precios. Si te lo piden, explica que eso se hace desde la aplicación.
 - Si la pregunta no tiene que ver con el inventario, di que solo puedes ayudar con el inventario.`;
-}
+
+const instrucciones = () => PLANTILLA.replace(MARCA_FECHA, FORMATO_FECHA.format(new Date()));
+
+// Versión de todo lo fijo que el Worker le manda al modelo: la plantilla de las instrucciones (sin la fecha),
+// las herramientas tal como las recibe DeepSeek (nombre, descripción y esquema), los parámetros de la llamada
+// y el bucle (topes y respuesta sin cupo). Se calcula una vez por instancia, al cargar el módulo.
+const VERSION_INSTRUCCIONES = calcularVersion({
+  instrucciones: PLANTILLA,
+  herramientas: DEFINICIONES.map((definicion) => convertToOpenAITool(definicion)),
+  parametros: PARAMETROS_MODELO,
+  bucle: { llamadas: LLAMADAS_MAX, ejecuciones: EJECUCIONES_MAX, sinCupo: SIN_CUPO },
+});
 
 // Una sola señal de cancelación para todo el mensaje. La disparan el navegador al cerrar la conexión,
 // el tiempo total o una llamada al modelo que no empieza a responder a tiempo.
@@ -91,34 +121,41 @@ function crearControl() {
   };
 }
 
-// Pasa un error de DeepSeek (o del tiempo de espera) a [estado, mensaje para el dueño].
+// Pasa un error de DeepSeek (o del tiempo de espera) a { estado, mensaje para el dueño, motivo para el registro }.
 // LangChain deja el error del SDK de OpenAI tal cual: el estado HTTP queda en error.status.
-// Nunca se registra la clave ni la conversación.
-function traducirError(error, control) {
+// Nunca se registra la clave ni la conversación. Los motivos están en la migración 0002.
+function clasificarError(error, control) {
   if (control.motivo === 'tiempo') {
     console.error('Asistente: DeepSeek no respondió a tiempo.');
-    return [504, 'El asistente tardó demasiado en responder. Intenta de nuevo.'];
+    return { estado: 504, mensaje: 'El asistente tardó demasiado en responder. Intenta de nuevo.', motivo: 'tiempo' };
   }
   const estado = typeof error?.status === 'number' ? error.status : null;
   if (estado === null) {
     console.error('Asistente: error sin estado HTTP:', error?.name, String(error?.message ?? '').slice(0, 200));
-    return [503, OCUPADO];
+    return { estado: 503, mensaje: OCUPADO, motivo: 'sin-estado' };
   }
   // En 400 y 422 el detalle de DeepSeek explica qué parámetro rechazó (no incluye la conversación).
   const detalle = estado === 400 || estado === 422 ? String(error.message ?? '').slice(0, 200) : '';
   console.error(`Asistente: DeepSeek respondió ${estado}.`, detalle);
+  const motivo = `deepseek-${estado}`;
   if (estado === 401 || estado === 402) {
-    return [502, 'DeepSeek rechazó la clave del asistente o la cuenta se quedó sin saldo. Revisa tu cuenta de DeepSeek.'];
+    return {
+      estado: 502,
+      mensaje: 'DeepSeek rechazó la clave del asistente o la cuenta se quedó sin saldo. Revisa tu cuenta de DeepSeek.',
+      motivo,
+    };
   }
-  if (estado === 429 || estado >= 500) return [503, OCUPADO];
-  return [502, 'El asistente no pudo responder. Intenta de nuevo.'];
+  if (estado === 429 || estado >= 500) return { estado: 503, mensaje: OCUPADO, motivo };
+  return { estado: 502, mensaje: 'El asistente no pudo responder. Intenta de nuevo.', motivo };
 }
 
 const aMensaje = ({ rol, texto }) => (rol === 'usuario' ? new HumanMessage(texto) : new AIMessage(texto));
 
-export async function conversar({ request, env, usuario }) {
+export async function conversar({ request, env, ejecucion, usuario }) {
+  const inicio = Date.now();
   const datos = await leerJson(request, ASISTENTE_CUERPO_MAX);
   const mensajes = exigir(validarConversacion(datos.mensajes), 'mensajes');
+  const origen = exigir(validarOrigenAsistente(datos.origen), 'origen');
   if (!env.DEEPSEEK_API_KEY || !env.MODELO_ASISTENTE) {
     throw new ErrorApi(503, 'El asistente aún no está configurado: falta la clave de DeepSeek en los secretos del Worker.', {
       codigo: 'asistente-sin-configurar',
@@ -132,12 +169,10 @@ export async function conversar({ request, env, usuario }) {
   const modelo = new ChatDeepSeek({
     apiKey: env.DEEPSEEK_API_KEY, // explícita: en un Worker no hay process.env
     model: env.MODELO_ASISTENTE,
-    temperature: 0.2,
-    maxTokens: 800,
+    ...PARAMETROS_MODELO,
     maxRetries: 1, // LangChain reintenta 6 veces por defecto: no cabría en los tiempos de espera
-    streamUsage: false,
-    // Sin razonamiento: menos espera y menos CPU. LangChain pasa modelKwargs tal cual en el cuerpo.
-    modelKwargs: { thinking: { type: 'disabled' } },
+    // DeepSeek manda el uso de tokens en un fragmento extra al final de cada llamada; LangChain lo deja en usage_metadata.
+    streamUsage: true,
   });
   const herramientas = crearHerramientas(env);
   const conversacion = {
@@ -149,7 +184,23 @@ export async function conversar({ request, env, usuario }) {
     llamadas: 0,
     ejecuciones: 0,
     ultima: false,
+    // Para el registro de ejecuciones:
+    respuesta: '', // el texto tal como se emitió al navegador
+    consultas: [], // { nombre, argumentos, resultado } de cada llamada de herramienta, en orden
+    uso: { llamadas: 0, entrada: 0, salida: 0, cache: 0 }, // suma de las llamadas que informaron su uso
+    registro: abrirRegistro({
+      env,
+      ejecucion,
+      inicio,
+      usuarioId: usuario.id,
+      origen,
+      pregunta: mensajes.at(-1).texto,
+      mensajesPrevios: mensajes.length - 1,
+      modelo: env.MODELO_ASISTENTE,
+      versionInstrucciones: VERSION_INSTRUCCIONES,
+    }),
   };
+  const cabeceraEjecucion = { 'X-Ejecucion': conversacion.registro.id };
 
   // La primera llamada se hace antes de abrir el flujo: si DeepSeek la rechaza, la respuesta es un error JSON normal.
   let primera;
@@ -157,16 +208,45 @@ export async function conversar({ request, env, usuario }) {
     primera = await llamarModelo(conversacion);
   } catch (error) {
     control.limpiar();
-    const [estado, mensaje] = traducirError(error, control);
-    throw new ErrorApi(estado, mensaje);
+    const { estado, mensaje, motivo } = clasificarError(error, control);
+    cerrarRegistro(conversacion, { resultado: 'error', motivo });
+    throw new ErrorApi(estado, mensaje, { cabeceras: cabeceraEjecucion });
   }
-  return new Response(crearFlujo(conversacion, primera), { headers: CABECERAS_FLUJO });
+  return new Response(crearFlujo(conversacion, primera), { headers: { ...CABECERAS_FLUJO, ...cabeceraEjecucion } });
+}
+
+// Cierra la fila de esta pregunta en el registro con lo que se llegó a hacer.
+function cerrarRegistro(conversacion, { resultado, motivo = null }) {
+  const { uso, llamadas } = conversacion;
+  conversacion.registro.cerrar({
+    resultado,
+    motivo,
+    respuesta: conversacion.respuesta,
+    herramientas: conversacion.consultas,
+    llamadas,
+    // Solo si todas las llamadas informaron su uso: una suma parcial engaña.
+    tokens: llamadas > 0 && uso.llamadas === llamadas ? { entrada: uso.entrada, salida: uso.salida, cache: uso.cache } : null,
+  });
+}
+
+// Suma el uso de una llamada, si llegó completo (DeepSeek informa los tokens de caché en cached_tokens).
+function sumarUso(uso, metadatos) {
+  const entrada = metadatos?.input_tokens;
+  const salida = metadatos?.output_tokens;
+  const cache = metadatos?.input_token_details?.cache_read;
+  if (![entrada, salida, cache].every(Number.isSafeInteger)) return;
+  uso.llamadas++;
+  uso.entrada += entrada;
+  uso.salida += salida;
+  uso.cache += cache;
 }
 
 // Abre una llamada al modelo. stream() de LangChain espera al primer fragmento, así que aquí se notan
 // los rechazos de DeepSeek y la espera de inicio.
 async function llamarModelo(conversacion) {
   const { control } = conversacion;
+  // Si el navegador ya se fue o se acabó el tiempo, no se abre otra: llamadas cuenta solo las que se hicieron.
+  control.signal.throwIfAborted();
   conversacion.llamadas++;
   conversacion.ultima = conversacion.llamadas >= LLAMADAS_MAX || conversacion.ejecuciones >= EJECUCIONES_MAX;
   const modelo = conversacion.ultima ? conversacion.modelo : conversacion.conHerramientas;
@@ -191,10 +271,19 @@ function crearFlujo(conversacion, primera) {
   });
   const emitir = (evento) => controlador.enqueue(codificador.encode(`data: ${JSON.stringify(evento)}\n\n`));
 
+  // Cómo terminó, para el registro: lo devuelve responder o lo decide el error.
+  let final;
   responder(conversacion, primera, emitir)
+    .then((resultado) => {
+      final = resultado;
+    })
     .catch((error) => {
-      if (control.motivo === 'cliente') return; // ya no hay a quién avisar
-      const [, mensaje] = traducirError(error, control);
+      if (control.motivo === 'cliente') {
+        final = { resultado: 'interrumpida' }; // ya no hay a quién avisar
+        return;
+      }
+      const { mensaje, motivo } = clasificarError(error, control);
+      final = { resultado: 'error', motivo };
       emitir({ tipo: 'error', error: mensaje });
     })
     .catch(() => {}) // el navegador se fue mientras se avisaba del error
@@ -205,25 +294,30 @@ function crearFlujo(conversacion, primera) {
       } catch {
         // ya estaba cerrado o cancelado
       }
+      // final siempre queda definido arriba; la alternativa solo evita que la fila se quede sin escribir.
+      cerrarRegistro(conversacion, final ?? { resultado: 'error', motivo: 'sin-estado' });
     });
   return cuerpo;
 }
 
+// Devuelve cómo terminó, para el registro: { resultado, motivo }. Si algo falla, lanza y crearFlujo decide.
 async function responder(conversacion, primera, emitir) {
   const { herramientas, historial, control } = conversacion;
   // El navegador vuelve a mandar esta respuesta en la conversación: no puede pasar del máximo que acepta el validador.
-  // Se cuenta en unidades UTF-16, que nunca son menos que los caracteres que cuenta validarConversacion.
+  // Se cuenta en unidades UTF-16, que nunca son menos que los caracteres que cuentan validarConversacion y SQLite.
   // El texto del modelo llega como mucho hasta el tope; el resto queda para AVISO_INCOMPLETA.
+  // conversacion.respuesta guarda exactamente lo emitido: es lo que queda en el registro.
   const TOPE_TEXTO = ASISTENTE_RESPUESTA_MAX - AVISO_INCOMPLETA.length;
-  let escrito = 0;
   const emitirTexto = (texto, tope = TOPE_TEXTO) => {
-    const restante = tope - escrito;
+    const restante = tope - conversacion.respuesta.length;
     if (restante <= 0) return false;
     let parte = texto.length > restante ? texto.slice(0, restante) : texto;
     // Sin partir un par sustituto (un emoji, por ejemplo): se quita la mitad que quedó sola.
     if (parte.length < texto.length && /[\uD800-\uDBFF]$/.test(parte)) parte = parte.slice(0, -1);
-    escrito += parte.length;
-    if (parte) emitir({ tipo: 'texto', texto: parte });
+    if (parte) {
+      emitir({ tipo: 'texto', texto: parte });
+      conversacion.respuesta += parte;
+    }
     return parte === texto;
   };
 
@@ -237,7 +331,7 @@ async function responder(conversacion, primera, emitir) {
       const texto = typeof trozo.content === 'string' ? trozo.content : '';
       if (!texto) continue;
       // Texto de una ronda anterior (antes de consultar): se separa del nuevo.
-      if (!textoEnRonda && escrito > 0) emitirTexto('\n\n');
+      if (!textoEnRonda && conversacion.respuesta) emitirTexto('\n\n');
       textoEnRonda = true;
       if (!emitirTexto(texto)) {
         recortado = true;
@@ -245,32 +339,35 @@ async function responder(conversacion, primera, emitir) {
       }
     }
 
-    // Se alcanzó el máximo de texto: no hace falta el resto de la respuesta de DeepSeek.
+    // Se alcanzó el máximo de texto: no hace falta el resto de la respuesta de DeepSeek (ni su uso, que llega al final).
     if (recortado) control.abortar('recorte');
+    else sumarUso(conversacion.uso, acumulado?.usage_metadata);
 
     const llamadas = recortado ? [] : [
       ...(acumulado?.tool_calls ?? []),
       // Argumentos que no eran JSON: también necesitan respuesta, para que el modelo corrija.
-      ...(acumulado?.invalid_tool_calls ?? []).map(({ id, name }) => ({ id, name, args: {}, invalida: true })),
+      // En el registro quedan como texto, tal como llegaron.
+      ...(acumulado?.invalid_tool_calls ?? []).map(({ id, name, args }) => ({ id, name, args: {}, invalida: true, texto: args })),
     ];
 
     if (!llamadas.length || conversacion.ultima) {
       const razon = acumulado?.response_metadata?.finish_reason;
       if (razon === 'content_filter') {
         emitir({ tipo: 'error', error: 'El asistente no pudo responder esa pregunta. Intenta con otras palabras.' });
-        return;
+        return { resultado: 'error', motivo: 'filtro-contenido' };
       }
       if (razon === 'insufficient_system_resource') {
         emitir({ tipo: 'error', error: OCUPADO });
-        return;
+        return { resultado: 'error', motivo: 'sin-recursos' };
       }
-      if (escrito === 0) {
+      if (!conversacion.respuesta) {
         emitir({ tipo: 'error', error: 'El asistente no pudo completar la respuesta. Intenta con una pregunta más concreta.' });
-        return;
+        return { resultado: 'error', motivo: 'sin-texto' };
       }
-      if (recortado || razon === 'length') emitirTexto(AVISO_INCOMPLETA, ASISTENTE_RESPUESTA_MAX);
+      const incompleta = recortado || razon === 'length';
+      if (incompleta) emitirTexto(AVISO_INCOMPLETA, ASISTENTE_RESPUESTA_MAX);
       emitir({ tipo: 'fin' });
-      return;
+      return { resultado: incompleta ? 'incompleta' : 'bien' };
     }
 
     emitir({ tipo: 'consulta' });
@@ -278,11 +375,16 @@ async function responder(conversacion, primera, emitir) {
       content: typeof acumulado.content === 'string' ? acumulado.content : '',
       tool_calls: llamadas.map(({ id, name, args }) => ({ id, name, args, type: 'tool_call' })),
     }));
+    // version_datos se pidió junto con la primera llamada al modelo (abrirRegistro). Se espera aquí, antes de la
+    // primera consulta: así la fila nunca queda con una versión más nueva que los datos de la respuesta.
+    // Este es el único lugar donde se ejecutan herramientas.
+    await conversacion.registro.versionDatos;
     // Cada llamada del modelo necesita su respuesta, aunque ya no quede cupo para ejecutarla.
     const respuestas = await Promise.all(llamadas.map((llamada) => {
       if (conversacion.ejecuciones >= EJECUCIONES_MAX) {
         return new ToolMessage({
-          content: JSON.stringify({ error: 'Se alcanzó el límite de consultas para esta pregunta. Responde con los datos que ya tienes.' }),
+          content: JSON.stringify({ error: SIN_CUPO }),
+          artifact: { error: SIN_CUPO },
           tool_call_id: llamada.id,
           name: llamada.name,
         });
@@ -291,6 +393,15 @@ async function responder(conversacion, primera, emitir) {
       return ejecutarLlamada(herramientas, llamada);
     }));
     historial.push(...respuestas);
+    // El resumen de cada resultado viene en artifact (consultas-inventario.js); el modelo no lo recibe.
+    respuestas.forEach((mensaje, indice) => {
+      const llamada = llamadas[indice];
+      conversacion.consultas.push({
+        nombre: llamada.name,
+        argumentos: llamada.invalida ? llamada.texto : llamada.args,
+        resultado: mensaje.artifact ?? null,
+      });
+    });
     flujo = await llamarModelo(conversacion);
   }
 }

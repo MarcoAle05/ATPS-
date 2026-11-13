@@ -1,9 +1,12 @@
 // Herramientas de solo lectura que el asistente (asistente.js) puede pedir: consultan la tabla productos en D1.
-// La etapa de embeddings ampliará este archivo; asistente.js solo usa crearHerramientas y ejecutarLlamada.
+// La etapa de embeddings ampliará este archivo; asistente.js solo usa DEFINICIONES, crearHerramientas y ejecutarLlamada.
 //
 // Los argumentos los escribe el modelo: son datos no confiables. Se validan con zod y, si algo no sirve,
 // la herramienta responde { error } para que el modelo corrija, sin romper la petición.
 // Totales y valores se calculan aquí para que el modelo nunca tenga que sumar ni multiplicar.
+//
+// Cada ToolMessage lleva en artifact un resumen del resultado para el registro de ejecuciones
+// (ejecuciones-asistente.js). El artifact no se le manda al modelo.
 import { tool } from '@langchain/core/tools';
 import { ToolMessage } from '@langchain/core/messages';
 import * as z from 'zod';
@@ -156,32 +159,50 @@ async function resumirInventario(env) {
 
 // ---------- Herramientas para el modelo ----------
 
+// Lo que el modelo ve de cada herramienta. asistente.js también lo usa para calcular la versión de las instrucciones.
+const BUSCAR = {
+  name: 'buscar_productos',
+  description: 'Busca productos del inventario por nombre o código, cantidad y precio. '
+    + 'Devuelve total (productos que coinciden), unidades (suma de sus cantidades), valor (suma de precio por cantidad, en pesos) '
+    + 'y hasta "limite" productos con codigo, nombre, precio, cantidad y valor. Los totales cubren todas las coincidencias, '
+    + 'no solo los productos devueltos. Precios y valores en pesos.',
+  schema: esquemaBusqueda,
+};
+const RESUMEN = {
+  name: 'resumen_inventario',
+  description: 'Resumen de todo el inventario: productos registrados, unidades en existencia, valor_total (en pesos), '
+    + 'agotados (productos con cantidad 0) y precio mínimo, máximo y promedio (promedio simple de los precios de los productos, en pesos).',
+  schema: esquemaResumen,
+};
+export const DEFINICIONES = [BUSCAR, RESUMEN];
+
+// Resumen para el registro: los totales y qué códigos se devolvieron, sin nombres ni precios.
+const resumirBusqueda = ({ total, unidades, valor, productos }) =>
+  ({ total, unidades, valor, codigos: productos.map((producto) => producto.codigo) });
+
 // Una falla de D1 no debe romper la conversación: el modelo recibe el error y lo explica.
-async function consultar(accion) {
+// Devuelve [contenido para el modelo, resumen para el registro] (responseFormat 'content_and_artifact').
+async function consultar(accion, resumir) {
+  let resultado;
   try {
-    return JSON.stringify(await accion());
+    resultado = await accion();
   } catch (error) {
     console.error('Asistente: falló una consulta al inventario:', error);
-    return JSON.stringify({ error: 'No se pudo consultar el inventario en este momento.' });
+    resultado = { error: 'No se pudo consultar el inventario en este momento.' };
   }
+  return [JSON.stringify(resultado), resultado.error ? { error: resultado.error } : resumir(resultado)];
 }
 
 // Se crean por petición porque necesitan env.DB.
 export function crearHerramientas(env) {
   return [
-    tool((argumentos) => consultar(() => buscarProductos(env, argumentos)), {
-      name: 'buscar_productos',
-      description: 'Busca productos del inventario por nombre o código, cantidad y precio. '
-        + 'Devuelve total (productos que coinciden), unidades (suma de sus cantidades), valor (suma de precio por cantidad, en pesos) '
-        + 'y hasta "limite" productos con codigo, nombre, precio, cantidad y valor. Los totales cubren todas las coincidencias, '
-        + 'no solo los productos devueltos. Precios y valores en pesos.',
-      schema: esquemaBusqueda,
+    tool((argumentos) => consultar(() => buscarProductos(env, argumentos), resumirBusqueda), {
+      ...BUSCAR,
+      responseFormat: 'content_and_artifact',
     }),
-    tool(() => consultar(() => resumirInventario(env)), {
-      name: 'resumen_inventario',
-      description: 'Resumen de todo el inventario: productos registrados, unidades en existencia, valor_total (en pesos), '
-        + 'agotados (productos con cantidad 0) y precio mínimo, máximo y promedio (promedio simple de los precios de los productos, en pesos).',
-      schema: esquemaResumen,
+    tool(() => consultar(() => resumirInventario(env), (resumen) => resumen), {
+      ...RESUMEN,
+      responseFormat: 'content_and_artifact',
     }),
   ];
 }
@@ -208,11 +229,12 @@ function describirProblema(problema) {
   }
 }
 
-// Ejecuta una llamada del modelo y devuelve el ToolMessage de respuesta. Nunca lanza por culpa de los argumentos.
+// Ejecuta una llamada del modelo y devuelve el ToolMessage de respuesta, con el resumen para el registro en artifact.
+// Nunca lanza por culpa de los argumentos.
 // llamada: { id, name, args } de tool_calls, o { id, name, invalida: true } si los argumentos no eran JSON.
 export async function ejecutarLlamada(herramientas, llamada) {
   const responder = (resultado) =>
-    new ToolMessage({ content: JSON.stringify(resultado), tool_call_id: llamada.id, name: llamada.name });
+    new ToolMessage({ content: JSON.stringify(resultado), artifact: resultado, tool_call_id: llamada.id, name: llamada.name });
   const herramienta = herramientas.find((h) => h.name === llamada.name);
   if (!herramienta) {
     return responder({ error: `No existe esa herramienta. Usa ${herramientas.map((h) => h.name).join(' o ')}.` });
