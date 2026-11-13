@@ -44,6 +44,14 @@ Reglas por carpeta en `.claude/rules/` (se cargan solas al trabajar con esos arc
 
 **Asistente** (`src/asistente.js`): `POST /api/asistente`, nivel `admin`, porque cada mensaje gasta saldo de DeepSeek. Usa LangChain.js con `ChatDeepSeek`, `bindTools` y un bucle propio: hasta 4 llamadas al modelo y 6 consultas por mensaje, y la última llamada va sin herramientas. Las herramientas (`buscar_productos` y `resumen_inventario`) viven en `src/consultas-inventario.js`, que calcula los totales en SQL para que el modelo no tenga que sumar. La respuesta es `text/event-stream` con eventos `data: {json}`: `texto` (un fragmento), `consulta` (se consultó el inventario), `fin` y `error`. El historial vive en la memoria de la página: el navegador lo reenvía completo en cada pregunta (`validarConversacion`) y se pierde al recargar. El cliente es `public/js/asistente.js`, con el `<dialog id="asistente">` de `index.html`.
 
+**Registro de ejecuciones** (`src/ejecuciones-asistente.js`, migración `0002`): cada pregunta que llega a llamar al modelo deja una fila en `ejecuciones_asistente`, termine como termine. `resultado` es `bien`, `incompleta`, `error` (con un `motivo` corto, como `deepseek-401` o `tiempo`) o `interrumpida`; `guardada` queda reservado para las respuestas guardadas. La fila lleva:
+- la pregunta, la respuesta tal como se emitió y cuántos mensajes previos había;
+- las herramientas con sus argumentos y un resumen del resultado, que cada herramienta devuelve en `artifact` (el modelo no lo recibe);
+- el modelo, `version_instrucciones` y `version_datos`;
+- la duración y los tokens. Salen de `streamUsage`; si alguna llamada no informó su uso, quedan en NULL.
+
+La fila se escribe con `ejecucion.waitUntil`, y cada escritura borra lo que tenga más de 90 días. La respuesta lleva el id de la fila en la cabecera `X-Ejecucion`, también en el error JSON. El cuerpo admite `origen`: `chat` (por defecto; la interfaz no lo manda) o `eval`. `version_datos` es un contador de la tabla `contadores` que suben solos los disparadores de `productos`.
+
 **Cliente** (`public/js/`): `inicio.js` comprueba la sesión y muestra `sesion.js` (acceso) o la app: `app.js` (cámara, panel de producto, formulario e inventario), `usuarios.js` (panel del admin) y `tiempo-real.js`. Lo compartido está en `comun.js` (llamadas a la API, animaciones, iconos, botón de mantener presionado). `api()` lanza los eventos `sesion-perdida` y `permisos-cambiados` en `window`, e `inicio.js` responde recargando la página.
 
 ## Restricciones que no son obvias
@@ -56,4 +64,7 @@ Reglas por carpeta en `.claude/rules/` (se cargan solas al trabajar con esos arc
   - Cada fragmento de la respuesta cuesta CPU (unos 20 µs en la estimación local): no agregues trabajo por fragmento.
   - El razonamiento de DeepSeek va desactivado con `modelKwargs: { thinking: { type: 'disabled' } }`. Con razonamiento y herramientas, DeepSeek exige que se le devuelva `reasoning_content`, y el conversor de mensajes de LangChain no lo manda.
   - Lo que el asistente puede hacer lo limitan sus herramientas, no el prompt: solo leen la tabla `productos`. Una herramienta nueva amplía lo que puede conseguir cualquier texto que llegue al modelo, incluidos los nombres de producto.
+  - `version_datos` se pide junto con la primera llamada al modelo, y `responder` lo espera antes de ejecutar cualquier herramienta. Si se leyera después, una fila podría quedar con una versión más nueva que los datos con que se respondió, y una respuesta guardada parecería vigente sin serlo.
+  - `VERSION_INSTRUCCIONES` se calcula al cargar el módulo a partir de `PLANTILLA` (la fecha entra por `{fecha}`), `DEFINICIONES`, `PARAMETROS_MODELO` y los topes del bucle. Un parámetro fijo nuevo del modelo va en `PARAMETROS_MODELO`, no suelto en `conversar`; si no, la versión no cambia. El código de las herramientas (su SQL) no entra en la versión.
+  - La pregunta y la respuesta solo se guardan en `ejecuciones_asistente`: nunca las escribas en la consola. Ninguna herramienta lee esa tabla ni `contadores`.
 - El sistema visual salió de las skills instaladas en `.claude/skills/` (Emil Kowalski, `better-*` de Jakub Krehel e `impeccable`). Sus valores concretos están en `.claude/rules/interfaz.md`.
