@@ -62,6 +62,19 @@ Precisiones fijadas al redactar el encargo (2026-11-13), a partir de un sondeo c
   - la lista pasa a `gemini-3.6-flash`;
   - mensaje de clave rechazada también para el 400 de Google;
   - mensaje propio cuando se agota la cuota.
+- 2026-11-13 · Correcciones recibidas en el commit `90bd953` y revisadas. `CLAUDE.md` ahora menciona la cuota de 20 peticiones al día.
+  - **Modelo:** la lista ya dice `gemini-3.6-flash`. Las versiones de las instrucciones no cambiaron (Gemini `71ae0df4`, DeepSeek `a6754dd8`).
+  - **Clave rechazada:** se reconoce un 401 o un 400 que hable de la API key. Con Google real y una clave inventada, el dueño lee «Gemini rechazó la clave del asistente…», y la fila queda con `proveedor-400`.
+  - **Cuota agotada:** un 429 que hable de cuota distingue la del día de la del minuto. Con Google real y la cuota del día agotada: «Se acabó la cuota de hoy de Gemini para este modelo. Intenta mañana.», con `proveedor-429`. El 429 de DeepSeek («Rate Limit Reached») sigue diciendo «ocupado».
+  - El banco tiene un escenario nuevo, `cuota`, y comprobé los cinco casos con los dos modelos. Una fusión de prueba con `main` (`5ae81d4`) no tuvo conflictos.
+  - Falta una pregunta real con Gemini que termine bien con el nombre `gemini-3.6-flash`: la cuota del día se agotó en las pruebas.
+- 2026-11-13 · Fusionada a `main` (commit `abe98c6`) y publicada, a petición del dueño. Sin migración.
+  - Worker: 589.99 KiB comprimido y arranque de 33 ms. Versión `bae0fe57-120b-42a1-9e2c-641f5f203be6`.
+  - Sin sesión, la página responde 200 y `POST /api/asistente` 401. El `validacion.js` publicado ya trae `validarModeloAsistente`.
+  - En producción no hay `GEMINI_API_KEY`: el chat sigue con DeepSeek, y una petición con `modelo: "gemini"` responde 503.
+- Falta:
+  - una pregunta del dueño en la app publicada, para ver que DeepSeek sigue bien y que su fila trae la versión nueva (`a6754dd8…`);
+  - una pregunta real con Gemini, en local, que termine bien con `gemini-3.6-flash`, cuando se renueve la cuota.
 
 ## Pendiente
 

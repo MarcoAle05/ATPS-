@@ -13,6 +13,7 @@ Decisiones tomadas con el usuario y datos que no se deducen del código. Agrega 
 - 2026-11-11 · Asistente publicado. `main` avanzó a `d7adcf8`, se creó el secreto `DEEPSEEK_API_KEY` (la misma clave del `.dev.vars` del worktree) y se publicó el Worker: 585 KiB comprimido y arranque de 54 ms. `main` quedó con tres commits sin `push` a GitHub.
 - 2026-11-11 · En producción hay una cuenta de administrador, la del dueño, y dos de editor. El asistente solo lo ve el administrador.
 - 2026-11-13 · Etapa 1 del asistente publicada, a petición del dueño: migración `0002` aplicada en producción y después el Worker (587.92 KiB comprimido, arranque de 31 ms). Ese día el inventario de producción tenía 2 productos.
+- 2026-11-13 · Etapa 2 del asistente publicada, a petición del dueño, sin migración: Worker de 589.99 KiB comprimido, arranque de 33 ms, versión `bae0fe57`. En producción no existe `GEMINI_API_KEY`: el chat sigue con DeepSeek, y pedir `modelo: "gemini"` responde 503.
 
 ## Decisiones
 
@@ -98,6 +99,7 @@ Decisiones tomadas con el usuario y datos que no se deducen del código. Agrega 
 - 2026-11-11 · Etapa 0 del asistente fusionada a `main` y publicada.
 - 2026-11-13 · Etapa 1 del asistente (registro de ejecuciones y `version_datos`) fusionada a `main` y publicada.
 - 2026-11-13 · Etapa 1 verificada en producción y marcada como terminada.
+- 2026-11-13 · Etapa 2 del asistente (modelos intercambiables y Gemini) fusionada a `main` y publicada.
 
 ## Pendiente
 
