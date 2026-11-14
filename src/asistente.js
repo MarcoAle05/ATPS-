@@ -1,24 +1,26 @@
 // Asistente del inventario (POST /api/asistente, solo administrador).
-// DeepSeek, por medio de LangChain.js, decide qué consultar con las herramientas de consultas-inventario.js;
-// el Worker ejecuta esas consultas en D1 y le devuelve las filas. El modelo nunca recibe el inventario completo.
+// El modelo (DeepSeek o Gemini, según la lista de modelos-asistente.js y wrangler.jsonc), por medio de LangChain.js,
+// decide qué consultar con las herramientas de consultas-inventario.js; el Worker ejecuta esas consultas en D1 y le
+// devuelve las filas. El modelo nunca recibe el inventario completo.
 // Solo consulta: ninguna herramienta modifica datos. El historial vive en el navegador y llega en cada petición.
 // Cada pregunta que llega a llamar al modelo deja una fila en el registro de ejecuciones (ejecuciones-asistente.js);
 // la respuesta lleva su id en la cabecera X-Ejecucion.
-import { ChatDeepSeek } from '@langchain/deepseek';
 import { AIMessage, HumanMessage, SystemMessage, ToolMessage } from '@langchain/core/messages';
 import { convertToOpenAITool } from '@langchain/core/utils/function_calling';
 import { ErrorApi, exigir, leerJson } from './http.js';
 import {
   validarConversacion,
   validarOrigenAsistente,
+  validarModeloAsistente,
   ASISTENTE_CUERPO_MAX,
   ASISTENTE_RESPUESTA_MAX,
 } from '../public/js/validacion.js';
 import { comprobarLimite, anotarIntento } from './seguridad.js';
 import { DEFINICIONES, crearHerramientas, ejecutarLlamada } from './consultas-inventario.js';
 import { abrirRegistro, calcularVersion } from './ejecuciones-asistente.js';
+import { PROVEEDORES, elegirModelo, crearModelo } from './modelos-asistente.js';
 
-// Cada mensaje gasta saldo de DeepSeek.
+// Cada mensaje gasta saldo (o cuota) del proveedor del modelo.
 const MENSAJES_POR_VENTANA = 30;
 const VENTANA = 10 * 60; // segundos
 
@@ -26,16 +28,8 @@ const VENTANA = 10 * 60; // segundos
 const LLAMADAS_MAX = 4;
 const EJECUCIONES_MAX = 6;
 
-const ESPERA_INICIO = 20_000; // ms para que DeepSeek empiece a responder, en cada llamada
+const ESPERA_INICIO = 20_000; // ms para que el modelo empiece a responder, en cada llamada
 const ESPERA_TOTAL = 60_000; // ms para todo el mensaje
-
-// Parámetros fijos de cada llamada a DeepSeek; forman parte de la versión de las instrucciones.
-// Sin razonamiento: menos espera y menos CPU. LangChain pasa modelKwargs tal cual en el cuerpo.
-const PARAMETROS_MODELO = {
-  temperature: 0.2,
-  maxTokens: 800,
-  modelKwargs: { thinking: { type: 'disabled' } },
-};
 
 const CABECERAS_FLUJO = {
   'Content-Type': 'text/event-stream; charset=utf-8',
@@ -77,15 +71,23 @@ Límites:
 
 const instrucciones = () => PLANTILLA.replace(MARCA_FECHA, FORMATO_FECHA.format(new Date()));
 
-// Versión de todo lo fijo que el Worker le manda al modelo: la plantilla de las instrucciones (sin la fecha),
-// las herramientas tal como las recibe DeepSeek (nombre, descripción y esquema), los parámetros de la llamada
-// y el bucle (topes y respuesta sin cupo). Se calcula una vez por instancia, al cargar el módulo.
-const VERSION_INSTRUCCIONES = calcularVersion({
-  instrucciones: PLANTILLA,
-  herramientas: DEFINICIONES.map((definicion) => convertToOpenAITool(definicion)),
-  parametros: PARAMETROS_MODELO,
-  bucle: { llamadas: LLAMADAS_MAX, ejecuciones: EJECUCIONES_MAX, sinCupo: SIN_CUPO },
-});
+// Versión de todo lo fijo que el Worker le manda al modelo, una por proveedor: la plantilla de las instrucciones
+// (sin la fecha), las herramientas en formato OpenAI (nombre, descripción y esquema), el bucle (topes y respuesta
+// sin cupo) y el proveedor con su URL y sus parámetros fijos (PROVEEDORES en modelos-asistente.js). Cambiar los
+// parámetros de un proveedor no cambia la versión del otro. El nombre del modelo no entra: va en su propia columna.
+// Se calcula una vez por instancia, al cargar el módulo.
+const HERRAMIENTAS_MODELO = DEFINICIONES.map((definicion) => convertToOpenAITool(definicion));
+const VERSIONES_INSTRUCCIONES = Object.fromEntries(Object.entries(PROVEEDORES).map(([proveedor, { url, parametros }]) => [
+  proveedor,
+  calcularVersion({
+    instrucciones: PLANTILLA,
+    herramientas: HERRAMIENTAS_MODELO,
+    bucle: { llamadas: LLAMADAS_MAX, ejecuciones: EJECUCIONES_MAX, sinCupo: SIN_CUPO },
+    proveedor,
+    url,
+    parametros,
+  }),
+]));
 
 // Una sola señal de cancelación para todo el mensaje. La disparan el navegador al cerrar la conexión,
 // el tiempo total o una llamada al modelo que no empieza a responder a tiempo.
@@ -121,13 +123,14 @@ function crearControl() {
   };
 }
 
-// Pasa un error de DeepSeek (o del tiempo de espera) a { estado, mensaje para el dueño, motivo para el registro }.
-// El motivo no nombra al proveedor (proveedor-NNN): la columna modelo ya dice quién respondió.
+// Pasa un error del proveedor (o del tiempo de espera) a { estado, mensaje para el dueño, motivo para el registro }.
+// nombre es el del proveedor del modelo elegido ("DeepSeek", "Gemini"). El motivo no lo nombra (proveedor-NNN):
+// la columna modelo ya dice quién respondió.
 // LangChain deja el error del SDK de OpenAI tal cual: el estado HTTP queda en error.status.
 // Nunca se registra la clave ni la conversación. Los motivos están en la migración 0002.
-function clasificarError(error, control) {
+function clasificarError(error, control, nombre) {
   if (control.motivo === 'tiempo') {
-    console.error('Asistente: DeepSeek no respondió a tiempo.');
+    console.error(`Asistente: ${nombre} no respondió a tiempo.`);
     return { estado: 504, mensaje: 'El asistente tardó demasiado en responder. Intenta de nuevo.', motivo: 'tiempo' };
   }
   const estado = typeof error?.status === 'number' ? error.status : null;
@@ -135,14 +138,14 @@ function clasificarError(error, control) {
     console.error('Asistente: error sin estado HTTP:', error?.name, String(error?.message ?? '').slice(0, 200));
     return { estado: 503, mensaje: OCUPADO, motivo: 'sin-estado' };
   }
-  // En 400 y 422 el detalle de DeepSeek explica qué parámetro rechazó (no incluye la conversación).
+  // En 400 y 422 el detalle del proveedor explica qué parámetro rechazó (no incluye la conversación).
   const detalle = estado === 400 || estado === 422 ? String(error.message ?? '').slice(0, 200) : '';
-  console.error(`Asistente: DeepSeek respondió ${estado}.`, detalle);
+  console.error(`Asistente: ${nombre} respondió ${estado}.`, detalle);
   const motivo = `proveedor-${estado}`;
   if (estado === 401 || estado === 402) {
     return {
       estado: 502,
-      mensaje: 'DeepSeek rechazó la clave del asistente o la cuenta se quedó sin saldo. Revisa tu cuenta de DeepSeek.',
+      mensaje: `${nombre} rechazó la clave del asistente o la cuenta se quedó sin saldo. Revisa tu cuenta de ${nombre}.`,
       motivo,
     };
   }
@@ -157,8 +160,23 @@ export async function conversar({ request, env, ejecucion, usuario }) {
   const datos = await leerJson(request, ASISTENTE_CUERPO_MAX);
   const mensajes = exigir(validarConversacion(datos.mensajes), 'mensajes');
   const origen = exigir(validarOrigenAsistente(datos.origen), 'origen');
-  if (!env.DEEPSEEK_API_KEY || !env.MODELO_ASISTENTE) {
-    throw new ErrorApi(503, 'El asistente aún no está configurado: falta la clave de DeepSeek en los secretos del Worker.', {
+  const idModelo = exigir(validarModeloAsistente(datos.modelo), 'modelo');
+  let elegido;
+  try {
+    elegido = elegirModelo(env, idModelo);
+  } catch (error) {
+    console.error('Asistente:', error.message);
+    throw new ErrorApi(503, 'El asistente aún no está configurado: la lista de modelos no es válida.', {
+      codigo: 'asistente-sin-configurar',
+    });
+  }
+  if (!elegido) {
+    throw new ErrorApi(400, 'Ese modelo no está en la lista de modelos del asistente.', { campo: 'modelo' });
+  }
+  const proveedor = PROVEEDORES[elegido.proveedor];
+  const apiKey = env[proveedor.clave];
+  if (!apiKey) {
+    throw new ErrorApi(503, `El asistente aún no está configurado: falta la clave de ${proveedor.nombre} en los secretos del Worker.`, {
       codigo: 'asistente-sin-configurar',
     });
   }
@@ -167,14 +185,7 @@ export async function conversar({ request, env, ejecucion, usuario }) {
   await anotarIntento(env, claveLimite);
 
   const control = crearControl();
-  const modelo = new ChatDeepSeek({
-    apiKey: env.DEEPSEEK_API_KEY, // explícita: en un Worker no hay process.env
-    model: env.MODELO_ASISTENTE,
-    ...PARAMETROS_MODELO,
-    maxRetries: 1, // LangChain reintenta 6 veces por defecto: no cabría en los tiempos de espera
-    // DeepSeek manda el uso de tokens en un fragmento extra al final de cada llamada; LangChain lo deja en usage_metadata.
-    streamUsage: true,
-  });
+  const modelo = crearModelo(elegido, apiKey);
   const herramientas = crearHerramientas(env);
   const conversacion = {
     modelo,
@@ -182,6 +193,7 @@ export async function conversar({ request, env, ejecucion, usuario }) {
     herramientas,
     historial: [new SystemMessage(instrucciones()), ...mensajes.map(aMensaje)],
     control,
+    proveedor, // { nombre, … } de PROVEEDORES: los mensajes de error nombran a este proveedor
     llamadas: 0,
     ejecuciones: 0,
     ultima: false,
@@ -198,19 +210,19 @@ export async function conversar({ request, env, ejecucion, usuario }) {
       origen,
       pregunta: mensajes.at(-1).texto,
       mensajesPrevios: mensajes.length - 1,
-      modelo: env.MODELO_ASISTENTE,
-      versionInstrucciones: VERSION_INSTRUCCIONES,
+      modelo: elegido.modelo,
+      versionInstrucciones: VERSIONES_INSTRUCCIONES[elegido.proveedor],
     }),
   };
   const cabeceraEjecucion = { 'X-Ejecucion': conversacion.registro.id };
 
-  // La primera llamada se hace antes de abrir el flujo: si DeepSeek la rechaza, la respuesta es un error JSON normal.
+  // La primera llamada se hace antes de abrir el flujo: si el proveedor la rechaza, la respuesta es un error JSON normal.
   let primera;
   try {
     primera = await llamarModelo(conversacion);
   } catch (error) {
     control.limpiar();
-    const { estado, mensaje, motivo } = clasificarError(error, control);
+    const { estado, mensaje, motivo } = clasificarError(error, control, proveedor.nombre);
     cerrarRegistro(conversacion, { resultado: 'error', motivo });
     throw new ErrorApi(estado, mensaje, { cabeceras: cabeceraEjecucion });
   }
@@ -234,7 +246,7 @@ function cerrarRegistro(conversacion, { resultado, motivo = null }) {
   });
 }
 
-// Suma el uso de una llamada si trae entrada y salida. La caché se suma solo si llega: DeepSeek la informa en
+// Suma el uso de una llamada si trae entrada y salida. La caché se suma solo si llega: el proveedor la informa en
 // prompt_tokens_details.cached_tokens; sin ese campo, LangChain deja cache_read en undefined.
 function sumarUso(uso, metadatos) {
   const entrada = metadatos?.input_tokens;
@@ -251,7 +263,7 @@ function sumarUso(uso, metadatos) {
 }
 
 // Abre una llamada al modelo. stream() de LangChain espera al primer fragmento, así que aquí se notan
-// los rechazos de DeepSeek y la espera de inicio.
+// los rechazos del proveedor y la espera de inicio.
 async function llamarModelo(conversacion) {
   const { control } = conversacion;
   // Si el navegador ya se fue o se acabó el tiempo, no se abre otra: llamadas cuenta solo las que se hicieron.
@@ -273,7 +285,7 @@ function crearFlujo(conversacion, primera) {
     start(c) {
       controlador = c;
     },
-    // El navegador cerró la conexión: se cancela la petición a DeepSeek.
+    // El navegador cerró la conexión: se cancela la petición al modelo.
     cancel() {
       control.abortar('cliente');
     },
@@ -291,7 +303,7 @@ function crearFlujo(conversacion, primera) {
         final = { resultado: 'interrumpida' }; // ya no hay a quién avisar
         return;
       }
-      const { mensaje, motivo } = clasificarError(error, control);
+      const { mensaje, motivo } = clasificarError(error, control, conversacion.proveedor.nombre);
       final = { resultado: 'error', motivo };
       emitir({ tipo: 'error', error: mensaje });
     })
@@ -348,7 +360,7 @@ async function responder(conversacion, primera, emitir) {
       }
     }
 
-    // Se alcanzó el máximo de texto: no hace falta el resto de la respuesta de DeepSeek (ni su uso, que llega al final).
+    // Se alcanzó el máximo de texto: no hace falta el resto de la respuesta del modelo (ni su uso, que llega al final).
     if (recortado) control.abortar('recorte');
     else sumarUso(conversacion.uso, acumulado?.usage_metadata);
 
@@ -383,6 +395,9 @@ async function responder(conversacion, primera, emitir) {
     historial.push(new AIMessage({
       content: typeof acumulado.content === 'string' ? acumulado.content : '',
       tool_calls: llamadas.map(({ id, name, args }) => ({ id, name, args, type: 'tool_call' })),
+      // Las llamadas tal como llegaron del proveedor. LangChain no las manda (usa tool_calls), pero ModeloGemini
+      // saca de aquí la firma que Gemini exige de vuelta (modelos-asistente.js).
+      additional_kwargs: { tool_calls: acumulado.additional_kwargs?.tool_calls },
     }));
     // version_datos se pidió junto con la primera llamada al modelo (abrirRegistro). Se espera aquí, antes de la
     // primera consulta: así la fila nunca queda con una versión más nueva que los datos de la respuesta.

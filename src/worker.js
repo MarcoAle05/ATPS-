@@ -34,7 +34,7 @@ const RUTAS = [
   ['PATCH', /^\/api\/usuarios\/(\d{1,15})$/, 'admin', cuentas.actualizarUsuario],
   ['DELETE', /^\/api\/usuarios\/(\d{1,15})$/, 'admin', cuentas.eliminarUsuario],
 
-  // Cada mensaje gasta saldo de DeepSeek: solo el administrador.
+  // Cada mensaje gasta saldo (o cuota) del proveedor del modelo: solo el administrador.
   ['POST', /^\/api\/asistente$/, 'admin', conversar],
 ];
 

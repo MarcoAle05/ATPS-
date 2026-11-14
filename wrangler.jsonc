@@ -24,9 +24,15 @@
       "migrations_dir": "migrations"
     }
   ],
-  // Modelo de DeepSeek que usa el asistente (src/asistente.js).
-  "vars": { "MODELO_ASISTENTE": "deepseek-flash" }
-  // Secretos (no van en este archivo): PIMIENTA, CODIGO_CONFIGURACION y DEEPSEEK_API_KEY.
-  // Sin DEEPSEEK_API_KEY la app funciona igual, pero el asistente responde 503 (asistente-sin-configurar).
-  // En local se leen de .dev.vars; en Cloudflare se guardan como secretos del Worker.
+  // Modelos que puede usar el asistente (src/modelos-asistente.js). POST /api/asistente elige uno con "modelo": <id>;
+  // sin él se usa el primero. proveedor es "deepseek" o "gemini"; sus parámetros fijos viven en el código.
+  "vars": {
+    "MODELOS_ASISTENTE": [
+      { "id": "deepseek", "proveedor": "deepseek", "modelo": "deepseek-flash" },
+      { "id": "gemini", "proveedor": "gemini", "modelo": "gemini-3.5-flash" }
+    ]
+  }
+  // Secretos (no van en este archivo): PIMIENTA, CODIGO_CONFIGURACION, DEEPSEEK_API_KEY y GEMINI_API_KEY.
+  // Sin la clave de un proveedor la app funciona igual, pero el asistente responde 503 (asistente-sin-configurar)
+  // a las preguntas para sus modelos. En local se leen de .dev.vars; en Cloudflare se guardan como secretos del Worker.
 }
