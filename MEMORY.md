@@ -64,7 +64,15 @@ Decisiones tomadas con el usuario y datos que no se deducen del código. Agrega 
   - El caso guía es «¿Qué productos son chicles?», contra una lista fija del dueño.
   - El asistente podrá escribir en su propia memoria (grupos de productos), pero sigue sin modificar el inventario.
   - Que el asistente solo hable del inventario es una instrucción puesta por defecto; el dueño no ha decidido qué tan abierto lo quiere.
-- **2026-11-11 · Forma de trabajo.** Una sesión planea y revisa desde la carpeta principal, sin escribir código; otra implementa en el worktree `logperch`. Los encargos van por mensajes entre sesiones, que el dueño aprueba. Fusionar y publicar son del dueño, y cada publicación necesita su visto bueno. El detalle está en la sección 10 de `PLAN.md`.
+- **2026-11-11 · Forma de trabajo.** Una sesión planea y revisa desde la carpeta principal, sin escribir código; otra implementa en el worktree `logperch`. Los encargos van por mensajes entre sesiones, que el dueño aprueba. Fusionar y publicar son del dueño, y cada publicación necesita su visto bueno. El detalle está en el apartado «Cómo se trabaja» de `PLAN.md`.
+- **2026-11-13 · Asistente: etapa 1 entregada y revisada en el worktree.** Registro de ejecuciones y contador `version_datos`, en cuatro commits (el último, `fa0fca4`). Sin fusionar ni publicar. El detalle está en `plan/etapa-1-registro-ejecuciones.md`.
+  - El CPU del asistente se mide con `node pruebas/banco-cpu.mjs`, que simula DeepSeek y D1 y no gasta saldo.
+  - Los disparadores de SQLite funcionan en D1 local con Wrangler 4.151.0, incluidos sus `BEGIN … END;` dentro de la migración.
+  - DeepSeek sí manda el uso de tokens en el flujo. La misma pregunta de la etapa 0 dio 2 531 de entrada y 58 de salida, con 2 176 servidos desde su caché.
+  - CPU estimado en Node, antes y después: 2.97 y 2.98 ms la respuesta corta; 19.3 y 19.9 ms la larga. Arranque de 103 a 108 ms. Worker de 587.41 a 589.68 KiB.
+  - Para publicar: primero la migración en producción y después el Worker.
+  - `wrangler dev` recarga al cambiar `.dev.vars`, pero sigue usando el valor viejo; hay que reiniciarlo.
+- **2026-11-13 · Plan por archivos.** El dueño pidió separar el plan: cada etapa tiene su archivo en `plan/` y su estado (`Sin empezar`, `En curso` o `Terminada`) se anota solo en la tabla «Etapas del asistente» de `CLAUDE.md`. `PLAN.md` queda con lo que vale para todo el plan.
 
 ## Historial
 
@@ -81,7 +89,7 @@ Decisiones tomadas con el usuario y datos que no se deducen del código. Agrega 
 
 - ~~No existe `PRODUCT.md`~~ Creado el 2026-10-18 con `/impeccable init`. `DESIGN.md` (con `.impeccable/design.json`) creado el mismo día con `/impeccable document`: Estrella polar "El cuaderno de inventario", componentes "refinados y silenciosos", anti-referencia: emojis y mascotas.
 - No hay pruebas automatizadas en el repositorio. Las verificaciones se hicieron con scripts que están fuera del proyecto.
-- El plan de las etapas siguientes del asistente está en `PLAN.md`, en la raíz de la carpeta principal del repositorio. Al 2026-11-11 sigue sin commit. Su sección 11 dice cuál es el siguiente paso: la etapa 1, el registro de ejecuciones.
+- El plan del asistente está en `PLAN.md` y en `plan/`, un archivo por etapa. Qué sigue lo dice la tabla de etapas de `CLAUDE.md`. El 2026-11-13 se envió a la sesión que implementa el encargo de la etapa 1, el registro de ejecuciones; falta su entrega y la revisión.
 - Asistente: completar la medición de CPU en producción (hay un solo dato).
 - Asistente: el dueño debe entregar la clave de la API de Google, su lista de chicles y la copia del inventario real para los evals, y aclarar qué entiende por "evaluador en tiempo real".
 - Asistente: no se pudo verificar en la interfaz el teclado virtual y el área segura de iOS, lectores de pantalla reales, Safari ni Firefox.

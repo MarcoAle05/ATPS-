@@ -6,9 +6,30 @@ Inventario con lector de códigos de barras en el navegador, publicado en Cloudf
 
 Decisiones tomadas con el usuario, datos de la publicación e historial: @MEMORY.md
 
-Plan de las etapas siguientes del asistente, forma de trabajo entre sesiones y siguiente paso: `PLAN.md`, en la raíz de la carpeta principal (`/home/marco05/Lectorcodigodebarras/PLAN.md`). Léelo antes de planear o de empezar un encargo.
+Plan del asistente: `PLAN.md` (objetivo, decisiones, caso guía y forma de trabajo entre sesiones) y un archivo por etapa en `plan/`. Léelos antes de planear o de empezar un encargo. La versión al día es la de la carpeta principal (`/home/marco05/Lectorcodigodebarras`); la de un worktree puede ir atrasada.
 
 Reglas por carpeta en `.claude/rules/` (se cargan solas al trabajar con esos archivos): `backend.md` (`src/`), `datos.md` (validación y migraciones) e `interfaz.md` (`public/`).
+
+## Etapas del asistente
+
+Esta tabla es el único lugar donde se anota el estado de cada etapa; el detalle está en su archivo.
+
+| # | Etapa | Archivo | Estado |
+|---|---|---|---|
+| 0 | Chatbot de consulta | `plan/etapa-0-chatbot.md` | Terminada |
+| 1 | Registro de ejecuciones y `version_datos` | `plan/etapa-1-registro-ejecuciones.md` | En curso |
+| 2 | Modelos intercambiables y Gemini | `plan/etapa-2-modelos-gemini.md` | Sin empezar |
+| 3 | Evals en Python y caso chicles | `plan/etapa-3-evals.md` | Sin empezar |
+| 4 | Memoria de grupos y clasificador | `plan/etapa-4-memoria-grupos.md` | Sin empezar |
+| 5 | Aprendizaje | `plan/etapa-5-aprendizaje.md` | Sin empezar |
+| 6 | Respuestas guardadas | `plan/etapa-6-respuestas-guardadas.md` | Sin empezar |
+| 7 | Correcciones desde el chat | `plan/etapa-7-correcciones-chat.md` | Sin empezar |
+
+- `Sin empezar`: no se ha enviado ningún encargo de la etapa.
+- `En curso`: desde que se envía su primer encargo.
+- `Terminada`: revisada, fusionada a `main` y, si cambia la app, publicada. Lo que quede sin cerrar se anota en el apartado «Pendiente» de su archivo.
+
+El estado lo cambia la sesión que planea, al enviar el primer encargo y al terminar la etapa. La sesión que implementa no toca esta tabla.
 
 ## Comandos
 
