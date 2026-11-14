@@ -74,6 +74,12 @@ Decisiones tomadas con el usuario y datos que no se deducen del código. Agrega 
   - Para publicar: primero la migración en producción y después el Worker.
   - `wrangler dev` recarga al cambiar `.dev.vars`, pero sigue usando el valor viejo; hay que reiniciarlo.
 - **2026-11-13 · Plan por archivos.** El dueño pidió separar el plan: cada etapa tiene su archivo en `plan/` y su estado (`Sin empezar`, `En curso` o `Terminada`) se anota solo en la tabla «Etapas del asistente» de `CLAUDE.md`. `PLAN.md` queda con lo que vale para todo el plan.
+- **2026-11-13 · Asistente: etapa 1 verificada en producción.** El dueño hizo seis preguntas en la app publicada. El detalle está en `plan/etapa-1-registro-ejecuciones.md`.
+  - Cada pregunta dejó su fila con resultado `bien`, tokens y caché. `version_datos` subió de 0 a 2 con un alta y un ajuste de producto.
+  - CPU por pregunta: de 33 a 79 ms, con una mediana de unos 51 ms. Ninguna se cortó.
+  - El banco en Node subestima: calcula unos 3 ms para una respuesta corta. Sirve para comparar antes y después, no para cifras absolutas.
+  - El CPU de cada petición en producción se consulta en Workers Observability, que está activado en `wrangler.jsonc`; no hace falta dejar corriendo `wrangler tail`.
+  - Falta medir una respuesta larga.
 
 ## Historial
 
@@ -86,12 +92,13 @@ Decisiones tomadas con el usuario y datos que no se deducen del código. Agrega 
 - 2026-11-10 · Asistente del inventario con DeepSeek y LangChain.js (etapa 0): ruta `POST /api/asistente` e interfaz de chat. El 2026-11-11 se probó contra DeepSeek real.
 - 2026-11-11 · Etapa 0 del asistente fusionada a `main` y publicada.
 - 2026-11-13 · Etapa 1 del asistente (registro de ejecuciones y `version_datos`) fusionada a `main` y publicada.
+- 2026-11-13 · Etapa 1 verificada en producción y marcada como terminada.
 
 ## Pendiente
 
 - ~~No existe `PRODUCT.md`~~ Creado el 2026-10-18 con `/impeccable init`. `DESIGN.md` (con `.impeccable/design.json`) creado el mismo día con `/impeccable document`: Estrella polar "El cuaderno de inventario", componentes "refinados y silenciosos", anti-referencia: emojis y mascotas.
 - No hay pruebas automatizadas en el repositorio. Las verificaciones se hicieron con scripts que están fuera del proyecto.
-- El plan del asistente está en `PLAN.md` y en `plan/`, un archivo por etapa. Qué sigue lo dice la tabla de etapas de `CLAUDE.md`. El 2026-11-13 se envió a la sesión que implementa el encargo de la etapa 1, el registro de ejecuciones; falta su entrega y la revisión.
-- Asistente: completar la medición de CPU en producción (hay un solo dato).
+- El plan del asistente está en `PLAN.md` y en `plan/`, un archivo por etapa. Qué sigue lo dice la tabla de etapas de `CLAUDE.md`. ~~El 2026-11-13 se envió a la sesión que implementa el encargo de la etapa 1, el registro de ejecuciones; falta su entrega y la revisión.~~ Entregada, revisada, publicada y verificada el mismo día.
+- ~~Asistente: completar la medición de CPU en producción (hay un solo dato).~~ El 2026-11-13 se midieron seis preguntas cortas, de 33 a 79 ms. Falta una respuesta larga.
 - Asistente: el dueño debe entregar la clave de la API de Google, su lista de chicles y la copia del inventario real para los evals, y aclarar qué entiende por "evaluador en tiempo real".
 - Asistente: no se pudo verificar en la interfaz el teclado virtual y el área segura de iOS, lectores de pantalla reales, Safari ni Firefox.
