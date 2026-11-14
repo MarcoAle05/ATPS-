@@ -80,7 +80,7 @@ El CPU se midió en Node con DeepSeek y D1 simulados, no en producción. El scri
 
 ## Lo que queda para el dueño
 
-Fusionar, aplicar la migración en producción y publicar, en ese orden: **primero `npm run db:migrar` y después `npm run deploy`**. Si se publica sin la tabla, cada pregunta se responde igual, pero no deja fila y anota un error en los registros.
+Aplicar la migración en producción y publicar, en ese orden: **primero `npm run db:migrar` y después `npm run deploy`**. Si se publica sin la tabla, cada pregunta se responde igual, pero no deja fila y anota un error en los registros.
 
 ## Avance
 
@@ -91,4 +91,5 @@ Fusionar, aplicar la migración en producción y publicar, en ese orden: **prime
   - el motivo de error pasa de `deepseek-NNN` a `proveedor-NNN`;
   - el script que mide el CPU se guarda en el repositorio.
 - 2026-11-13 · Correcciones recibidas y revisadas. Con el script de medición se comprobó que, sin datos de caché, la fila conserva entrada y salida; que el rechazo del proveedor queda como `proveedor-401`; y que la base local tiene el esquema nuevo. Una fusión de prueba con los cambios pendientes de la carpeta principal no dio conflictos.
-- Falta, y es del dueño: fusionar a `main`, aplicar la migración en producción y publicar.
+- 2026-11-13 · Fusionada a `main` (commit `c64f135`), a petición del dueño. La fusión no tuvo conflictos y el script de medición corre sobre `main`.
+- Falta, y es del dueño: aplicar la migración en producción y publicar, en ese orden.

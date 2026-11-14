@@ -109,7 +109,7 @@ Las consultas por petición y el tiempo de `waitUntil` se confirmaron en la docu
 - **Decidir si `evals/inventario.sql` se sube al repositorio** (etapa 3). Contiene tus productos y precios.
 - **Aclarar qué significa "evaluador en tiempo real"** para ti (etapa 3): durante los evals o también en producción.
 - **Qué tan abierto quieres el asistente.** Hoy solo habla del inventario porque así se le indica en sus instrucciones; fue un valor por defecto, no una decisión tuya.
-- **Subir a GitHub.** `main` tiene cuatro commits sin `push`. Este archivo incluye las cuentas de prueba locales (en «Cómo se trabaja»); decide si se quitan antes de subir.
+- **Subir a GitHub.** Nada de lo hecho desde el 2026-11-10 está en GitHub: `main` va adelante de `origin/main` y no se ha hecho `push`. Este archivo incluye las cuentas de prueba locales (en «Cómo se trabaja»); decide si se quitan antes de subir.
 
 ## Cómo se trabaja
 
