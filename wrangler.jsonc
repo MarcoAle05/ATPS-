@@ -29,7 +29,7 @@
   "vars": {
     "MODELOS_ASISTENTE": [
       { "id": "deepseek", "proveedor": "deepseek", "modelo": "deepseek-flash" },
-      { "id": "gemini", "proveedor": "gemini", "modelo": "gemini-3.5-flash" }
+      { "id": "gemini", "proveedor": "gemini", "modelo": "gemini-3.6-flash" }
     ]
   }
   // Secretos (no van en este archivo): PIMIENTA, CODIGO_CONFIGURACION, DEEPSEEK_API_KEY y GEMINI_API_KEY.

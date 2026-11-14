@@ -8,7 +8,10 @@
 //     larga     una consulta y 800 fragmentos
 //     longitud  como corta, pero el modelo termina por max_tokens (resultado incompleta)
 //     muchas    62 llamadas de herramienta: una con argumentos enormes, una que no es JSON y 60 normales
-//     rechazo   el proveedor responde 401 a la primera llamada (resultado error, motivo proveedor-401)
+//     rechazo   el proveedor rechaza la clave en la primera llamada: DeepSeek con 401 y Gemini con 400
+//               («Please pass a valid API key»). Resultado error, motivo proveedor-401 o proveedor-400.
+//     cuota     el proveedor responde 429 a la primera llamada: DeepSeek por saturación («ocupado») y Gemini por
+//               la cuota del día agotada, con el cuerpo que manda Google. Resultado error, motivo proveedor-429.
 //   repeticiones: peticiones calientes después de la fría (100 por defecto).
 //   --modelo gemini   pide el modelo "gemini". El simulador imita a Gemini: firma en cada llamada de herramienta
 //                     (extra_content.google.thought_signature), uso en cada fragmento y sin tokens de caché.
@@ -44,7 +47,7 @@ const valorDe = (nombre) => {
 const sueltos = argumentos.filter((a, i) => !a.startsWith('--') && !argumentos[i - 1]?.startsWith('--carpeta'));
 const [escenario = 'corta', repeticionesTexto = '100'] = sueltos;
 const repeticiones = Number(repeticionesTexto);
-const ESCENARIOS = ['corta', 'larga', 'longitud', 'muchas', 'rechazo'];
+const ESCENARIOS = ['corta', 'larga', 'longitud', 'muchas', 'rechazo', 'cuota'];
 if (!ESCENARIOS.includes(escenario) || !Number.isInteger(repeticiones) || repeticiones < 1) {
   console.error(`Uso: node pruebas/banco-cpu.mjs [${ESCENARIOS.join('|')}] [repeticiones ≥ 1] [opciones]. Ver el comentario inicial.`);
   process.exit(1);
@@ -59,10 +62,11 @@ const medirCpu = process.threadCpuUsage ? (antes) => process.threadCpuUsage(ante
 
 // ---------- Proveedor simulado: SSE con el formato de la API de chat compatible con OpenAI ----------
 // DeepSeek: llamadas de herramienta en varios fragmentos con index, finish_reason tool_calls y el uso solo al final.
-// Gemini (como respondió gemini-3.5-flash el 2026-11-13): cada llamada entera en un fragmento, sin index y con su
+// Gemini (como respondió el 2026-11-13, pedido con el nombre gemini-3.5-flash, que Google atiende como
+// gemini-3.6-flash): cada llamada entera en un fragmento, sin index y con su
 // firma; finish_reason stop; el uso acumulado en cada fragmento y sin prompt_tokens_details.
 const codificador = new TextEncoder();
-const base = { id: 'sim', object: 'chat.completion.chunk', created: 1, model: gemini ? 'gemini-3.5-flash' : 'deepseek-flash' };
+const base = { id: 'sim', object: 'chat.completion.chunk', created: 1, model: gemini ? 'gemini-3.6-flash' : 'deepseek-flash' };
 const evento = (datos) => codificador.encode(`data: ${JSON.stringify({ ...base, ...datos })}\n\n`);
 const FIN = codificador.encode('data: [DONE]\n\n');
 const FIRMA = 'firma-simulada-'.padEnd(144, 'x');
@@ -136,12 +140,32 @@ function uso(entrada, salida, cache) {
 }
 
 const FRAGMENTOS = { corta: 30, larga: 800, longitud: 30, muchas: 30 };
+// Errores como los mandan los proveedores (los de Google, copiados de respuestas reales del 2026-11-14).
+const ERRORES = {
+  rechazo: gemini
+    ? [400, [{ error: { code: 400, message: 'Please pass a valid API key', status: 'INVALID_ARGUMENT' } }]]
+    : [401, { error: { message: 'Authentication Fails (simulado)', type: 'authentication_error' } }],
+  cuota: gemini
+    ? [429, [{ error: {
+      code: 429,
+      message: 'You exceeded your current quota (simulado). * Quota exceeded for metric: generativelanguage.googleapis.com/'
+        + 'generate_content_free_tier_requests, limit: 20, model: gemini-3.6-flash, description: Generate content requests '
+        + 'per day limit exceeded on Free Tier.',
+      status: 'RESOURCE_EXHAUSTED',
+      details: [
+        { '@type': 'type.googleapis.com/google.rpc.QuotaFailure', violations: [{
+          quotaId: 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', quotaDimensions: { model: 'gemini-3.6-flash' }, quotaValue: '20',
+        }] },
+        { '@type': 'type.googleapis.com/google.rpc.RetryInfo', retryDelay: '11973s' },
+      ],
+    } }]]
+    : [429, { error: { message: 'Rate Limit Reached (simulado)', type: 'rate_limit_error' } }],
+};
+
 globalThis.fetch = async (_url, init) => {
-  if (escenario === 'rechazo') {
-    return new Response(JSON.stringify({ error: { message: 'Authentication Fails (simulado)', type: 'authentication_error' } }), {
-      status: 401,
-      headers: { 'content-type': 'application/json' },
-    });
+  if (ERRORES[escenario]) {
+    const [estado, cuerpoError] = ERRORES[escenario];
+    return new Response(JSON.stringify(cuerpoError), { status: estado, headers: { 'content-type': 'application/json' } });
   }
   const cuerpo = JSON.parse(init.body);
   const yaConsulto = cuerpo.messages.some((m) => m.role === 'tool');
@@ -221,7 +245,7 @@ const env = {
   // La lista de wrangler.jsonc; MODELO_ASISTENTE es la variable de antes de la etapa 2, para medir copias viejas.
   MODELOS_ASISTENTE: [
     { id: 'deepseek', proveedor: 'deepseek', modelo: 'deepseek-flash' },
-    { id: 'gemini', proveedor: 'gemini', modelo: 'gemini-3.5-flash' },
+    { id: 'gemini', proveedor: 'gemini', modelo: 'gemini-3.6-flash' },
   ],
   MODELO_ASISTENTE: 'deepseek-flash',
   DB: { prepare: sentencia, batch: async (lista) => lista.map((s) => s.resultado()) },
@@ -241,17 +265,19 @@ async function unaPeticion() {
   const antes = medirCpu();
   let estado;
   let texto = '';
+  let mensajeError;
   try {
     const respuesta = await conversar({ request, env, ejecucion, usuario: { id: 1, rol: 'admin' } });
     estado = respuesta.status;
     texto = await respuesta.text();
   } catch (error) {
     if (typeof error?.status !== 'number') throw error;
-    estado = error.status; // ErrorApi: la respuesta sería un error JSON
+    estado = error.status; // ErrorApi: la respuesta sería un error JSON con este mensaje
+    mensajeError = error.message;
   }
   await Promise.all(pendientes);
   const gasto = medirCpu(antes);
-  return { ms: (gasto.user + gasto.system) / 1000, estado, texto };
+  return { ms: (gasto.user + gasto.system) / 1000, estado, texto, mensajeError };
 }
 
 const fria = await unaPeticion();
@@ -270,6 +296,7 @@ console.log(JSON.stringify({
   caliente_ms: +calientes[Math.floor(calientes.length / 2)].toFixed(2),
   caliente_media_ms: +((lote.user + lote.system) / 1000 / repeticiones).toFixed(2),
   estado_http: fria.estado,
+  ...(fria.mensajeError ? { mensaje_error: fria.mensajeError } : {}),
   eventos_sse: fria.texto.split('\n\n').filter(Boolean).length,
   filas_escritas: filas.length,
 }));

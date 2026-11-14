@@ -138,19 +138,45 @@ function clasificarError(error, control, nombre) {
     console.error('Asistente: error sin estado HTTP:', error?.name, String(error?.message ?? '').slice(0, 200));
     return { estado: 503, mensaje: OCUPADO, motivo: 'sin-estado' };
   }
-  // En 400 y 422 el detalle del proveedor explica qué parámetro rechazó (no incluye la conversación).
-  const detalle = estado === 400 || estado === 422 ? String(error.message ?? '').slice(0, 200) : '';
+  // En 400, 422 y 429 el detalle del proveedor explica qué rechazó o qué límite se alcanzó (no incluye la conversación).
+  // Solo la primera línea: LangChain agrega después una línea con la URL de su guía de errores.
+  const detalle = estado === 400 || estado === 422 || estado === 429
+    ? String(error.message ?? '').split('\n')[0].slice(0, 200)
+    : '';
   console.error(`Asistente: ${nombre} respondió ${estado}.`, detalle);
   const motivo = `proveedor-${estado}`;
-  if (estado === 401 || estado === 402) {
-    return {
-      estado: 502,
-      mensaje: `${nombre} rechazó la clave del asistente o la cuenta se quedó sin saldo. Revisa tu cuenta de ${nombre}.`,
-      motivo,
-    };
+  const texto = textoDelError(error);
+  // Gemini rechaza una clave inválida con 400 («Please pass a valid API key»), no con 401.
+  if (estado === 401 || (estado === 400 && /api[ _-]?key/i.test(texto))) {
+    return { estado: 502, mensaje: `${nombre} rechazó la clave del asistente. Revisa la clave de ${nombre} en los secretos del Worker.`, motivo };
   }
-  if (estado === 429 || estado >= 500) return { estado: 503, mensaje: OCUPADO, motivo };
+  if (estado === 402) {
+    return { estado: 502, mensaje: `La cuenta de ${nombre} se quedó sin saldo. Revisa tu cuenta de ${nombre}.`, motivo };
+  }
+  if (estado === 429) return { estado: 503, mensaje: mensajeDeLimite(texto, nombre), motivo };
+  if (estado >= 500) return { estado: 503, mensaje: OCUPADO, motivo };
   return { estado: 502, mensaje: 'El asistente no pudo responder. Intenta de nuevo.', motivo };
+}
+
+// Mensaje y cuerpo del error del proveedor en un solo texto, para reconocer casos que el estado HTTP no distingue.
+// El SDK de OpenAI deja el cuerpo en error.error (en Gemini, una lista con el error de Google y sus detalles).
+function textoDelError(error) {
+  let cuerpo = '';
+  try {
+    cuerpo = JSON.stringify(error?.error) ?? '';
+  } catch {
+    // un cuerpo raro no debe tapar el error original
+  }
+  return `${error?.message ?? ''} ${cuerpo}`;
+}
+
+// Un 429 que habla de cuota es un límite de uso (Gemini lo explica en quotaId: …PerDay… o …PerMinute…).
+// Sin cuota en el texto es saturación pasajera, como el 429 de DeepSeek, y sigue siendo OCUPADO.
+function mensajeDeLimite(texto, nombre) {
+  if (!/quota/i.test(texto)) return OCUPADO;
+  if (/per ?day/i.test(texto)) return `Se acabó la cuota de hoy de ${nombre} para este modelo. Intenta mañana.`;
+  if (/per ?minute/i.test(texto)) return `Se alcanzó el límite por minuto de ${nombre}. Espera un minuto e intenta de nuevo.`;
+  return `Se alcanzó el límite de uso de ${nombre}. Intenta más tarde.`;
 }
 
 const aMensaje = ({ rol, texto }) => (rol === 'usuario' ? new HumanMessage(texto) : new AIMessage(texto));
