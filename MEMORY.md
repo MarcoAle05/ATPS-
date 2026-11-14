@@ -12,6 +12,7 @@ Decisiones tomadas con el usuario y datos que no se deducen del código. Agrega 
 - ~~2026-11-11 · Secreto nuevo `DEEPSEEK_API_KEY` para el asistente, todavía sin crear en producción. El asistente aún no está publicado.~~
 - 2026-11-11 · Asistente publicado. `main` avanzó a `d7adcf8`, se creó el secreto `DEEPSEEK_API_KEY` (la misma clave del `.dev.vars` del worktree) y se publicó el Worker: 585 KiB comprimido y arranque de 54 ms. `main` quedó con tres commits sin `push` a GitHub.
 - 2026-11-11 · En producción hay una cuenta de administrador, la del dueño, y dos de editor. El asistente solo lo ve el administrador.
+- 2026-11-13 · Etapa 1 del asistente publicada, a petición del dueño: migración `0002` aplicada en producción y después el Worker (587.92 KiB comprimido, arranque de 31 ms). Ese día el inventario de producción tenía 2 productos.
 
 ## Decisiones
 
@@ -65,7 +66,7 @@ Decisiones tomadas con el usuario y datos que no se deducen del código. Agrega 
   - El asistente podrá escribir en su propia memoria (grupos de productos), pero sigue sin modificar el inventario.
   - Que el asistente solo hable del inventario es una instrucción puesta por defecto; el dueño no ha decidido qué tan abierto lo quiere.
 - **2026-11-11 · Forma de trabajo.** Una sesión planea y revisa desde la carpeta principal, sin escribir código; otra implementa en el worktree `logperch`. Los encargos van por mensajes entre sesiones, que el dueño aprueba. Fusionar y publicar son del dueño, y cada publicación necesita su visto bueno. El detalle está en el apartado «Cómo se trabaja» de `PLAN.md`.
-- **2026-11-13 · Asistente: etapa 1 entregada y revisada en el worktree.** Registro de ejecuciones y contador `version_datos`, en cuatro commits (el último, `fa0fca4`). Fusionada a `main` ese mismo día (commit `c64f135`), a petición del dueño; falta aplicar la migración en producción y publicar. El detalle está en `plan/etapa-1-registro-ejecuciones.md`.
+- **2026-11-13 · Asistente: etapa 1 entregada y revisada en el worktree.** Registro de ejecuciones y contador `version_datos`, en cuatro commits (el último, `fa0fca4`). Fusionada a `main` (commit `c64f135`) y publicada ese mismo día, a petición del dueño. El detalle está en `plan/etapa-1-registro-ejecuciones.md`.
   - El CPU del asistente se mide con `node pruebas/banco-cpu.mjs`, que simula DeepSeek y D1 y no gasta saldo.
   - Los disparadores de SQLite funcionan en D1 local con Wrangler 4.151.0, incluidos sus `BEGIN … END;` dentro de la migración.
   - DeepSeek sí manda el uso de tokens en el flujo. La misma pregunta de la etapa 0 dio 2 531 de entrada y 58 de salida, con 2 176 servidos desde su caché.
@@ -84,7 +85,7 @@ Decisiones tomadas con el usuario y datos que no se deducen del código. Agrega 
 - 2026-10-19 · Se instaló `@playwright/test` como dependencia de desarrollo y Chromium (fuera del proyecto, en la caché de Playwright) para probar la interfaz en un navegador. Aún no hay pruebas escritas ni configuración. Arch Linux no está soportado oficialmente; usa la compilación de ubuntu24.04 y arrancó bien.
 - 2026-11-10 · Asistente del inventario con DeepSeek y LangChain.js (etapa 0): ruta `POST /api/asistente` e interfaz de chat. El 2026-11-11 se probó contra DeepSeek real.
 - 2026-11-11 · Etapa 0 del asistente fusionada a `main` y publicada.
-- 2026-11-13 · Etapa 1 del asistente (registro de ejecuciones y `version_datos`) fusionada a `main`. Sin publicar todavía.
+- 2026-11-13 · Etapa 1 del asistente (registro de ejecuciones y `version_datos`) fusionada a `main` y publicada.
 
 ## Pendiente
 

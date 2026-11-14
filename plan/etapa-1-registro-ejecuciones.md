@@ -78,9 +78,9 @@ El CPU se midió en Node con DeepSeek y D1 simulados, no en producción. El scri
 - **Motivos de error sin provocar.** Con DeepSeek real solo se probó la clave rechazada (401). Tiempo de espera, filtro de contenido, falta de recursos, respuesta sin texto, 402, 429 y 5xx no se provocaron.
 - **Nada medido en producción.** La migración solo está aplicada en local.
 
-## Lo que queda para el dueño
+## Orden para publicar
 
-Aplicar la migración en producción y publicar, en ese orden: **primero `npm run db:migrar` y después `npm run deploy`**. Si se publica sin la tabla, cada pregunta se responde igual, pero no deja fila y anota un error en los registros.
+Primero la migración (`npm run db:migrar`) y después el Worker (`npm run deploy`). Si se publica sin la tabla, cada pregunta se responde igual, pero no deja fila y anota un error en los registros. Así se hizo el 2026-11-13.
 
 ## Avance
 
@@ -92,4 +92,9 @@ Aplicar la migración en producción y publicar, en ese orden: **primero `npm ru
   - el script que mide el CPU se guarda en el repositorio.
 - 2026-11-13 · Correcciones recibidas y revisadas. Con el script de medición se comprobó que, sin datos de caché, la fila conserva entrada y salida; que el rechazo del proveedor queda como `proveedor-401`; y que la base local tiene el esquema nuevo. Una fusión de prueba con los cambios pendientes de la carpeta principal no dio conflictos.
 - 2026-11-13 · Fusionada a `main` (commit `c64f135`), a petición del dueño. La fusión no tuvo conflictos y el script de medición corre sobre `main`.
-- Falta, y es del dueño: aplicar la migración en producción y publicar, en ese orden.
+- 2026-11-13 · Migración aplicada en producción y Worker publicado, a petición del dueño.
+  - Antes de migrar se anotó el punto de restauración de D1: `00000027-00000000-00005123-9f92a7075eb1fc4e52a19b9e41be913e`.
+  - En producción quedaron las dos tablas, los tres disparadores y el contador en 0; los productos no cambiaron.
+  - Worker: 587.92 KiB comprimido y arranque de 31 ms. Versión `a94f1de0-8b38-48f7-a616-0dc2bfbc8e96`.
+  - Sin sesión, la app publicada responde 200 en la página y 401 en `POST /api/asistente`.
+- Falta: que el dueño haga unas preguntas en la app publicada, para comprobar que cada una deja su fila y medir el CPU en producción.

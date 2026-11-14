@@ -14,6 +14,7 @@ Queda una línea base por modelo: cuántos chicles encuentra cada uno. Cada etap
 
 - **Tu lista de chicles**, con el formato de abajo.
 - **La copia del inventario real** para `evals/inventario.sql`. Falta decidir si la sacas tú o se encarga una exportación de solo lectura desde producción.
+- **Un inventario con suficientes productos.** El 2026-11-13 producción tenía solo 2 productos. Para que el caso de los chicles mida algo hacen falta varios chicles y bastantes productos que no lo sean. Hay que decidir si registras antes tus productos reales o si el examen empieza con un inventario de prueba armado a mano.
 - **Decidir si `evals/inventario.sql` se sube al repositorio.** Contiene tus productos y precios.
 - **Aclarar qué significa "evaluador en tiempo real"** para ti: durante los evals o también en producción.
 
