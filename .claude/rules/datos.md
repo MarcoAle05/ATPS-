@@ -15,4 +15,6 @@ paths:
   - Código: ASCII imprimible sin espacios, 1–64 caracteres.
   - Contraseña: 10–128 caracteres; letras con números o símbolos (o 16 caracteres o más); sin el nombre ni el correo (se compara sin acentos); no común.
 - Si cambias un límite, cambia también su `CHECK` con una migración nueva, y al revés.
+- `ejecuciones_asistente` repite en sus `CHECK` los límites del código: 500 (pregunta) y 4 000 (respuesta) de `validacion.js`, y 16 000 (herramientas) de `ejecuciones-asistente.js`. El código acota antes de escribir, para que una fila nunca se rechace por longitud. `motivo` admite cualquier código en minúsculas con guiones; los vigentes están en el comentario de la migración `0002`.
+- `version_datos` (tabla `contadores`) sube solo, con los disparadores de `productos` de la migración `0002`: no lo subas desde el código. Si una tabla nueva debe invalidar las respuestas guardadas cuando cambia (por ejemplo, los grupos), necesita sus propios disparadores sobre el mismo contador.
 - Migraciones: nunca edites un archivo ya aplicado (`0001_inicial.sql` está aplicado en producción). Crea `000N_descripcion.sql`, con tablas `STRICT`. Aplícala primero con `npm run db:migrar:local` y luego con `npm run db:migrar`.

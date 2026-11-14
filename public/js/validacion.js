@@ -260,3 +260,13 @@ export function validarConversacion(entrada) {
   if (mensajes.at(-1).rol !== 'usuario') return falla('El último mensaje debe ser tu pregunta.');
   return ok(mensajes);
 }
+
+// Quién hace la pregunta: el chat de la página (valor por defecto; la interfaz no lo envía) o los evals.
+// Queda en el registro de ejecuciones (columna origen).
+export const ASISTENTE_ORIGENES = ['chat', 'eval'];
+
+export function validarOrigenAsistente(entrada) {
+  if (entrada === undefined) return ok('chat');
+  if (!ASISTENTE_ORIGENES.includes(entrada)) return falla('El origen de la pregunta debe ser "chat" o "eval".');
+  return ok(entrada);
+}
