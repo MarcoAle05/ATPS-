@@ -270,3 +270,16 @@ export function validarOrigenAsistente(entrada) {
   if (!ASISTENTE_ORIGENES.includes(entrada)) return falla('El origen de la pregunta debe ser "chat" o "eval".');
   return ok(entrada);
 }
+
+// Qué modelo responde: un identificador corto de la lista MODELOS_ASISTENTE (wrangler.jsonc), como "deepseek"
+// o "gemini". Aquí solo se revisa el formato; que esté en la lista lo comprueba el Worker. Sin él, undefined:
+// el Worker usa el primero de la lista. La interfaz no lo envía.
+const FORMATO_MODELO_ASISTENTE = /^[a-z0-9-]{1,32}$/;
+
+export function validarModeloAsistente(entrada) {
+  if (entrada === undefined) return ok(undefined);
+  if (typeof entrada !== 'string' || !FORMATO_MODELO_ASISTENTE.test(entrada)) {
+    return falla('El modelo debe ser un identificador de la lista de modelos del asistente, como "deepseek".');
+  }
+  return ok(entrada);
+}
