@@ -80,6 +80,11 @@ Decisiones tomadas con el usuario y datos que no se deducen del código. Agrega 
   - El banco en Node subestima: calcula unos 3 ms para una respuesta corta. Sirve para comparar antes y después, no para cifras absolutas.
   - El CPU de cada petición en producción se consulta en Workers Observability, que está activado en `wrangler.jsonc`; no hace falta dejar corriendo `wrangler tail`.
   - Falta medir una respuesta larga.
+- **2026-11-13 · Gemini: clave y nivel gratuito.** El dueño entregó su clave de Google AI Studio, guardada como `GEMINI_API_KEY` en el `.dev.vars` del worktree. Aún no existe en producción.
+  - Con esa clave, `gemini-2.5-flash` ya no está disponible para cuentas nuevas. Las peticiones a `gemini-3.5-flash` se cuentan en la cuota de `gemini-3.6-flash`.
+  - El nivel gratuito da 20 peticiones al día por proyecto y por modelo, y se renueva a medianoche, hora del Pacífico. Ese mismo día se agotó con las pruebas de la etapa 2.
+  - Una clave inválida hace que la API compatible con OpenAI responda 400, no 401.
+  - En el nivel gratuito, Google puede usar lo que se le manda para mejorar sus productos. El dueño no ha decidido si activa la facturación.
 
 ## Historial
 
@@ -100,5 +105,6 @@ Decisiones tomadas con el usuario y datos que no se deducen del código. Agrega 
 - No hay pruebas automatizadas en el repositorio. Las verificaciones se hicieron con scripts que están fuera del proyecto.
 - El plan del asistente está en `PLAN.md` y en `plan/`, un archivo por etapa. Qué sigue lo dice la tabla de etapas de `CLAUDE.md`. ~~El 2026-11-13 se envió a la sesión que implementa el encargo de la etapa 1, el registro de ejecuciones; falta su entrega y la revisión.~~ Entregada, revisada, publicada y verificada el mismo día.
 - ~~Asistente: completar la medición de CPU en producción (hay un solo dato).~~ El 2026-11-13 se midieron seis preguntas cortas, de 33 a 79 ms. Falta una respuesta larga.
-- Asistente: el dueño debe entregar la clave de la API de Google, su lista de chicles y la copia del inventario real para los evals, y aclarar qué entiende por "evaluador en tiempo real".
+- Asistente: el dueño debe entregar ~~la clave de la API de Google~~ (entregada el 2026-11-13), su lista de chicles y la copia del inventario real para los evals, y aclarar qué entiende por "evaluador en tiempo real".
+- Asistente: el dueño debe decidir si activa la facturación de Gemini antes de la etapa 3. Sin ella, Google puede usar lo que se le manda (incluido el inventario real) y solo hay 20 peticiones al día por modelo.
 - Asistente: no se pudo verificar en la interfaz el teclado virtual y el área segura de iOS, lectores de pantalla reales, Safari ni Firefox.

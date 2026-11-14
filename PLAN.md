@@ -103,8 +103,13 @@ Las consultas por petición y el tiempo de `waitUntil` se confirmaron en la docu
 
 ## Lo que hace falta de ti
 
-- **Más preguntas en la app publicada** (etapa 0), varias seguidas y una de respuesta larga, avisando antes para grabar los registros y medir el CPU.
-- **Una clave de la API de Google (Gemini)** (etapa 2), de Google AI Studio. Va en el `.dev.vars` del worktree, como la de DeepSeek.
+- **Una pregunta de respuesta larga en la app publicada**, para medir su CPU. Las preguntas seguidas ya se midieron el 2026-11-13: de 33 a 79 ms cada una. El CPU se lee en Workers Observability, así que no hace falta avisar antes.
+- ~~**Una clave de la API de Google (Gemini)** (etapa 2)~~ Entregada el 2026-11-13.
+- **Si activas la facturación de Gemini** antes de la etapa 3. El nivel gratuito tiene dos límites:
+  - Google puede usar lo que se le manda para mejorar sus productos, y eso incluiría tu inventario real, en producción o en los evals.
+  - Da 20 peticiones al día por modelo, y una corrida de los evals con Gemini no cabe en un día.
+
+  Con la facturación se paga por uso y desaparecen los dos límites. Sin ella hay que aceptar las condiciones y repartir las corridas en varios días. Detalle en `plan/etapa-2-modelos-gemini.md`.
 - **Tu lista de chicles** (etapa 3), con el formato de `plan/etapa-3-evals.md`. Antes hay que sacar la copia del inventario real para `evals/inventario.sql`: falta decidir si la sacas tú o se encarga una exportación de solo lectura desde producción.
 - **Decidir si `evals/inventario.sql` se sube al repositorio** (etapa 3). Contiene tus productos y precios.
 - **Aclarar qué significa "evaluador en tiempo real"** para ti (etapa 3): durante los evals o también en producción.

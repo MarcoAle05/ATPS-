@@ -12,7 +12,7 @@ Las mismas preguntas responden bien con DeepSeek y con Gemini, y el tamaño del 
 
 ## Qué hace falta del dueño
 
-Una clave de la API de Google (Gemini), de Google AI Studio. Va en el `.dev.vars` del worktree, como la de DeepSeek.
+Una clave de la API de Google (Gemini), de Google AI Studio. Va en el `.dev.vars` del worktree, como la de DeepSeek. Entregada el 2026-11-13: el dueño la puso como `GEMINI_API_KEY`.
 
 ## Diseño
 
@@ -26,6 +26,19 @@ El objetivo es correr el mismo asistente con DeepSeek o con Gemini y compararlos
 
 **Antes de mandar el inventario real a Gemini** hay que revisar las condiciones de su nivel gratuito sobre el uso de los datos.
 
+Revisadas el 2026-11-13 ([condiciones adicionales de la API](https://ai.google.dev/gemini-api/terms)): en el nivel gratuito Google puede usar lo que se le manda para mejorar sus productos, y una persona puede leerlo, después de separarlo de la cuenta y de la clave. Con la facturación activada no lo usa. El dueño decide antes de mandarle el inventario real, ya sea desde producción o en los evals. Mientras tanto, Gemini solo recibe datos de prueba.
+
+Precisiones fijadas al redactar el encargo (2026-11-13), a partir de un sondeo con texto inventado:
+
+- **Modelo de Gemini: `gemini-3.5-flash`.** Con la clave del dueño, `gemini-2.5-flash` ya no está disponible para cuentas nuevas (404), y `gemini-3.8-flash`, `gemini-3.5-flash-lite` y `gemini-flash-latest` respondieron 403. `gemini-3.5-flash` respondió en 1.2 s en el nivel gratuito.
+- **Firma de las llamadas de herramienta.** Gemini manda una firma (`thought_signature`) con cada llamada de herramienta y exige que se le devuelva en la siguiente; sin ella responde 400. `@langchain/openai` 1.8.3 la pierde al rearmar las llamadas, igual que pasa con el `reasoning_content` de DeepSeek. Primera opción: conservarla dentro del bucle propio, con la pieza de LangChain que ya está en el Worker. Segunda: el paquete de Google para LangChain, avisando antes de su tamaño. La firma ficticia que Google documenta para saltarse la validación solo con permiso del dueño.
+- **Configuración.** La variable `MODELOS_ASISTENTE` de `wrangler.jsonc` reemplaza a `MODELO_ASISTENTE`. Contiene `deepseek` (`deepseek-flash`) y `gemini` (`gemini-3.5-flash`), y el primero es el de uso normal. Los parámetros fijos de cada proveedor quedan en el código.
+- **Petición.** Campo opcional `modelo` con el identificador corto. Un valor fuera de la lista se rechaza con 400 antes de llamar al modelo, sin dejar fila.
+- **Claves.** `DEEPSEEK_API_KEY` y `GEMINI_API_KEY`. Si falta la del modelo elegido, 503 nombrando al proveedor; DeepSeek no depende de la de Gemini.
+- **Versión de las instrucciones.** Una por modelo, que incluye los parámetros fijos de su proveedor.
+- **Registro.** `modelo` guarda el nombre del modelo que respondió.
+- **Razonamiento.** El mínimo que acepte `gemini-3.5-flash`, comprobando que no se come el tope de 800 tokens de salida. En el sondeo, el uso total (207) pasó por mucho la suma de entrada y salida (60 + 16).
+
 ### A comprobar con Gemini
 
 - **Tokens.** Si Gemini informa el uso de tokens en el flujo, y si informa los de caché. El registro admite que los de caché falten.
@@ -34,4 +47,24 @@ El objetivo es correr el mismo asistente con DeepSeek o con Gemini y compararlos
 
 ## Avance
 
-Sin encargos enviados. Depende de la etapa 1 y de la clave de Google.
+- 2026-11-13 · El dueño entregó la clave de Google. Se comprobó con la lista de modelos (200) y con un sondeo de texto inventado; los resultados están en «Precisiones fijadas al redactar el encargo».
+- 2026-11-13 · Encargo enviado a la sesión que implementa (`logperch-b5`), aprobado por el dueño. Pide llevar la rama del worktree al `main` actual (`489e176`) antes de empezar.
+- 2026-11-13 · Entrega recibida en dos commits: `6a0331f` (código, `wrangler.jsonc`, banco y `package.json`) y `5334807` (`CLAUDE.md`, aprobado por el dueño). Sin migración.
+  - La firma se resolvió sin paquete nuevo ni firma ficticia. `responder` guarda las llamadas crudas en `additional_kwargs.tool_calls`, y `ModeloGemini` (subclase de `ChatOpenAICompletions`) pone la firma de vuelta, por id, justo antes de enviar.
+  - Las cuatro preguntas respondieron bien con los dos modelos, y las cifras coincidieron con SQL. Gemini no informa tokens de caché. Con `reasoning_effort: 'minimal'`, el razonamiento no aparece aparte en el uso.
+  - CPU con DeepSeek, antes y después: 3.37 y 3.37 ms la respuesta corta; 20.57 y 20.53 ms la larga. Gemini simulado: 3.27 y 19.62 ms. Worker de 589.81 a 591.64 KiB.
+  - Gemini manda el texto en 2 a 4 trozos, contra 32 a 96 de DeepSeek.
+- 2026-11-13 · Revisión: diff completo leído. La sintaxis pasa y el banco corre con los dos modelos (con Gemini simulado también en `muchas`); las filas de la base local coinciden con el informe. Al probar contra Google salieron tres cosas:
+  - **Nombre del modelo.** Google cuenta las peticiones a `gemini-3.5-flash` en la cuota de `gemini-3.6-flash`, aunque la respuesta diga 3.5: la fila nombraría un modelo que no es el que respondió.
+  - **Clave inválida.** Gemini responde 400 («Please pass a valid API key»), no 401, así que el dueño vería «no pudo responder» en vez de «revisa la clave».
+  - **Cuota del nivel gratuito.** Son 20 peticiones al día por proyecto y por modelo (`GenerateRequestsPerDayPerProjectPerModel-FreeTier`); se renueva a medianoche, hora del Pacífico. Se agotó ese día. Ante un 429, el asistente dice «intenta de nuevo en unos segundos».
+- 2026-11-13 · Ronda de correcciones enviada a `logperch-b5`, aprobada por el dueño:
+  - la lista pasa a `gemini-3.6-flash`;
+  - mensaje de clave rechazada también para el 400 de Google;
+  - mensaje propio cuando se agota la cuota.
+
+## Pendiente
+
+- **Cuota de Gemini para los evals (etapa 3).** Con 20 peticiones al día por modelo, una corrida de 12 casos con Gemini (unas 24 a 36 peticiones) no cabe en un día. El dueño decide entre activar la facturación en Google, que además quita el uso de sus datos para mejorar los productos de Google, o repartir las corridas o usar menos casos.
+- **Temperatura distinta.** Gemini va con la de fábrica, porque Google pide no cambiarla en 3.x, y DeepSeek con 0.2. La comparación de la etapa 3 no es con la misma temperatura.
+- **Sin probar con Gemini real:** el tiempo de espera y el filtro de contenido.
