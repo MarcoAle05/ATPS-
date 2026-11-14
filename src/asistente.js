@@ -122,6 +122,7 @@ function crearControl() {
 }
 
 // Pasa un error de DeepSeek (o del tiempo de espera) a { estado, mensaje para el dueño, motivo para el registro }.
+// El motivo no nombra al proveedor (proveedor-NNN): la columna modelo ya dice quién respondió.
 // LangChain deja el error del SDK de OpenAI tal cual: el estado HTTP queda en error.status.
 // Nunca se registra la clave ni la conversación. Los motivos están en la migración 0002.
 function clasificarError(error, control) {
@@ -137,7 +138,7 @@ function clasificarError(error, control) {
   // En 400 y 422 el detalle de DeepSeek explica qué parámetro rechazó (no incluye la conversación).
   const detalle = estado === 400 || estado === 422 ? String(error.message ?? '').slice(0, 200) : '';
   console.error(`Asistente: DeepSeek respondió ${estado}.`, detalle);
-  const motivo = `deepseek-${estado}`;
+  const motivo = `proveedor-${estado}`;
   if (estado === 401 || estado === 402) {
     return {
       estado: 502,
@@ -187,7 +188,8 @@ export async function conversar({ request, env, ejecucion, usuario }) {
     // Para el registro de ejecuciones:
     respuesta: '', // el texto tal como se emitió al navegador
     consultas: [], // { nombre, argumentos, resultado } de cada llamada de herramienta, en orden
-    uso: { llamadas: 0, entrada: 0, salida: 0, cache: 0 }, // suma de las llamadas que informaron su uso
+    // Suma de las llamadas que informaron su uso; conCache cuenta las que además informaron la caché.
+    uso: { llamadas: 0, conCache: 0, entrada: 0, salida: 0, cache: 0 },
     registro: abrirRegistro({
       env,
       ejecucion,
@@ -224,21 +226,28 @@ function cerrarRegistro(conversacion, { resultado, motivo = null }) {
     respuesta: conversacion.respuesta,
     herramientas: conversacion.consultas,
     llamadas,
-    // Solo si todas las llamadas informaron su uso: una suma parcial engaña.
-    tokens: llamadas > 0 && uso.llamadas === llamadas ? { entrada: uso.entrada, salida: uso.salida, cache: uso.cache } : null,
+    // Solo si todas las llamadas informaron su uso: una suma parcial engaña. La caché va aparte, porque no todos
+    // los proveedores la informan: sin ella en alguna llamada queda en null, pero entrada y salida se guardan igual.
+    tokens: llamadas > 0 && uso.llamadas === llamadas
+      ? { entrada: uso.entrada, salida: uso.salida, cache: uso.conCache === llamadas ? uso.cache : null }
+      : null,
   });
 }
 
-// Suma el uso de una llamada, si llegó completo (DeepSeek informa los tokens de caché en cached_tokens).
+// Suma el uso de una llamada si trae entrada y salida. La caché se suma solo si llega: DeepSeek la informa en
+// prompt_tokens_details.cached_tokens; sin ese campo, LangChain deja cache_read en undefined.
 function sumarUso(uso, metadatos) {
   const entrada = metadatos?.input_tokens;
   const salida = metadatos?.output_tokens;
-  const cache = metadatos?.input_token_details?.cache_read;
-  if (![entrada, salida, cache].every(Number.isSafeInteger)) return;
+  if (!Number.isSafeInteger(entrada) || !Number.isSafeInteger(salida)) return;
   uso.llamadas++;
   uso.entrada += entrada;
   uso.salida += salida;
-  uso.cache += cache;
+  const cache = metadatos.input_token_details?.cache_read;
+  if (Number.isSafeInteger(cache)) {
+    uso.conCache++;
+    uso.cache += cache;
+  }
 }
 
 // Abre una llamada al modelo. stream() de LangChain espera al primer fragmento, así que aquí se notan

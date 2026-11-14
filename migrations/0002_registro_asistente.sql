@@ -34,16 +34,17 @@ END;
 -- resultado:
 --   bien         respuesta completa.
 --   incompleta   se entregó, pero quedó cortada (max_tokens del modelo o tope de texto); lleva el aviso al final.
---   error        se emitió un evento error, o DeepSeek rechazó la primera llamada (respuesta de error JSON).
+--   error        se emitió un evento error, o el proveedor rechazó la primera llamada (respuesta de error JSON).
 --   interrumpida el navegador cerró la conexión (también al pulsar «Detener»).
 --   guardada     reservado para la etapa 6 (respuesta reutilizada sin llamar al modelo).
 --
 -- motivo (solo con resultado = 'error'; el formato admite códigos nuevos sin reconstruir la tabla):
---   tiempo             DeepSeek no empezó a responder a tiempo o se pasó el tiempo total.
---   deepseek-NNN       DeepSeek respondió con el estado HTTP NNN (401 clave, 402 sin saldo, 429, 5xx…).
+--   tiempo             el modelo no empezó a responder a tiempo o se pasó el tiempo total.
+--   proveedor-NNN      el proveedor del modelo respondió con el estado HTTP NNN (401 clave, 402 sin saldo, 429, 5xx…).
+--                      No lo nombra: la columna modelo ya dice quién respondió.
 --   sin-estado         error sin estado HTTP (red, respuesta ilegible o un fallo del propio Worker).
---   filtro-contenido   DeepSeek cortó la respuesta por su filtro de contenido.
---   sin-recursos       DeepSeek se quedó sin recursos (finish_reason insufficient_system_resource).
+--   filtro-contenido   el proveedor cortó la respuesta por su filtro de contenido.
+--   sin-recursos       el proveedor se quedó sin recursos (finish_reason insufficient_system_resource).
 --   sin-texto          el modelo terminó sin escribir texto.
 --
 -- herramientas: lista JSON en orden de llamada, con { nombre, argumentos, resultado } por elemento.
@@ -52,8 +53,10 @@ END;
 --   resumen_inventario → el resultado completo; si falló o no quedaba cupo → { error }.
 --   Si no cabe en 16 000 caracteres, se recorta por elementos y el último dice cuántos se omitieron.
 --
--- tokens_*: suma de todas las llamadas al modelo de esa pregunta. tokens_cache son los de entrada
--- que DeepSeek sirvió desde su caché. Si falta el uso de alguna llamada, los tres quedan en NULL.
+-- tokens_*: suma de todas las llamadas al modelo de esa pregunta.
+--   tokens_entrada y tokens_salida van juntos: si falta el uso de alguna llamada, los dos quedan en NULL.
+--   tokens_cache son los de entrada que el proveedor sirvió desde su caché. Es aparte: queda en NULL si el
+--   proveedor no lo informó en alguna llamada, y solo puede tener valor si hay entrada y salida.
 CREATE TABLE ejecuciones_asistente (
   id                     TEXT PRIMARY KEY CHECK (length(id) = 36),
   usuario_id             INTEGER REFERENCES usuarios (id) ON DELETE SET NULL,
@@ -75,7 +78,8 @@ CREATE TABLE ejecuciones_asistente (
   tokens_salida          INTEGER CHECK (tokens_salida >= 0),
   tokens_cache           INTEGER CHECK (tokens_cache >= 0),
   CHECK (resultado <> 'error' OR motivo IS NOT NULL),
-  CHECK ((tokens_entrada IS NULL) = (tokens_salida IS NULL) AND (tokens_salida IS NULL) = (tokens_cache IS NULL))
+  CHECK ((tokens_entrada IS NULL) = (tokens_salida IS NULL)),
+  CHECK (tokens_cache IS NULL OR tokens_entrada IS NOT NULL)
 ) STRICT;
 
 CREATE INDEX ejecuciones_asistente_creada ON ejecuciones_asistente (creada_en);
