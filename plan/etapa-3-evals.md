@@ -189,3 +189,29 @@ Qué modelo será el evaluador queda sin decidir (2026-11-11). El diseño permit
 - 2026-11-16 · El dueño confirmó las trampas, pidió inventar los precios y dejó Gemini a un lado: los evals trabajan solo con DeepSeek, con una configuración propia por agente. Los precios inventados ya están en los 16 productos agregados (de $2.00 a $35.00); `version_datos` quedó en 34. Punto de restauración previo: `00000030-00000000-00005125-7204cd589897f1cafc88875c1f8b5e5e`.
 - 2026-11-16 · La sesión que planea sacó la copia del inventario, solo leyendo producción, y comprobó que carga sobre las migraciones en una base vacía: 19 productos y `version_datos` en 19. Queda en `evals/inventario.sql`.
 - 2026-11-16 · Encargo redactado y aprobado por el dueño. Se envió a `logperch-95` cuando el dueño abrió la sesión que implementa, ya con la lista de pastillas de menta confirmada.
+- 2026-11-16 · Entrega recibida en tres commits sobre `8e24c57`: `55fc73c` (código, casos, `pyproject.toml`, `uv.lock` y `.gitignore`), `f5aa4ba` (resultados de la línea base) y `998bb8d` (`CLAUDE.md`, aprobado por el dueño). No toca `src/`, `public/` ni `migrations/`.
+- 2026-11-16 · Revisión: diff completo leído (`calificar.py`, `evaluador.py` y `correr.py`). La línea base recalificada sin evaluador da el mismo resultado, ningún archivo de `evals/` contiene valores de `.dev.vars` y el worktree quedó limpio.
+
+## Línea base (2026-11-16)
+
+Archivo `evals/resultados/2026-11-16_145431.json`: `deepseek-flash` como conversador (instrucciones `a6754dd8…`) y como evaluador, 12 casos con 3 repeticiones.
+
+- **Pasan 10 de 12 casos (83 %).** Pasan todos los de cifras, formato y conducta.
+- **`chicles`: 0 de 11 en las tres repeticiones, sin sobrantes.** El asistente busca «chicle» y «chicles» con `buscar_productos`. Como ningún nombre lo dice, no encuentra nada y responde que no hay chicles. Nunca ve el inventario completo, así que ninguna trampa llegó a medirse.
+- **`pastillas-menta`: 1 de 6.** Solo encuentra «Pastillas Menta», porque es el único nombre que trae esas palabras.
+- **Variación entre corridas:** una segunda corrida dio 9 de 12. «Más de 15 pesos» falló una vez por escribir «15 pesos». Además incluyó los productos de $15.00 exactos, un error de contenido que ese caso de formato no mide.
+- **Costo:** unos $0.0064 dólares por corrida fuera de horario pico, el conversador y el evaluador juntos; el doble en pico. Tarda unos 2 min 45 s.
+
+El número que tiene que mejorar la etapa 4 es **chicles 0 de 11** (y pastillas de menta 1 de 6).
+
+## Pendiente
+
+- **Casos nuevos sugeridos por los fallos reales:**
+  - «más de 15 pesos» como caso de contenido: no debe incluir los de $15.00;
+  - variantes de chicles para cuando el asistente sí vea el inventario, que es cuando las trampas empiezan a medir.
+- **Límites conocidos del reconocimiento de productos**, que no aparecieron en las corridas:
+  - una línea con una coincidencia exacta no pasa por el evaluador, aunque nombre otro producto de forma aproximada;
+  - un producto que se nombra para decir que no es del grupo cuenta como sobrante;
+  - «Bubbaloo (plátano)» se atribuye al Bubbaloo genérico.
+- **Evaluar al evaluador:** comparar su lectura con la del código en los casos donde el código ya sabe qué se nombró. Queda para después.
+
