@@ -38,6 +38,7 @@ Todo sobre el plan gratuito de Cloudflare mientras alcance.
 | 2026-11-11 | Los evals empiezan pequeños: unos 12 casos, calificación por código, sin modelo juez, y DeepSeek contra Gemini. |
 | 2026-11-13 | Cada etapa del plan tiene su propio archivo en `plan/`, y el estado de cada una se lleva en `CLAUDE.md`. |
 | 2026-11-16 | El evaluador trabaja solo durante los evals, justo después de cada respuesta. No revisa en el momento las respuestas que recibe el dueño en la app. Revisar después, desde Python, las ejecuciones guardadas queda como opción futura. |
+| 2026-11-16 | Gemini queda a un lado por ahora: los evals y los agentes trabajan solo con DeepSeek. Cada agente (conversador, clasificador y evaluador) tiene su propia configuración: modelo (`deepseek-flash` o `deepseek-v4-pro`, los dos que ofrece la cuenta), parámetros e instrucciones. El código de Gemini de la etapa 2 queda en la app, sin usarse. Esto reemplaza el «DeepSeek contra Gemini» de los evals. |
 | 2026-11-16 | El dueño propone clasificar los productos con embeddings y que el evaluador corrija la clasificación cuando el conversador se equivoque. Se acepta este orden: primero la línea base de los evals, después el clasificador con memoria de etiquetas y, encima, los embeddings para productos nuevos e inventarios grandes, medidos con los evals. Ver «Propuesta del dueño: embeddings» en `plan/etapa-4-memoria-grupos.md`. |
 
 ## Etapas
@@ -79,7 +80,7 @@ Los evals van antes que la memoria a propósito: primero se mide cómo responde 
 | **Clasificador** | Recibe un grupo ("chicle") y una lista de productos sin revisar, y dice cuáles pertenecen. Salida estructurada, sin texto libre. | En el Worker, dentro de una herramienta, sin flujo. |
 | **Evaluador** | Lee una respuesta ya dada, la compara con la lista del dueño y explica cada fallo. | Fuera del Worker, en Python, dentro de los evals. |
 
-Hoy el conversador usa DeepSeek. El conversador y el clasificador podrán correr también con Gemini (etapa 2), y el modelo del evaluador está sin decidir (etapa 3). El clasificador va aparte del conversador para poder medirlo y mejorarlo solo.
+Hoy el conversador usa DeepSeek. Desde el 2026-11-16 los tres agentes usan DeepSeek, cada uno con su propia configuración; Gemini queda a un lado por ahora, aunque la app ya sabe usarlo (etapa 2). El modelo y los parámetros del evaluador se fijan en la etapa 3. El clasificador va aparte del conversador para poder medirlo y mejorarlo solo.
 
 ## Más adelante
 
@@ -107,13 +108,13 @@ Las consultas por petición y el tiempo de `waitUntil` se confirmaron en la docu
 
 - **Una pregunta de respuesta larga en la app publicada**, para medir su CPU. Las preguntas seguidas ya se midieron el 2026-11-13: de 33 a 79 ms cada una. El CPU se lee en Workers Observability, así que no hace falta avisar antes.
 - ~~**Una clave de la API de Google (Gemini)** (etapa 2)~~ Entregada el 2026-11-13.
-- **Si activas la facturación de Gemini** antes de la etapa 3. El nivel gratuito tiene dos límites:
+- ~~**Si activas la facturación de Gemini** antes de la etapa 3.~~ El 2026-11-16 el dueño dejó Gemini a un lado; la decisión vuelve si se retoma. El nivel gratuito tiene dos límites:
   - Google puede usar lo que se le manda para mejorar sus productos, y eso incluiría tu inventario real, en producción o en los evals.
   - Da 20 peticiones al día por modelo, y una corrida de los evals con Gemini no cabe en un día.
 
   Con la facturación se paga por uso y desaparecen los dos límites. Sin ella hay que aceptar las condiciones y repartir las corridas en varios días. Detalle en `plan/etapa-2-modelos-gemini.md`.
 - ~~**Tu lista de chicles** (etapa 3)~~ Entregada el 2026-11-16; está en `plan/etapa-3-evals.md`.
-- **Escanear en la app los 5 productos de la lista que no están en Open Food Facts** (etapa 3): Bubbaloo Plátano, Canels, Motitas y Yucatán, Pastillas Menta y Ment mouth. El 2026-11-16 se agregaron los demás, y unas trampas, con precio 0 y cantidad 0. Ponles su precio real cuando puedas, y confirma el «sí» o «no» de las trampas. Después hay que sacar la copia del inventario para `evals/inventario.sql`: falta decidir si la sacas tú o se encarga una exportación de solo lectura desde producción.
+- ~~**Poner el precio real a los 16 productos agregados el 2026-11-16 y confirmar el «sí» o «no» de las trampas** (etapa 3).~~ El 2026-11-16 el dueño confirmó las trampas y pidió precios inventados, que ya están en producción. Falta sacar la copia del inventario para `evals/inventario.sql`: falta decidir si la sacas tú o se encarga una exportación de solo lectura desde producción.
 - **Decidir si `evals/inventario.sql` se sube al repositorio** (etapa 3). Contiene tus productos y precios.
 - ~~**Aclarar qué significa "evaluador en tiempo real"** para ti (etapa 3)~~ Aclarado el 2026-11-16: solo durante los evals.
 - **Qué tan abierto quieres el asistente.** Hoy solo habla del inventario porque así se le indica en sus instrucciones; fue un valor por defecto, no una decisión tuya.

@@ -82,6 +82,8 @@ Precisiones fijadas al redactar el encargo (2026-11-13), a partir de un sondeo c
 
 ## Pendiente
 
+En pausa desde el 2026-11-16: el dueño dejó Gemini a un lado y el plan sigue solo con DeepSeek. Estos puntos vuelven si se retoma.
+
 - **Cuota de Gemini para los evals (etapa 3).** Con 20 peticiones al día por modelo, una corrida de 12 casos con Gemini (unas 24 a 36 peticiones) no cabe en un día. El dueño decide entre activar la facturación en Google, que además quita el uso de sus datos para mejorar los productos de Google, o repartir las corridas o usar menos casos.
 - **Temperatura distinta.** Gemini va con la de fábrica, porque Google pide no cambiarla en 3.x, y DeepSeek con 0.2. La comparación de la etapa 3 no es con la misma temperatura.
 - **Sin probar con Gemini real:** el filtro de contenido. El tiempo de espera ya se vio el 2026-11-16, por la lentitud de Google.

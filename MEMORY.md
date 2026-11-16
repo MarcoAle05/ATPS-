@@ -15,6 +15,7 @@ Decisiones tomadas con el usuario y datos que no se deducen del código. Agrega 
 - 2026-11-13 · Etapa 1 del asistente publicada, a petición del dueño: migración `0002` aplicada en producción y después el Worker (587.92 KiB comprimido, arranque de 31 ms). Ese día el inventario de producción tenía 2 productos.
 - 2026-11-13 · Etapa 2 del asistente publicada, a petición del dueño, sin migración: Worker de 589.99 KiB comprimido, arranque de 33 ms, versión `bae0fe57`. En producción no existe `GEMINI_API_KEY`: el chat sigue con DeepSeek, y pedir `modelo: "gemini"` responde 503.
 - 2026-11-16 · A petición del dueño, se agregaron directo en D1 de producción 11 productos definitivos, tomados de Open Food Facts: chicles de su lista y trampas para los evals. Quedaron con precio 0 y cantidad 0, y producción pasó a 14 productos. El detalle está en `plan/etapa-3-evals.md`. Punto de restauración previo: `0000002e-00000000-00005125-4f6a4fe07e22ecf99591c9a6b0c1685a`.
+  - Ese mismo día, a petición del dueño, se agregaron otros 5 productos de su lista que no están en Open Food Facts, con códigos inventados del rango interno de GS1: `2000000000015` a `2000000000053`. Producción quedó con 19 productos. Punto de restauración previo: `0000002f-00000000-00005125-77e4a3d58b118ee987c85cfddde22c7b`.
   - La app guarda los códigos tal como los lee el escáner, sin normalizar. El lector ZXing, sin formatos fijados, entrega los UPC-A con 12 dígitos, sin el 0 inicial que usa Open Food Facts.
 
 ## Decisiones
@@ -92,6 +93,9 @@ Decisiones tomadas con el usuario y datos que no se deducen del código. Agrega 
   - El evaluador trabaja solo durante los evals, no con las respuestas que recibe el dueño en la app.
   - La lista de chicles quedó en `plan/etapa-3-evals.md`: 8 sí y 3 no, y los tres «no» son pastillas de menta. En producción solo hay 3 productos, 2 de ellos de la lista. El dueño tiene que registrar los demás.
   - El dueño propone clasificar con embeddings y que el evaluador corrija la clasificación; cómo se clasifica un producto nuevo está sin decidir. La respuesta de la sesión que planea está en `plan/etapa-4-memoria-grupos.md`.
+- **2026-11-16 · Solo DeepSeek, con configuración por agente.** El dueño dejó Gemini a un lado por ahora. Los evals y los agentes (conversador, clasificador y evaluador) usan solo DeepSeek, cada uno con su propio modelo, parámetros e instrucciones. La cuenta ofrece `deepseek-flash` y `deepseek-v4-pro` (`GET /models`). El código de Gemini queda en la app sin usarse.
+  - El dueño aceptó el orden para los embeddings: primero la línea base, luego el clasificador con memoria y encima los embeddings.
+  - Confirmó las 5 trampas y pidió inventar los precios de los 16 productos agregados (de $2.00 a $35.00). Producción quedó con 19 productos, todos con precio, y `version_datos` en 34.
 
 ## Historial
 
@@ -115,5 +119,5 @@ Decisiones tomadas con el usuario y datos que no se deducen del código. Agrega 
 - El plan del asistente está en `PLAN.md` y en `plan/`, un archivo por etapa. Qué sigue lo dice la tabla de etapas de `CLAUDE.md`. ~~El 2026-11-13 se envió a la sesión que implementa el encargo de la etapa 1, el registro de ejecuciones; falta su entrega y la revisión.~~ Entregada, revisada, publicada y verificada el mismo día.
 - ~~Asistente: completar la medición de CPU en producción (hay un solo dato).~~ El 2026-11-13 se midieron seis preguntas cortas, de 33 a 79 ms. Falta una respuesta larga.
 - Asistente: el dueño debe entregar ~~la clave de la API de Google~~ (entregada el 2026-11-13), su lista de chicles y la copia del inventario real para los evals, y aclarar qué entiende por "evaluador en tiempo real".
-- Asistente: el dueño debe decidir si activa la facturación de Gemini antes de la etapa 3. Sin ella, Google puede usar lo que se le manda (incluido el inventario real) y solo hay 20 peticiones al día por modelo.
+- ~~Asistente: el dueño debe decidir si activa la facturación de Gemini antes de la etapa 3.~~ El 2026-11-16 dejó Gemini a un lado; la decisión vuelve si se retoma.
 - Asistente: no se pudo verificar en la interfaz el teclado virtual y el área segura de iOS, lectores de pantalla reales, Safari ni Firefox.
