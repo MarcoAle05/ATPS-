@@ -98,6 +98,11 @@ Decisiones tomadas con el usuario y datos que no se deducen del código. Agrega 
   - Confirmó las 5 trampas y pidió inventar los precios de los 16 productos agregados (de $2.00 a $35.00). Producción quedó con 19 productos, todos con precio, y `version_datos` en 34.
   - Por ahora se usa solo `deepseek-flash` para todo, también para el evaluador.
   - `evals/inventario.sql` es una copia de producción del 2026-11-16, solo con los datos de `productos`, y se sube al repositorio. El encargo de la etapa 3 se envió ese día a `logperch-95`. El dueño confirmó la lista de pastillas de menta: Life Savers Mint Pep O Mint, Pastillas Menta, Ment Mouth, Tic Tac, Yerbabuena Mentos y Halls yerbabuena.
+- **2026-11-16 · Evals: línea base.** Etapa 3 entregada, revisada y fusionada. El detalle está en `plan/etapa-3-evals.md`.
+  - Con `deepseek-flash` pasan 10 de 12 casos: todos los de cifras, formato y conducta.
+  - `chicles` encuentra 0 de 11, porque el asistente busca la palabra «chicle» en los nombres y nunca ve el inventario completo. `pastillas-menta` encuentra 1 de 6. Es el número que tiene que mejorar la etapa 4.
+  - El evaluador es `deepseek-flash` con temperatura 0, sin razonamiento y salida estructurada. Solo lee líneas dudosas y explica fallos; recalificar sin él dio el mismo resultado.
+  - Una corrida completa (36 preguntas más el evaluador) cuesta unos $0.006 dólares fuera de horario pico y tarda unos 3 minutos.
 
 ## Historial
 
@@ -113,6 +118,7 @@ Decisiones tomadas con el usuario y datos que no se deducen del código. Agrega 
 - 2026-11-13 · Etapa 1 verificada en producción y marcada como terminada.
 - 2026-11-13 · Etapa 2 del asistente (modelos intercambiables y Gemini) fusionada a `main` y publicada.
 - 2026-11-16 · Etapa 2 verificada en producción con una pregunta del dueño (DeepSeek, 78 ms de CPU) y marcada como terminada. Ese día Gemini respondió muy lento en flujo (de 22 s a más de 90 s antes del primer trozo) y las dos preguntas locales terminaron por tiempo. Hay que volver a medirlo antes de los evals.
+- 2026-11-16 · Etapa 3 del asistente (evals en Python y caso chicles) fusionada a `main` y marcada como terminada. No cambia la app, así que no hubo publicación.
 
 ## Pendiente
 
@@ -120,6 +126,6 @@ Decisiones tomadas con el usuario y datos que no se deducen del código. Agrega 
 - No hay pruebas automatizadas en el repositorio. Las verificaciones se hicieron con scripts que están fuera del proyecto.
 - El plan del asistente está en `PLAN.md` y en `plan/`, un archivo por etapa. Qué sigue lo dice la tabla de etapas de `CLAUDE.md`. ~~El 2026-11-13 se envió a la sesión que implementa el encargo de la etapa 1, el registro de ejecuciones; falta su entrega y la revisión.~~ Entregada, revisada, publicada y verificada el mismo día.
 - ~~Asistente: completar la medición de CPU en producción (hay un solo dato).~~ El 2026-11-13 se midieron seis preguntas cortas, de 33 a 79 ms. Falta una respuesta larga.
-- Asistente: el dueño debe entregar ~~la clave de la API de Google~~ (entregada el 2026-11-13), su lista de chicles y la copia del inventario real para los evals, y aclarar qué entiende por "evaluador en tiempo real".
+- ~~Asistente: el dueño debe entregar la clave de la API de Google, su lista de chicles y la copia del inventario real para los evals, y aclarar qué entiende por "evaluador en tiempo real".~~ Todo resuelto el 2026-11-13 y el 2026-11-16; los evals ya corren con esa lista y ese inventario.
 - ~~Asistente: el dueño debe decidir si activa la facturación de Gemini antes de la etapa 3.~~ El 2026-11-16 dejó Gemini a un lado; la decisión vuelve si se retoma.
 - Asistente: no se pudo verificar en la interfaz el teclado virtual y el área segura de iOS, lectores de pantalla reales, Safari ni Firefox.

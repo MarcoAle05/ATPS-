@@ -191,6 +191,7 @@ Qué modelo será el evaluador queda sin decidir (2026-11-11). El diseño permit
 - 2026-11-16 · Encargo redactado y aprobado por el dueño. Se envió a `logperch-95` cuando el dueño abrió la sesión que implementa, ya con la lista de pastillas de menta confirmada.
 - 2026-11-16 · Entrega recibida en tres commits sobre `8e24c57`: `55fc73c` (código, casos, `pyproject.toml`, `uv.lock` y `.gitignore`), `f5aa4ba` (resultados de la línea base) y `998bb8d` (`CLAUDE.md`, aprobado por el dueño). No toca `src/`, `public/` ni `migrations/`.
 - 2026-11-16 · Revisión: diff completo leído (`calificar.py`, `evaluador.py` y `correr.py`). La línea base recalificada sin evaluador da el mismo resultado, ningún archivo de `evals/` contiene valores de `.dev.vars` y el worktree quedó limpio.
+- 2026-11-16 · Fusionada a `main` (commit `085fd53`), con el visto bueno del dueño. No cambia la app, así que no hubo que publicar. Etapa terminada; lo que queda abierto está en «Pendiente».
 
 ## Línea base (2026-11-16)
 

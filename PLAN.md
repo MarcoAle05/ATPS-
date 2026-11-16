@@ -80,7 +80,7 @@ Los evals van antes que la memoria a propósito: primero se mide cómo responde 
 | **Clasificador** | Recibe un grupo ("chicle") y una lista de productos sin revisar, y dice cuáles pertenecen. Salida estructurada, sin texto libre. | En el Worker, dentro de una herramienta, sin flujo. |
 | **Evaluador** | Lee una respuesta ya dada, la compara con la lista del dueño y explica cada fallo. | Fuera del Worker, en Python, dentro de los evals. |
 
-Hoy el conversador usa DeepSeek. Desde el 2026-11-16 los tres agentes usan DeepSeek, cada uno con su propia configuración; Gemini queda a un lado por ahora, aunque la app ya sabe usarlo (etapa 2). El modelo y los parámetros del evaluador se fijan en la etapa 3. El clasificador va aparte del conversador para poder medirlo y mejorarlo solo.
+Hoy el conversador usa DeepSeek. Desde el 2026-11-16 los tres agentes usan DeepSeek, cada uno con su propia configuración; Gemini queda a un lado por ahora, aunque la app ya sabe usarlo (etapa 2). El evaluador quedó fijado en la etapa 3: `deepseek-flash`, con temperatura 0, sin razonamiento y salida estructurada. El clasificador va aparte del conversador para poder medirlo y mejorarlo solo.
 
 ## Más adelante
 
