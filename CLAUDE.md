@@ -42,6 +42,7 @@ El estado lo cambia la sesión que planea, al enviar el primer encargo y al term
 | Consultar la base | `npx wrangler d1 execute lector-inventario --local --command "SELECT …"` (o `--remote`) |
 | Ver registros en producción | `npx wrangler tail inventario` |
 | Medir el CPU del asistente (proveedor y D1 simulados, sin gastar saldo) | `node pruebas/banco-cpu.mjs [corta\|larga\|longitud\|muchas\|rechazo\|cuota] [repeticiones]`, con `--modelo gemini` para simular a Gemini; opciones y cómo comparar antes y después en su comentario inicial |
+| Correr los evals del asistente (base y `wrangler dev` propios en `evals/.estado`; gasta saldo de DeepSeek) | `cd evals && uv run correr.py [--casos id,id] [--repeticiones N] [--evaluador ninguno\|deepseek-flash]`; con `--recalificar resultados/ARCHIVO.json` vuelve a calificar sin preguntar |
 
 - `dev` y `deploy` ejecutan antes `npm run preparar`, que copia el lector ZXing de `node_modules` a `public/vendor/`.
 - `npm run dev` necesita `.dev.vars` con `PIMIENTA`, `CODIGO_CONFIGURACION`, `DEEPSEEK_API_KEY` y `GEMINI_API_KEY` (valores solo locales; Wrangler no los sube). Sin la clave de un proveedor la app funciona igual, pero el asistente responde 503 a las preguntas para sus modelos; los del otro proveedor siguen funcionando. La lista de modelos del asistente es la variable `MODELOS_ASISTENTE` de `wrangler.jsonc`, no un secreto.
@@ -73,6 +74,8 @@ El estado lo cambia la sesión que planea, al enviar el primer encargo y al term
 - la duración y los tokens, que salen de `streamUsage`. Entrada y salida quedan en NULL si alguna llamada no informó su uso. La caché va aparte: queda en NULL si el proveedor no la informó.
 
 La fila se escribe con `ejecucion.waitUntil`, y cada escritura borra lo que tenga más de 90 días. La respuesta lleva el id de la fila en la cabecera `X-Ejecucion`, también en el error JSON. El cuerpo admite `origen`: `chat` (por defecto; la interfaz no lo manda) o `eval`. `version_datos` es un contador de la tabla `contadores` que suben solos los disparadores de `productos`.
+
+**Evals** (`evals/`, Python con `uv`): tratan a la app como caja cerrada. `correr.py` arma una base aparte en `evals/.estado` (migraciones y `evals/inventario.sql`), arranca su propio `wrangler dev`, pregunta por HTTP con `origen: "eval"` y lee la fila de `ejecuciones_asistente`. `calificar.py` califica solo con código; `evaluador.py` (`deepseek-flash` con configuración propia) lee las líneas sin coincidencia exacta y explica los fallos. Casos en `evals/casos/` y un archivo por corrida en `evals/resultados/`.
 
 **Cliente** (`public/js/`): `inicio.js` comprueba la sesión y muestra `sesion.js` (acceso) o la app: `app.js` (cámara, panel de producto, formulario e inventario), `usuarios.js` (panel del admin) y `tiempo-real.js`. Lo compartido está en `comun.js` (llamadas a la API, animaciones, iconos, botón de mantener presionado). `api()` lanza los eventos `sesion-perdida` y `permisos-cambiados` en `window`, e `inicio.js` responde recargando la página.
 

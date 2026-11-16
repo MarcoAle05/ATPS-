@@ -1,0 +1,8 @@
+{
+  "id": "precio-trident-menta",
+  "categoria": "cifras",
+  "pregunta": "¿Cuánto cuesta el Trident Menta?",
+  "regla": "dinero",
+  "tipo": "reserva",
+  "esperado_sql": "SELECT precio_centavos AS valor FROM productos WHERE codigo = '7506105606053'"
+}

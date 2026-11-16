@@ -1,0 +1,8 @@
+{
+  "id": "unidades-bonafont",
+  "categoria": "cifras",
+  "pregunta": "¿Cuántas unidades tengo de Bonafont?",
+  "regla": "entero",
+  "tipo": "reserva",
+  "esperado_sql": "SELECT cantidad AS valor FROM productos WHERE codigo = '758104100422'"
+}

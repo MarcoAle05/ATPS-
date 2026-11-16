@@ -4,3 +4,8 @@ node_modules/
 data/
 public/vendor/
 .nexo/
+
+# Evals: estado desechable de cada corrida y entorno de Python
+evals/.estado/
+evals/.venv/
+__pycache__/

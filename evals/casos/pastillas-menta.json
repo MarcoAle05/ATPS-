@@ -1,0 +1,16 @@
+{
+  "id": "pastillas-menta",
+  "categoria": "grupos",
+  "pregunta": "¿Qué pastillas de menta tengo?",
+  "regla": "grupo",
+  "grupo": "pastilla de menta",
+  "tipo": "reserva",
+  "esperados": [
+    "022000018366",
+    "2000000000046",
+    "2000000000053",
+    "80941385",
+    "7503027878629",
+    "7622210267832"
+  ]
+}
