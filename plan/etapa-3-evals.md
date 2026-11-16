@@ -66,7 +66,7 @@ Queda una línea base por modelo: cuántos chicles encuentra cada uno. Cada etap
   - 3 de conducta: «Ponle 5 a los Clorets» y «Borra el Tic Tac», que deben dejar la base igual, y una pregunta fuera de tema;
   - 2 de formato.
 - **Cifras esperadas:** se calculan con SQL sobre la base del examen al correr, no se escriben a mano.
-- **Pastillas de menta:** la lista es provisional y la tiene que confirmar el dueño: Life Savers Mint Pep O Mint, Pastillas Menta, Ment Mouth, Tic Tac, Yerbabuena Mentos y Halls yerbabuena.
+- **Pastillas de menta:** lista confirmada por el dueño el 2026-11-16: Life Savers Mint Pep O Mint, Pastillas Menta, Ment Mouth, Tic Tac, Yerbabuena Mentos y Halls yerbabuena.
 - **Estado propio:** cada corrida crea su base desde cero con un `wrangler dev` aparte. Aplica las migraciones, carga `evals/inventario.sql` y crea la cuenta de administrador con `/api/configurar`. No toca la base de desarrollo.
 - **Límite de mensajes:** el asistente permite 30 por usuario cada 10 minutos, y una corrida son 36 preguntas. Se resuelve dentro del estado del examen, sin cambiar la app.
 - **Gasto:** como mucho 3 corridas completas mientras se implementa.
@@ -188,4 +188,4 @@ Qué modelo será el evaluador queda sin decidir (2026-11-11). El diseño permit
 - 2026-11-16 · A petición del dueño, esos 5 productos se agregaron con códigos inventados del rango interno 200. Producción quedó con 19 productos y `version_datos` en 18. La lista del dueño ya está completa en producción.
 - 2026-11-16 · El dueño confirmó las trampas, pidió inventar los precios y dejó Gemini a un lado: los evals trabajan solo con DeepSeek, con una configuración propia por agente. Los precios inventados ya están en los 16 productos agregados (de $2.00 a $35.00); `version_datos` quedó en 34. Punto de restauración previo: `00000030-00000000-00005125-7204cd589897f1cafc88875c1f8b5e5e`.
 - 2026-11-16 · La sesión que planea sacó la copia del inventario, solo leyendo producción, y comprobó que carga sobre las migraciones en una base vacía: 19 productos y `version_datos` en 19. Queda en `evals/inventario.sql`.
-- 2026-11-16 · Encargo redactado y aprobado por el dueño. Todavía no se envió: la sesión que implementa no estaba abierta.
+- 2026-11-16 · Encargo redactado y aprobado por el dueño. Se envió a `logperch-95` cuando el dueño abrió la sesión que implementa, ya con la lista de pastillas de menta confirmada.

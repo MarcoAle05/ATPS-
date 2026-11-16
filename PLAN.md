@@ -116,7 +116,7 @@ Las consultas por petición y el tiempo de `waitUntil` se confirmaron en la docu
 - ~~**Tu lista de chicles** (etapa 3)~~ Entregada el 2026-11-16; está en `plan/etapa-3-evals.md`.
 - ~~**Poner el precio real a los 16 productos agregados el 2026-11-16 y confirmar el «sí» o «no» de las trampas** (etapa 3).~~ El 2026-11-16 el dueño confirmó las trampas y pidió precios inventados, que ya están en producción. La copia del inventario para `evals/inventario.sql` la sacó la sesión que planea ese mismo día.
 - ~~**Decidir si `evals/inventario.sql` se sube al repositorio** (etapa 3).~~ Sí, el 2026-11-16: casi todo es de prueba.
-- **Confirmar la lista de pastillas de menta** (etapa 3), que es el segundo grupo del examen: Life Savers Mint Pep O Mint, Pastillas Menta, Ment Mouth, Tic Tac, Yerbabuena Mentos y Halls yerbabuena.
+- ~~**Confirmar la lista de pastillas de menta** (etapa 3)~~ Confirmada el 2026-11-16: Life Savers Mint Pep O Mint, Pastillas Menta, Ment Mouth, Tic Tac, Yerbabuena Mentos y Halls yerbabuena.
 - ~~**Aclarar qué significa "evaluador en tiempo real"** para ti (etapa 3)~~ Aclarado el 2026-11-16: solo durante los evals.
 - **Qué tan abierto quieres el asistente.** Hoy solo habla del inventario porque así se le indica en sus instrucciones; fue un valor por defecto, no una decisión tuya.
 - **Subir a GitHub.** Nada de lo hecho desde el 2026-11-10 está en GitHub: `main` va adelante de `origin/main` y no se ha hecho `push`. Este archivo incluye las cuentas de prueba locales (en «Cómo se trabaja»); decide si se quitan antes de subir.

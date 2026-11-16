@@ -97,7 +97,7 @@ Decisiones tomadas con el usuario y datos que no se deducen del código. Agrega 
   - El dueño aceptó el orden para los embeddings: primero la línea base, luego el clasificador con memoria y encima los embeddings.
   - Confirmó las 5 trampas y pidió inventar los precios de los 16 productos agregados (de $2.00 a $35.00). Producción quedó con 19 productos, todos con precio, y `version_datos` en 34.
   - Por ahora se usa solo `deepseek-flash` para todo, también para el evaluador.
-  - `evals/inventario.sql` es una copia de producción del 2026-11-16, solo con los datos de `productos`, y se sube al repositorio. El encargo de la etapa 3 quedó redactado ese día, pendiente de enviarse cuando se abra la sesión que implementa.
+  - `evals/inventario.sql` es una copia de producción del 2026-11-16, solo con los datos de `productos`, y se sube al repositorio. El encargo de la etapa 3 se envió ese día a `logperch-95`. El dueño confirmó la lista de pastillas de menta: Life Savers Mint Pep O Mint, Pastillas Menta, Ment Mouth, Tic Tac, Yerbabuena Mentos y Halls yerbabuena.
 
 ## Historial
 
