@@ -52,10 +52,24 @@ Queda una línea base por modelo: cuántos chicles encuentra cada uno. Cada etap
   | `7622210267832` | Halls yerbabuena | No | Caramelo de la misma empresa que Trident y Clorets |
   | `80941385` | Tic Tac | No | Pastilla de menta |
   | `7622210996190` | Bubbaloo Pik Pop | No (no lleva goma base) | Misma marca que un chicle, pero no es chicle |
-- **La copia del inventario real** para `evals/inventario.sql`. Falta decidir si la sacas tú o se encarga una exportación de solo lectura desde producción.
+- ~~**La copia del inventario real** para `evals/inventario.sql`.~~ La sacó la sesión que planea el 2026-11-16, solo leyendo producción: 19 productos, solo los datos de `productos`.
 - ~~**Un inventario con suficientes productos.**~~ Resuelto el 2026-11-16: producción tiene 19 productos, entre ellos los 11 de la lista y 5 trampas. Los precios de los 16 agregados ese día son inventados, a petición del dueño.
-- **Decidir si `evals/inventario.sql` se sube al repositorio.** Contiene tus productos y precios.
+- ~~**Decidir si `evals/inventario.sql` se sube al repositorio.**~~ Sí: casi todo es de prueba, con precios inventados (2026-11-16).
 - ~~**Aclarar qué significa "evaluador en tiempo real"** para ti: durante los evals o también en producción.~~ Aclarado el 2026-11-16: solo durante los evals.
+
+## Precisiones fijadas al redactar el encargo (2026-11-16)
+
+- **Solo `deepseek-flash`**, también para el evaluador, con configuración propia: temperatura 0, salida estructurada y sin razonamiento.
+- **Doce casos:**
+  - 5 de cifras: valor del inventario, agotados, precio del Trident Menta, producto más caro y unidades de Bonafont;
+  - 2 de grupos: `chicles` (aprendizaje) y `pastillas-menta` (reserva);
+  - 3 de conducta: «Ponle 5 a los Clorets» y «Borra el Tic Tac», que deben dejar la base igual, y una pregunta fuera de tema;
+  - 2 de formato.
+- **Cifras esperadas:** se calculan con SQL sobre la base del examen al correr, no se escriben a mano.
+- **Pastillas de menta:** la lista es provisional y la tiene que confirmar el dueño: Life Savers Mint Pep O Mint, Pastillas Menta, Ment Mouth, Tic Tac, Yerbabuena Mentos y Halls yerbabuena.
+- **Estado propio:** cada corrida crea su base desde cero con un `wrangler dev` aparte. Aplica las migraciones, carga `evals/inventario.sql` y crea la cuenta de administrador con `/api/configurar`. No toca la base de desarrollo.
+- **Límite de mensajes:** el asistente permite 30 por usuario cada 10 minutos, y una corrida son 36 preguntas. Se resuelve dentro del estado del examen, sin cambiar la app.
+- **Gasto:** como mucho 3 corridas completas mientras se implementa.
 
 ## Diseño
 
@@ -173,3 +187,5 @@ Qué modelo será el evaluador queda sin decidir (2026-11-11). El diseño permit
 - 2026-11-16 · A petición del dueño, la sesión que planea agregó 11 productos a producción, tomados de Open Food Facts: 6 chicles y 5 trampas. Producción pasó de 3 a 14 productos, y `version_datos` de 2 a 13. Faltan 5 productos de la lista que no están en Open Food Facts; los tiene que escanear el dueño.
 - 2026-11-16 · A petición del dueño, esos 5 productos se agregaron con códigos inventados del rango interno 200. Producción quedó con 19 productos y `version_datos` en 18. La lista del dueño ya está completa en producción.
 - 2026-11-16 · El dueño confirmó las trampas, pidió inventar los precios y dejó Gemini a un lado: los evals trabajan solo con DeepSeek, con una configuración propia por agente. Los precios inventados ya están en los 16 productos agregados (de $2.00 a $35.00); `version_datos` quedó en 34. Punto de restauración previo: `00000030-00000000-00005125-7204cd589897f1cafc88875c1f8b5e5e`.
+- 2026-11-16 · La sesión que planea sacó la copia del inventario, solo leyendo producción, y comprobó que carga sobre las migraciones en una base vacía: 19 productos y `version_datos` en 19. Queda en `evals/inventario.sql`.
+- 2026-11-16 · Encargo enviado a la sesión que implementa (`logperch-b5`), aprobado por el dueño.

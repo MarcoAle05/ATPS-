@@ -96,6 +96,8 @@ Decisiones tomadas con el usuario y datos que no se deducen del código. Agrega 
 - **2026-11-16 · Solo DeepSeek, con configuración por agente.** El dueño dejó Gemini a un lado por ahora. Los evals y los agentes (conversador, clasificador y evaluador) usan solo DeepSeek, cada uno con su propio modelo, parámetros e instrucciones. La cuenta ofrece `deepseek-flash` y `deepseek-v4-pro` (`GET /models`). El código de Gemini queda en la app sin usarse.
   - El dueño aceptó el orden para los embeddings: primero la línea base, luego el clasificador con memoria y encima los embeddings.
   - Confirmó las 5 trampas y pidió inventar los precios de los 16 productos agregados (de $2.00 a $35.00). Producción quedó con 19 productos, todos con precio, y `version_datos` en 34.
+  - Por ahora se usa solo `deepseek-flash` para todo, también para el evaluador.
+  - `evals/inventario.sql` es una copia de producción del 2026-11-16, solo con los datos de `productos`, y se sube al repositorio. El encargo de la etapa 3 se envió ese mismo día.
 
 ## Historial
 
