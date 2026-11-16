@@ -100,6 +100,7 @@ Decisiones tomadas con el usuario y datos que no se deducen del código. Agrega 
 - 2026-11-13 · Etapa 1 del asistente (registro de ejecuciones y `version_datos`) fusionada a `main` y publicada.
 - 2026-11-13 · Etapa 1 verificada en producción y marcada como terminada.
 - 2026-11-13 · Etapa 2 del asistente (modelos intercambiables y Gemini) fusionada a `main` y publicada.
+- 2026-11-16 · Etapa 2 verificada en producción con una pregunta del dueño (DeepSeek, 78 ms de CPU) y marcada como terminada. Ese día Gemini respondió muy lento en flujo (de 22 s a más de 90 s antes del primer trozo) y las dos preguntas locales terminaron por tiempo. Hay que volver a medirlo antes de los evals.
 
 ## Pendiente
 

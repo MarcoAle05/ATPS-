@@ -72,12 +72,21 @@ Precisiones fijadas al redactar el encargo (2026-11-13), a partir de un sondeo c
   - Worker: 589.99 KiB comprimido y arranque de 33 ms. Versión `bae0fe57-120b-42a1-9e2c-641f5f203be6`.
   - Sin sesión, la página responde 200 y `POST /api/asistente` 401. El `validacion.js` publicado ya trae `validarModeloAsistente`.
   - En producción no hay `GEMINI_API_KEY`: el chat sigue con DeepSeek, y una petición con `modelo: "gemini"` responde 503.
-- Falta:
-  - una pregunta del dueño en la app publicada, para ver que DeepSeek sigue bien y que su fila trae la versión nueva (`a6754dd8…`);
-  - una pregunta real con Gemini, en local, que termine bien con `gemini-3.6-flash`, cuando se renueve la cuota.
+- 2026-11-16 · Pregunta del dueño en la app publicada: fila `702413d8`, `deepseek-flash`, versión `a6754dd8`, `bien`, una consulta, tokens con caché (2 524 / 55 / 1 152). CPU de 78 ms en la versión `bae0fe57`, sin corte, dentro del rango medido en la etapa 1.
+- 2026-11-16 · Dos preguntas reales con Gemini en local, desde el worktree, terminaron en 504 «El asistente tardó demasiado en responder». Las filas `e69e61ee` y `78ce9499` quedaron con `gemini-3.6-flash`, `error` y `tiempo`. El código manejó bien el caso; la lentitud fue de Google. Sondeos directos a Google ese mismo día:
+  - en flujo, una vez no respondió en 90 s y otra mandó el primer trozo a los 22.7 s, para una respuesta de dos letras;
+  - sin flujo, `gemini-3.6-flash` respondió en 1.3 s y `gemini-3.5-flash` en 21 s.
+
+  El viernes 13 las mismas preguntas tardaban de 1.5 a 3.3 s en total. La espera de inicio del asistente es de 20 s por llamada.
+- 2026-11-16 · Etapa terminada, con el visto bueno del dueño: está revisada, fusionada, publicada y verificada en producción con DeepSeek. Lo que falta de Gemini depende de Google y quedó en «Pendiente».
 
 ## Pendiente
 
 - **Cuota de Gemini para los evals (etapa 3).** Con 20 peticiones al día por modelo, una corrida de 12 casos con Gemini (unas 24 a 36 peticiones) no cabe en un día. El dueño decide entre activar la facturación en Google, que además quita el uso de sus datos para mejorar los productos de Google, o repartir las corridas o usar menos casos.
 - **Temperatura distinta.** Gemini va con la de fábrica, porque Google pide no cambiarla en 3.x, y DeepSeek con 0.2. La comparación de la etapa 3 no es con la misma temperatura.
-- **Sin probar con Gemini real:** el tiempo de espera y el filtro de contenido.
+- **Sin probar con Gemini real:** el filtro de contenido. El tiempo de espera ya se vio el 2026-11-16, por la lentitud de Google.
+- **Ninguna respuesta completa con el nombre `gemini-3.6-flash`.** Las del 13 se pidieron como 3.5, aunque Google las contaba como 3.6. Las del 16 terminaron por tiempo.
+- **Latencia irregular de Gemini en flujo.** Antes de correr los evals de la etapa 3 con Gemini, hay que medirla otra vez. Si sigue así, hay que decidir entre:
+  - darle a Gemini una espera de inicio más larga;
+  - que los evals reintenten las preguntas que terminan por `tiempo`;
+  - llamarlo sin flujo en los evals.
