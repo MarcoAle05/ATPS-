@@ -103,6 +103,11 @@ Decisiones tomadas con el usuario y datos que no se deducen del código. Agrega 
   - `chicles` encuentra 0 de 11, porque el asistente busca la palabra «chicle» en los nombres y nunca ve el inventario completo. `pastillas-menta` encuentra 1 de 6. Es el número que tiene que mejorar la etapa 4.
   - El evaluador es `deepseek-flash` con temperatura 0, sin razonamiento y salida estructurada. Solo lee líneas dudosas y explica fallos; recalificar sin él dio el mismo resultado.
   - Una corrida completa (36 preguntas más el evaluador) cuesta unos $0.006 dólares fuera de horario pico y tarda unos 3 minutos.
+- **2026-11-16 · GitHub y cuentas de prueba.** El dueño aprobó subir `main` a GitHub (31 commits, hasta `88189f9`).
+  - El repositorio `MarcoAle05/ATPS-` es público. Las contraseñas de las tres cuentas de prueba locales, que estaban en `PLAN.md`, quedaron en su historial: la sesión que planea no vio la nota que pedía decidir antes de subir.
+  - Esas cuentas solo existen en la base local del worktree. El dueño decidió quitarlas de `PLAN.md` y guardarlas en `cuentas-prueba.local.md`, que no se sube (`*.local.md` en `.gitignore`), sin reescribir el historial.
+  - Antes de cada `push`, revisar en `PLAN.md` y `MEMORY.md` si hay algo pendiente de decidir sobre lo que se sube.
+- **2026-11-16 · Etapa 4 enviada.** El encargo de la memoria de grupos y el clasificador se envió a `logperch-95`, aprobado por el dueño. El clasificador usa `deepseek-flash` con su propia configuración. Cuando una lista no la confirmó el dueño, el asistente avisa en una línea al final que puede tener errores. Las precisiones están en `plan/etapa-4-memoria-grupos.md`.
 
 ## Historial
 

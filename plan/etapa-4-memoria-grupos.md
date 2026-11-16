@@ -65,6 +65,36 @@ El 2026-11-16 el dueño propuso clasificar los productos con embeddings, y que e
 - **Recomendación:** primero la línea base de la etapa 3. Después, el clasificador con memoria y, sobre él, los embeddings como pieza aparte, para preseleccionar candidatos y sugerir la etiqueta de un producto nuevo. Los evals dicen con números si los embeddings mejoran el resultado.
 - **Infraestructura posible:** Cloudflare Vectorize, con embeddings de Workers AI o de Gemini. DeepSeek no ofrece embeddings.
 
+## Precisiones fijadas al redactar el encargo (2026-11-16)
+
+Punto de partida: la línea base de la etapa 3, con chicles en 0 de 11 y pastillas de menta en 1 de 6.
+
+- **Solo `deepseek-flash`**, por decisión del dueño. Nada de Gemini, `deepseek-v4-pro` ni embeddings en esta etapa.
+- **Configuración del clasificador.** El modelo va en una variable nueva de `wrangler.jsonc`, `CLASIFICADOR_ASISTENTE` (`deepseek` / `deepseek-flash`). Los parámetros fijos van en el código:
+  - temperatura 0, sin razonamiento y sin flujo;
+  - `maxTokens` acotado;
+  - su propia espera, de unos 20 s, bajo la misma señal de cancelación de la pregunta.
+
+  Toma la URL, la clave y la clase de `PROVEEDORES.deepseek`, y tiene su propia versión: un hash de las instrucciones, el esquema, el modelo y los parámetros. Esa versión se guarda en `miembros_grupo.version_clasificador`.
+- **Entrada y salida del clasificador.** Recibe el grupo y una lista numerada de nombres, sin códigos, precios ni cantidades. Devuelve `{ pertenecen: [números] }`.
+  - Lo enviado que no esté en la lista queda como «no».
+  - Si la salida se corta o no se puede leer, no se guarda nada.
+  - Se usan números porque la salida es más corta y no hay que copiar códigos largos.
+- **Cupo:** una clasificación por pregunta, con hasta 100 productos. Lo que falte queda en `sin_revisar`, y la herramienta lo dice.
+- **Si el clasificador falla,** la pregunta no falla. La herramienta responde con los miembros que ya conocía y un aviso, sin guardar nada.
+- **Nombre del grupo:** `validarNombreGrupo` en `validacion.js`. Normaliza a minúsculas, sin acentos y con espacios colapsados, y acepta de 1 a 40 caracteres de letras, dígitos y espacios. El singular lo pone el conversador; el código no lo intenta.
+- **`productos_del_grupo`** acepta los mismos filtros, orden y límite que `buscar_productos`, sin `texto`. Devuelve cada miembro con `confirmado`, que es verdadero si el origen es `dueno`.
+- **El registro.** El resumen de la herramienta usa `total` y `codigos`, como `buscar_productos`, y agrega la clasificación con su modelo, versión, tokens y duración. Las columnas de tokens de la fila siguen siendo solo del conversador.
+- **Lo que dice el conversador:** si algún producto no está confirmado, avisa en una sola línea al final que la lista la armó el asistente y puede tener errores.
+- **Sin trampas en las instrucciones.** Ni las del clasificador ni las del conversador pueden nombrar productos ni marcas del inventario del examen.
+- **Evals:**
+  - la memoria se vacía antes de cada repetición, para que cada una sea en frío;
+  - los juicios del clasificador se califican aparte de la respuesta, pero no deciden si el caso pasa;
+  - el caso de conducta acepta un cambio de `version_datos` solo si esa pregunta escribió en la memoria;
+  - el evaluador recibe también qué dijo el clasificador de cada fallo;
+  - los casos y `evals/inventario.sql` no cambian.
+- **Productos borrados.** `ON DELETE CASCADE` hacia `productos`: borrar un producto borra sus filas sin código nuevo. El código de un producto nunca cambia.
+
 ## Avance
 
-Sin encargos enviados. Depende de la etapa 3, que da la línea base contra la que se compara.
+- 2026-11-16 · Encargo redactado y aprobado por el dueño, y enviado a `logperch-95`. Pide llevar la rama del worktree al `main` actual antes de empezar.

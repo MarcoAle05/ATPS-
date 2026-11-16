@@ -20,7 +20,7 @@ Esta tabla es el único lugar donde se anota el estado de cada etapa; el detalle
 | 1 | Registro de ejecuciones y `version_datos` | `plan/etapa-1-registro-ejecuciones.md` | Terminada |
 | 2 | Modelos intercambiables y Gemini | `plan/etapa-2-modelos-gemini.md` | Terminada |
 | 3 | Evals en Python y caso chicles | `plan/etapa-3-evals.md` | Terminada |
-| 4 | Memoria de grupos y clasificador | `plan/etapa-4-memoria-grupos.md` | Sin empezar |
+| 4 | Memoria de grupos y clasificador | `plan/etapa-4-memoria-grupos.md` | En curso |
 | 5 | Aprendizaje | `plan/etapa-5-aprendizaje.md` | Sin empezar |
 | 6 | Respuestas guardadas | `plan/etapa-6-respuestas-guardadas.md` | Sin empezar |
 | 7 | Correcciones desde el chat | `plan/etapa-7-correcciones-chat.md` | Sin empezar |

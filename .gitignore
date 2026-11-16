@@ -9,3 +9,6 @@ public/vendor/
 evals/.estado/
 evals/.venv/
 __pycache__/
+
+# Notas locales que no se suben (por ejemplo, las cuentas de prueba)
+*.local.md

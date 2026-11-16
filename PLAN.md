@@ -119,7 +119,7 @@ Las consultas por petición y el tiempo de `waitUntil` se confirmaron en la docu
 - ~~**Confirmar la lista de pastillas de menta** (etapa 3)~~ Confirmada el 2026-11-16: Life Savers Mint Pep O Mint, Pastillas Menta, Ment Mouth, Tic Tac, Yerbabuena Mentos y Halls yerbabuena.
 - ~~**Aclarar qué significa "evaluador en tiempo real"** para ti (etapa 3)~~ Aclarado el 2026-11-16: solo durante los evals.
 - **Qué tan abierto quieres el asistente.** Hoy solo habla del inventario porque así se le indica en sus instrucciones; fue un valor por defecto, no una decisión tuya.
-- **Subir a GitHub.** Nada de lo hecho desde el 2026-11-10 está en GitHub: `main` va adelante de `origin/main` y no se ha hecho `push`. Este archivo incluye las cuentas de prueba locales (en «Cómo se trabaja»); decide si se quitan antes de subir.
+- ~~**Subir a GitHub.**~~ Subido el 2026-11-16, con el visto bueno del dueño (31 commits, hasta `88189f9`). El repositorio es público, y la sesión que planea no vio esta nota antes de subir: las contraseñas de las cuentas de prueba locales quedaron en el historial de GitHub. Esas cuentas solo existen en la base local del worktree. El dueño decidió quitarlas de este archivo y guardarlas aparte, sin reescribir el historial.
 
 ## Cómo se trabaja
 
@@ -144,5 +144,5 @@ Las consultas por petición y el tiempo de `waitUntil` se confirmaron en la docu
 **Entorno local de pruebas.** Vive en el worktree, no en la carpeta principal:
 
 - El `.dev.vars` del worktree tiene `PIMIENTA`, `CODIGO_CONFIGURACION` (valores de prueba) y `DEEPSEEK_API_KEY` (la clave real). El de la carpeta principal no tiene la clave de DeepSeek, así que ahí el asistente responde 503.
-- La base local del worktree tiene 15 productos de prueba y tres cuentas de prueba, que no existen en producción: `admin@prueba.test` / `Tornillo-Verde-7781`, `editora@prueba.test` / `Martillo-Azul-4432` y `lectora@prueba.test` / `Cuaderno-Gris-5519`.
+- La base local del worktree tiene 15 productos de prueba y tres cuentas de prueba, que no existen en producción: `admin@prueba.test`, `editora@prueba.test` y `lectora@prueba.test`. Sus contraseñas están en `/home/marco05/Lectorcodigodebarras/cuentas-prueba.local.md`, que no se sube a GitHub (`*.local.md` en `.gitignore`).
 - En producción hay una cuenta de administrador, la del dueño, y dos de editor.
