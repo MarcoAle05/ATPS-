@@ -54,6 +54,17 @@ La primera vez se juzga todo el inventario. Después solo los productos nuevos o
 
 Límite conocido: si el inventario crece a cientos de productos, juzgar todo en una sola pregunta no cabrá. Ahí entran los embeddings («Más adelante» en `PLAN.md`).
 
+### Propuesta del dueño: embeddings
+
+El 2026-11-16 el dueño propuso clasificar los productos con embeddings, y que el evaluador corrija la clasificación de un producto cuando el conversador se equivoque. Cómo se clasifica un producto nuevo está sin decidir. Respuesta de la sesión que planea; el dueño aceptó el orden recomendado el 2026-11-16:
+
+- **La corrección no cambia el vector, cambia una etiqueta.** El embedding de un producto sale de su nombre y no se edita a mano. Lo que se corrige es la etiqueta que va junto a él («chicle: sí o no» y quién lo dijo), que es justo lo que guarda `miembros_grupo`. La propuesta encaja con esta etapa: los vectores sirven para encontrar parecidos y la memoria guarda las etiquetas.
+- **Producto nuevo: por vecinos.** Se calcula su embedding y se buscan los productos ya etiquetados más parecidos. Si los más cercanos son chicles confirmados y el parecido es alto, queda como «probable chicle». Si está en duda, decide el clasificador o el dueño.
+- **Límite de los embeddings en este caso:** «Clorets» y «Life Savers Mint» quedan cerca porque los dos son de menta, pero uno es chicle y el otro no. Los embeddings miden parecido, no pertenencia a un grupo, y fallan justo en la frontera que importa. Las marcas mexicanas («Canels», «Motitas») pueden no ser conocidas por el modelo de embeddings.
+- **Quién corrige.** En los evals, la corrección sale de la lista del dueño, no de la opinión del evaluador (etapa 5). Solo se corrigen los casos de tipo `aprendizaje`.
+- **Recomendación:** primero la línea base de la etapa 3. Después, el clasificador con memoria y, sobre él, los embeddings como pieza aparte, para preseleccionar candidatos y sugerir la etiqueta de un producto nuevo. Los evals dicen con números si los embeddings mejoran el resultado.
+- **Infraestructura posible:** Cloudflare Vectorize, con embeddings de Workers AI o de Gemini. DeepSeek no ofrece embeddings.
+
 ## Avance
 
 Sin encargos enviados. Depende de la etapa 3, que da la línea base contra la que se compara.

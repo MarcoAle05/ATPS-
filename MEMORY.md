@@ -14,6 +14,8 @@ Decisiones tomadas con el usuario y datos que no se deducen del código. Agrega 
 - 2026-11-11 · En producción hay una cuenta de administrador, la del dueño, y dos de editor. El asistente solo lo ve el administrador.
 - 2026-11-13 · Etapa 1 del asistente publicada, a petición del dueño: migración `0002` aplicada en producción y después el Worker (587.92 KiB comprimido, arranque de 31 ms). Ese día el inventario de producción tenía 2 productos.
 - 2026-11-13 · Etapa 2 del asistente publicada, a petición del dueño, sin migración: Worker de 589.99 KiB comprimido, arranque de 33 ms, versión `bae0fe57`. En producción no existe `GEMINI_API_KEY`: el chat sigue con DeepSeek, y pedir `modelo: "gemini"` responde 503.
+- 2026-11-16 · A petición del dueño, se agregaron directo en D1 de producción 11 productos definitivos, tomados de Open Food Facts: chicles de su lista y trampas para los evals. Quedaron con precio 0 y cantidad 0, y producción pasó a 14 productos. El detalle está en `plan/etapa-3-evals.md`. Punto de restauración previo: `0000002e-00000000-00005125-4f6a4fe07e22ecf99591c9a6b0c1685a`.
+  - La app guarda los códigos tal como los lee el escáner, sin normalizar. El lector ZXing, sin formatos fijados, entrega los UPC-A con 12 dígitos, sin el 0 inicial que usa Open Food Facts.
 
 ## Decisiones
 
@@ -86,6 +88,10 @@ Decisiones tomadas con el usuario y datos que no se deducen del código. Agrega 
   - El nivel gratuito da 20 peticiones al día por proyecto y por modelo, y se renueva a medianoche, hora del Pacífico. Ese mismo día se agotó con las pruebas de la etapa 2.
   - Una clave inválida hace que la API compatible con OpenAI responda 400, no 401.
   - En el nivel gratuito, Google puede usar lo que se le manda para mejorar sus productos. El dueño no ha decidido si activa la facturación.
+- **2026-11-16 · Evals: evaluador y lista de chicles.**
+  - El evaluador trabaja solo durante los evals, no con las respuestas que recibe el dueño en la app.
+  - La lista de chicles quedó en `plan/etapa-3-evals.md`: 8 sí y 3 no, y los tres «no» son pastillas de menta. En producción solo hay 3 productos, 2 de ellos de la lista. El dueño tiene que registrar los demás.
+  - El dueño propone clasificar con embeddings y que el evaluador corrija la clasificación; cómo se clasifica un producto nuevo está sin decidir. La respuesta de la sesión que planea está en `plan/etapa-4-memoria-grupos.md`.
 
 ## Historial
 

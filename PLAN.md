@@ -37,6 +37,8 @@ Todo sobre el plan gratuito de Cloudflare mientras alcance.
 | 2026-11-11 | Qué modelo será el evaluador queda sin decidir. El diseño deja ese lugar abierto. |
 | 2026-11-11 | Los evals empiezan pequeños: unos 12 casos, calificación por código, sin modelo juez, y DeepSeek contra Gemini. |
 | 2026-11-13 | Cada etapa del plan tiene su propio archivo en `plan/`, y el estado de cada una se lleva en `CLAUDE.md`. |
+| 2026-11-16 | El evaluador trabaja solo durante los evals, justo después de cada respuesta. No revisa en el momento las respuestas que recibe el dueño en la app. Revisar después, desde Python, las ejecuciones guardadas queda como opción futura. |
+| 2026-11-16 | El dueño propone clasificar los productos con embeddings y que el evaluador corrija la clasificación cuando el conversador se equivoque. Se acepta este orden: primero la línea base de los evals, después el clasificador con memoria de etiquetas y, encima, los embeddings para productos nuevos e inventarios grandes, medidos con los evals. Ver «Propuesta del dueño: embeddings» en `plan/etapa-4-memoria-grupos.md`. |
 
 ## Etapas
 
@@ -110,9 +112,10 @@ Las consultas por petición y el tiempo de `waitUntil` se confirmaron en la docu
   - Da 20 peticiones al día por modelo, y una corrida de los evals con Gemini no cabe en un día.
 
   Con la facturación se paga por uso y desaparecen los dos límites. Sin ella hay que aceptar las condiciones y repartir las corridas en varios días. Detalle en `plan/etapa-2-modelos-gemini.md`.
-- **Tu lista de chicles** (etapa 3), con el formato de `plan/etapa-3-evals.md`. Antes hay que sacar la copia del inventario real para `evals/inventario.sql`: falta decidir si la sacas tú o se encarga una exportación de solo lectura desde producción.
+- ~~**Tu lista de chicles** (etapa 3)~~ Entregada el 2026-11-16; está en `plan/etapa-3-evals.md`.
+- **Escanear en la app los 5 productos de la lista que no están en Open Food Facts** (etapa 3): Bubbaloo Plátano, Canels, Motitas y Yucatán, Pastillas Menta y Ment mouth. El 2026-11-16 se agregaron los demás, y unas trampas, con precio 0 y cantidad 0. Ponles su precio real cuando puedas, y confirma el «sí» o «no» de las trampas. Después hay que sacar la copia del inventario para `evals/inventario.sql`: falta decidir si la sacas tú o se encarga una exportación de solo lectura desde producción.
 - **Decidir si `evals/inventario.sql` se sube al repositorio** (etapa 3). Contiene tus productos y precios.
-- **Aclarar qué significa "evaluador en tiempo real"** para ti (etapa 3): durante los evals o también en producción.
+- ~~**Aclarar qué significa "evaluador en tiempo real"** para ti (etapa 3)~~ Aclarado el 2026-11-16: solo durante los evals.
 - **Qué tan abierto quieres el asistente.** Hoy solo habla del inventario porque así se le indica en sus instrucciones; fue un valor por defecto, no una decisión tuya.
 - **Subir a GitHub.** Nada de lo hecho desde el 2026-11-10 está en GitHub: `main` va adelante de `origin/main` y no se ha hecho `push`. Este archivo incluye las cuentas de prueba locales (en «Cómo se trabaja»); decide si se quitan antes de subir.
 
