@@ -188,4 +188,4 @@ Qué modelo será el evaluador queda sin decidir (2026-11-11). El diseño permit
 - 2026-11-16 · A petición del dueño, esos 5 productos se agregaron con códigos inventados del rango interno 200. Producción quedó con 19 productos y `version_datos` en 18. La lista del dueño ya está completa en producción.
 - 2026-11-16 · El dueño confirmó las trampas, pidió inventar los precios y dejó Gemini a un lado: los evals trabajan solo con DeepSeek, con una configuración propia por agente. Los precios inventados ya están en los 16 productos agregados (de $2.00 a $35.00); `version_datos` quedó en 34. Punto de restauración previo: `00000030-00000000-00005125-7204cd589897f1cafc88875c1f8b5e5e`.
 - 2026-11-16 · La sesión que planea sacó la copia del inventario, solo leyendo producción, y comprobó que carga sobre las migraciones en una base vacía: 19 productos y `version_datos` en 19. Queda en `evals/inventario.sql`.
-- 2026-11-16 · Encargo enviado a la sesión que implementa (`logperch-b5`), aprobado por el dueño.
+- 2026-11-16 · Encargo redactado y aprobado por el dueño. Todavía no se envió: la sesión que implementa no estaba abierta.
