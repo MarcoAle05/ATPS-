@@ -1,0 +1,8 @@
+{
+  "id": "mas-de-15-pesos",
+  "categoria": "formato",
+  "pregunta": "¿Qué productos cuestan más de 15 pesos?",
+  "regla": "formato",
+  "tipo": "reserva",
+  "precios_minimos": 1
+}

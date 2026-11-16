@@ -1,0 +1,8 @@
+{
+  "id": "mas-caro",
+  "categoria": "cifras",
+  "pregunta": "¿Cuál es mi producto más caro?",
+  "regla": "mas-caro",
+  "tipo": "reserva",
+  "esperado_sql": "SELECT codigo, precio_centavos FROM productos WHERE precio_centavos = (SELECT MAX(precio_centavos) FROM productos)"
+}

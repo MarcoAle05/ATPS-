@@ -1,0 +1,8 @@
+{
+  "id": "cinco-mas-caros",
+  "categoria": "formato",
+  "pregunta": "Dame los 5 productos más caros con su precio",
+  "regla": "formato",
+  "tipo": "reserva",
+  "precios_minimos": 5
+}

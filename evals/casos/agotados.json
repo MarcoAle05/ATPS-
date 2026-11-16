@@ -1,0 +1,8 @@
+{
+  "id": "agotados",
+  "categoria": "cifras",
+  "pregunta": "¿Cuántos productos están agotados?",
+  "regla": "entero",
+  "tipo": "reserva",
+  "esperado_sql": "SELECT COUNT(*) AS valor FROM productos WHERE cantidad = 0"
+}
