@@ -3,9 +3,14 @@
 // (consultas-inventario.js), que guarda sus juicios en la memoria de grupos (migración 0003).
 //
 // Es un agente aparte del conversador, con su propia configuración:
-// - el modelo, en la variable CLASIFICADOR_ASISTENTE de wrangler.jsonc ({ proveedor, modelo }). Por ahora solo
-//   acepta DeepSeek; de PROVEEDORES.deepseek (modelos-asistente.js) toma la URL, la clave y la clase;
+// - el modelo, en la variable CLASIFICADOR_ASISTENTE de wrangler.jsonc ({ proveedor, modelo, razonamiento? }). Por
+//   ahora solo acepta DeepSeek; de PROVEEDORES.deepseek (modelos-asistente.js) toma la URL, la clave y la clase.
+//   La variable también se acepta como texto JSON: así la pasan los evals con wrangler dev --var, sin tocar
+//   wrangler.jsonc (correr.py --clasificador);
 // - los parámetros fijos, aquí (PARAMETROS): temperatura 0, sin razonamiento, salida JSON acotada y sin flujo;
+// - razonamiento: true (opcional; si falta, es false) hace que el modelo piense antes de responder, con sus propios
+//   parámetros (PARAMETROS_RAZONANDO y ESPERA_RAZONANDO). Entra en la versión, y el resumen de la llamada lo
+//   anota. Con false, todo queda como sin el campo, también la versión;
 // - sus instrucciones, que no nombran productos ni marcas: el clasificador se mide en los evals y no se le da la
 //   respuesta.
 //
@@ -29,6 +34,19 @@ const PARAMETROS = {
   modelKwargs: { thinking: { type: 'disabled' }, response_format: { type: 'json_object' } },
 };
 
+// Con razonamiento. Lo que el modelo piensa cuenta como salida, así que maxTokens cubre el razonamiento más la
+// respuesta: con los 19 productos del examen, deepseek-flash pensó unos 5 600 tokens (2026-11-16), y 12 000 deja el
+// doble de margen. La espera es mayor (esa misma llamada tardó 34 s), pero deja unos 20 s del minuto de la pregunta
+// (ESPERA_TOTAL de asistente.js) para que el conversador responda después. Con lotes grandes puede no alcanzar: si
+// se corta o se acaba el tiempo, no se guarda nada, como en cualquier otra falla.
+// DeepSeek acepta temperature junto con el razonamiento (no da error); si la respeta no está comprobado.
+const PARAMETROS_RAZONANDO = {
+  temperature: 0,
+  maxTokens: 12_000,
+  modelKwargs: { thinking: { type: 'enabled' }, response_format: { type: 'json_object' } },
+};
+const ESPERA_RAZONANDO = 40_000;
+
 const INSTRUCCIONES = `Clasificas los productos del inventario de una tienda pequeña de México.
 
 Recibes el nombre de un grupo (un tipo de producto, en singular) y una lista numerada de nombres de productos. Di qué productos de la lista pertenecen al grupo.
@@ -50,7 +68,8 @@ const PLANTILLA_ENTRADA = `Grupo: ${MARCA_GRUPO}\n\nProductos:\n${MARCA_PRODUCTO
 const ESQUEMA = z.object({ pertenecen: z.array(z.number()) });
 
 // La versión cambia si cambia cualquier cosa que decide el juicio: instrucciones, entrada, esquema, modelo, proveedor
-// con su URL, parámetros, espera y tamaño del lote. Se guarda en miembros_grupo.version_clasificador.
+// con su URL, parámetros, espera, tamaño del lote y razonamiento. Se guarda en miembros_grupo.version_clasificador.
+// Sin razonamiento, el objeto es el mismo que antes de existir el campo, para que la versión no cambie.
 const FIJO = {
   instrucciones: INSTRUCCIONES,
   entrada: PLANTILLA_ENTRADA,
@@ -59,32 +78,56 @@ const FIJO = {
   espera: ESPERA,
   lote: LOTE_CLASIFICADOR,
 };
-const versiones = new Map(); // por proveedor y modelo: el modelo sale de wrangler.jsonc, no del código
-function version(proveedor, modelo) {
-  const llave = `${proveedor}/${modelo}`;
+const FIJO_RAZONANDO = { ...FIJO, parametros: PARAMETROS_RAZONANDO, espera: ESPERA_RAZONANDO, razonamiento: true };
+const versiones = new Map(); // por proveedor, modelo y razonamiento: salen de wrangler.jsonc, no del código
+function version(proveedor, modelo, razonamiento) {
+  const llave = `${proveedor}/${modelo}/${razonamiento}`;
   if (!versiones.has(llave)) {
-    versiones.set(llave, calcularVersion({ ...FIJO, proveedor, url: PROVEEDORES[proveedor].url, modelo }));
+    const fijo = razonamiento ? FIJO_RAZONANDO : FIJO;
+    versiones.set(llave, calcularVersion({ ...fijo, proveedor, url: PROVEEDORES[proveedor].url, modelo }));
   }
   return versiones.get(llave);
 }
 
-// La configuración de wrangler.jsonc, o null si no sirve (se anota en la consola).
+// El texto JSON de la variable ya leído, para no leerlo en cada llamada.
+const leidas = new Map();
+function leerTexto(texto) {
+  if (!leidas.has(texto)) {
+    let valor = null;
+    try {
+      valor = JSON.parse(texto);
+    } catch {
+      // queda en null y configuracion() lo rechaza
+    }
+    leidas.set(texto, valor);
+  }
+  return leidas.get(texto);
+}
+
+// La configuración de wrangler.jsonc (objeto o texto JSON), o null si no sirve (se anota en la consola).
 function configuracion(env) {
-  const config = env.CLASIFICADOR_ASISTENTE;
+  let config = env.CLASIFICADOR_ASISTENTE;
+  if (typeof config === 'string') config = leerTexto(config);
   if (!config || typeof config !== 'object' || config.proveedor !== 'deepseek'
-    || typeof config.modelo !== 'string' || !config.modelo) {
-    console.error('Clasificador: CLASIFICADOR_ASISTENTE debe ser { "proveedor": "deepseek", "modelo": "…" }.');
+    || typeof config.modelo !== 'string' || !config.modelo
+    || (config.razonamiento !== undefined && typeof config.razonamiento !== 'boolean')) {
+    console.error('Clasificador: CLASIFICADOR_ASISTENTE debe ser { "proveedor": "deepseek", "modelo": "…" }, '
+      + 'con "razonamiento": true o false si se quiere.');
     return null;
   }
   return config;
 }
 
-function leerUso(metadatos) {
+// Tokens de la llamada. Con razonamiento, la salida incluye lo que pensó; esa parte va también aparte, si se informa.
+function leerUso(metadatos, razonamiento) {
   const entrada = metadatos?.input_tokens;
   const salida = metadatos?.output_tokens;
   if (!Number.isSafeInteger(entrada) || !Number.isSafeInteger(salida)) return null;
   const cache = metadatos.input_token_details?.cache_read;
-  return { entrada, salida, cache: Number.isSafeInteger(cache) ? cache : null };
+  const uso = { entrada, salida, cache: Number.isSafeInteger(cache) ? cache : null };
+  const pensados = metadatos.output_token_details?.reasoning;
+  if (razonamiento && Number.isSafeInteger(pensados)) uso.razonamiento = pensados;
+  return uso;
 }
 
 // Motivo corto de una falla, para el resumen del registro (como los de la migración 0002).
@@ -97,7 +140,7 @@ function motivoDeError(error, signal, tiempo) {
 const FIN_INVALIDO = { length: 'cortada', content_filter: 'filtro-contenido', insufficient_system_resource: 'sin-recursos' };
 
 // Juzga los productos (nombres, en orden) para el grupo (ya normalizado).
-// Devuelve siempre { ok, modelo, version, tokens, duracion_ms, … }:
+// Devuelve siempre { ok, modelo, version, tokens, duracion_ms, … }, y razonamiento: true si razonó:
 // - si salió bien: pertenecen (los índices, desde 0, de los productos del grupo) y descartados (números inválidos);
 // - si no: error (configuracion, sin-clave, tiempo, cancelada, proveedor-NNN, sin-estado, cortada, ilegible…).
 export async function clasificar({ env, grupo, nombres, signal }) {
@@ -105,7 +148,12 @@ export async function clasificar({ env, grupo, nombres, signal }) {
   const config = configuracion(env);
   if (!config) return { ok: false, error: 'configuracion', modelo: null, version: null, tokens: null, duracion_ms: 0 };
   const proveedor = PROVEEDORES[config.proveedor];
-  const base = { modelo: config.modelo, version: version(config.proveedor, config.modelo) };
+  const razonamiento = config.razonamiento === true;
+  const base = {
+    modelo: config.modelo,
+    version: version(config.proveedor, config.modelo, razonamiento),
+    ...(razonamiento ? { razonamiento: true } : {}),
+  };
   const apiKey = env[proveedor.clave];
   if (!apiKey) {
     console.error(`Clasificador: falta la clave de ${proveedor.nombre} en los secretos del Worker.`);
@@ -116,7 +164,7 @@ export async function clasificar({ env, grupo, nombres, signal }) {
     apiKey,
     model: config.modelo,
     configuration: { baseURL: proveedor.url },
-    ...PARAMETROS,
+    ...(razonamiento ? PARAMETROS_RAZONANDO : PARAMETROS),
     maxRetries: 1,
   });
   const entrada = PLANTILLA_ENTRADA
@@ -124,7 +172,7 @@ export async function clasificar({ env, grupo, nombres, signal }) {
     .replace(MARCA_PRODUCTOS, nombres.map((nombre, i) => `${i + 1}. ${nombre}`).join('\n'));
 
   const tiempo = new AbortController();
-  const temporizador = setTimeout(() => tiempo.abort(), ESPERA);
+  const temporizador = setTimeout(() => tiempo.abort(), razonamiento ? ESPERA_RAZONANDO : ESPERA);
   let respuesta;
   try {
     respuesta = await modelo.invoke([new SystemMessage(INSTRUCCIONES), new HumanMessage(entrada)], {
@@ -138,7 +186,7 @@ export async function clasificar({ env, grupo, nombres, signal }) {
     clearTimeout(temporizador);
   }
 
-  const resultado = { ...base, tokens: leerUso(respuesta.usage_metadata), duracion_ms: Date.now() - inicio };
+  const resultado = { ...base, tokens: leerUso(respuesta.usage_metadata, razonamiento), duracion_ms: Date.now() - inicio };
   const razon = respuesta.response_metadata?.finish_reason;
   if (razon && razon !== 'stop') {
     const error = FIN_INVALIDO[razon] ?? 'ilegible';

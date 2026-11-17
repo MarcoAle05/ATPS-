@@ -40,6 +40,7 @@ Todo está en español: la interfaz, los mensajes de error y el código.
 | `migrations/` | El esquema de D1 |
 | `evals/` | Los evals del asistente: casos, calificación, evaluador y resultados |
 | `pruebas/banco-cpu.mjs` | Mide el CPU del asistente con el modelo y D1 simulados |
+| `pruebas/comprobar-clasificador.mjs` | Prueba un clasificador con una sola llamada real, antes de una corrida completa |
 | `plan/` y `PLAN.md` | El plan del asistente, una etapa por archivo |
 | `CLAUDE.md` | Arquitectura, comandos y restricciones del proyecto |
 | `MEMORY.md` | Decisiones tomadas con el dueño, con fecha |
@@ -130,6 +131,16 @@ No hay pruebas automatizadas ni linter. Para verificar un cambio: `node --check 
 | `--repeticiones N` | Cambia el número de repeticiones |
 | `--evaluador ninguno` | Califica sin llamar al evaluador |
 | `--recalificar resultados/ARCHIVO.json` | Vuelve a calificar una corrida guardada, sin preguntar de nuevo |
+| `--clasificador deepseek-v4-pro` | Usa otro modelo de DeepSeek para el clasificador en esta corrida |
+| `--clasificador-razonamiento` | Hace que el clasificador razone antes de responder en esta corrida |
+
+Las dos opciones del clasificador sirven para comparar clasificadores con el mismo examen sin tocar `wrangler.jsonc`: la corrida se lo pasa a su `wrangler dev` con `--var`, y lo que no se pida sale de `CLASIFICADOR_ASISTENTE`. El archivo de resultados guarda el clasificador pedido, y el visor lo muestra.
+
+Antes de una corrida completa con un clasificador nuevo, conviene una sola llamada real para ver si el proveedor lo acepta, cuánto tarda y cuántos tokens gasta. También gasta saldo, pero una sola llamada:
+
+```sh
+node pruebas/comprobar-clasificador.mjs '{"proveedor":"deepseek","modelo":"deepseek-v4-pro"}'
+```
 
 Cada corrida deja un archivo en `evals/resultados/`. El primero (`2026-11-16_145431.json`) es la línea base contra la que se miden las mejoras.
 
