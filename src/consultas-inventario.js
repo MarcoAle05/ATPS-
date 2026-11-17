@@ -253,6 +253,7 @@ async function productosDelGrupo(env, pregunta, argumentos) {
       descartados: juicio.ok ? juicio.descartados : 0,
       modelo: juicio.modelo,
       version: juicio.version,
+      ...(juicio.razonamiento ? { razonamiento: true } : {}),
       tokens: juicio.tokens,
       duracion_ms: juicio.duracion_ms,
       ...(juicio.ok ? {} : { error: juicio.error }),

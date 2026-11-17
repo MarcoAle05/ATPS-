@@ -114,13 +114,17 @@ def duracion(ms) -> str:
     return f'{minutos} min {segundos} s'
 
 
-def tokens(entrada, cache, salida) -> str:
+def tokens(entrada, cache, salida, razonamiento=None) -> str:
+    """razonamiento: la parte de la salida que el modelo usó para pensar, si razonó."""
     if entrada is None and salida is None:
         return 'sin datos de uso'
     texto = f'{miles(entrada)} de entrada'
     if cache is not None:
         texto += f' ({miles(cache)} desde la caché)'
-    return texto + f' · {miles(salida)} de salida'
+    texto += f' · {miles(salida)} de salida'
+    if razonamiento is not None:
+        texto += f' ({miles(razonamiento)} de razonamiento)'
+    return texto
 
 
 def fecha_legible(iso) -> str | None:
@@ -281,13 +285,23 @@ class Pagina:
             clasificador = lista_de(self.config.get('clasificador'))
             uso = lista_de(self.resumen.get('clasificador'))
             llamadas = uso.get('llamadas')
+            pedido = lista_de(clasificador.get('pedido'))
+            texto_pedido = None
+            if pedido:
+                origen = {'wrangler.jsonc': 'la configuración de wrangler.jsonc',
+                          'correr.py --clasificador': 'pedido con correr.py --clasificador'}.get(pedido.get('origen'),
+                                                                                                 e(pedido.get('origen', '')))
+                texto_pedido = (f'{e(pedido.get("modelo", "sin dato"))}, razonamiento '
+                                f'{"encendido" if pedido.get("razonamiento") else "apagado"}; {origen}')
             filas = [
+                ('Configuración', texto_pedido),
                 ('Versión', cod(', '.join(clasificador.get('versiones') or []) or 'sin dato')),
                 ('Llamadas', miles(llamadas) + (f' ({miles(uso["errores"])} con error)' if uso.get('errores') else '')
                  if llamadas is not None else None),
-                ('Tokens', tokens(uso.get('tokens_entrada'), uso.get('tokens_cache'), uso.get('tokens_salida'))
-                 if llamadas else None),
+                ('Tokens', tokens(uso.get('tokens_entrada'), uso.get('tokens_cache'), uso.get('tokens_salida'),
+                                  uso.get('tokens_razonamiento')) if llamadas else None),
                 ('Tiempo total', duracion(uso.get('duracion_ms')) if llamadas else None),
+                ('Llamada más larga', duracion(uso['duracion_max_ms']) if llamadas and uso.get('duracion_max_ms') else None),
             ]
             if not llamadas:
                 papel += ' En esta corrida no intervino.'
@@ -526,15 +540,18 @@ class Pagina:
             if clasificacion.get('modelo'):
                 modelos.add(clasificacion['modelo'])
             uso = lista_de(clasificacion.get('tokens'))
-            partes.append(f'<p>El conversador pidió «{e(grupo)}» y el clasificador juzgó los productos sin revisar.</p>')
+            partes.append(f'<p>El conversador pidió «{e(grupo)}» y se llamó al clasificador con los productos sin '
+                          f'revisar.</p>')
             partes.append(dl([
                 ('Versión', cod(clasificacion['version']) if clasificacion.get('version') else None),
+                ('Razonamiento', 'encendido' if clasificacion.get('razonamiento') else 'apagado'),
                 ('Enviados', miles(clasificacion['enviados']) if 'enviados' in clasificacion else None),
                 ('Revisados', miles(clasificacion['revisados']) if 'revisados' in clasificacion else None),
                 ('Dijo que pertenecen', miles(clasificacion['pertenecen']) if 'pertenecen' in clasificacion else None),
                 ('Números descartados', miles(clasificacion['descartados']) + ' (fuera de la lista que recibió)'
                  if clasificacion.get('descartados') else None),
-                ('Tokens', tokens(uso.get('entrada'), uso.get('cache'), uso.get('salida')) if uso else 'sin datos de uso'),
+                ('Tokens', tokens(uso.get('entrada'), uso.get('cache'), uso.get('salida'), uso.get('razonamiento'))
+                 if uso else 'sin datos de uso'),
                 ('Duración', duracion(clasificacion.get('duracion_ms'))),
             ]))
             if clasificacion.get('error'):

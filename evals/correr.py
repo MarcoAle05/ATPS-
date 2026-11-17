@@ -7,6 +7,11 @@ Uso (desde evals/):
     uv run correr.py --repeticiones 1             menos repeticiones, para probar sin gastar de más
     uv run correr.py --recalificar resultados/ARCHIVO.json --evaluador ninguno
                                                   vuelve a calificar una corrida guardada, sin preguntar de nuevo
+    uv run correr.py --clasificador deepseek-v4-pro
+    uv run correr.py --clasificador-razonamiento  otro clasificador para esta corrida (modelo de DeepSeek y si razona),
+                                                  sin tocar wrangler.jsonc: se le pasa a wrangler dev con --var. Lo que
+                                                  no se pida sale de CLASIFICADOR_ASISTENTE de wrangler.jsonc. El archivo
+                                                  de resultados guarda el clasificador pedido
 
 Cada corrida empieza desde cero y no toca la base de desarrollo ni producción:
 1. Borra evals/.estado, aplica ahí las migraciones y carga evals/inventario.sql.
@@ -51,6 +56,7 @@ CASOS = CARPETA / 'casos'
 RESULTADOS = CARPETA / 'resultados'
 INVENTARIO_SQL = CARPETA / 'inventario.sql'
 DEV_VARS = RAIZ / '.dev.vars'
+WRANGLER_JSONC = RAIZ / 'wrangler.jsonc'
 WRANGLER = RAIZ / 'node_modules' / '.bin' / 'wrangler'
 BASE = 'lector-inventario'
 
@@ -85,6 +91,29 @@ CAMPOS_EJECUCION = (
 
 class ErrorEvals(Exception):
     """Un problema que impide seguir con la corrida. El mensaje se muestra tal cual."""
+
+
+# ---------- Clasificador de la corrida ----------
+
+
+def clasificador_de_wrangler() -> dict:
+    """CLASIFICADOR_ASISTENTE de wrangler.jsonc ({proveedor, modelo, razonamiento?}). Es un objeto plano, sin
+    comentarios dentro, así que basta con encontrarlo y leerlo como JSON."""
+    encontrado = re.search(r'"CLASIFICADOR_ASISTENTE"\s*:\s*(\{[^{}]*\})', WRANGLER_JSONC.read_text())
+    try:
+        return json.loads(encontrado.group(1))
+    except (AttributeError, ValueError) as error:
+        raise ErrorEvals('No se pudo leer CLASIFICADOR_ASISTENTE de wrangler.jsonc.') from error
+
+
+def clasificador_pedido(argumentos) -> dict:
+    """El clasificador de la corrida: el de wrangler.jsonc, con lo que pidan --clasificador y
+    --clasificador-razonamiento encima. Devuelve {proveedor, modelo, razonamiento, origen}."""
+    base = clasificador_de_wrangler()
+    if not argumentos.clasificador and not argumentos.clasificador_razonamiento:
+        return {**base, 'razonamiento': bool(base.get('razonamiento')), 'origen': 'wrangler.jsonc'}
+    return {**base, 'modelo': argumentos.clasificador or base['modelo'],
+            'razonamiento': argumentos.clasificador_razonamiento, 'origen': 'correr.py --clasificador'}
 
 
 # ---------- .dev.vars ----------
@@ -199,9 +228,12 @@ def puerto_libre() -> int:
 class Servidor:
     """Un wrangler dev aparte, con el estado de evals/.estado. Su registro queda en evals/.estado/wrangler-dev.log."""
 
-    def __init__(self):
+    def __init__(self, variables: dict | None = None):
         self.proceso = None
         self.url = None
+        # Variables del Worker que reemplazan a las de wrangler.jsonc en esta corrida (wrangler dev --var NOMBRE:valor).
+        # Llegan al Worker como texto; clasificador.js acepta CLASIFICADOR_ASISTENTE como texto JSON.
+        self.variables = variables or {}
 
     def arrancar(self) -> None:
         puerto, inspector = puerto_libre(), puerto_libre()
@@ -209,7 +241,9 @@ class Servidor:
         self.registro = open(ESTADO / 'wrangler-dev.log', 'w')
         self.proceso = subprocess.Popen(
             [str(WRANGLER), 'dev', '--port', str(puerto), '--inspector-port', str(inspector),
-             '--persist-to', str(ESTADO), '--show-interactive-dev-session=false'],
+             '--persist-to', str(ESTADO), '--show-interactive-dev-session=false',
+             *(a for nombre, valor in self.variables.items()
+               for a in ('--var', f'{nombre}:{json.dumps(valor, ensure_ascii=False, separators=(",", ":"))}'))],
             cwd=RAIZ, stdin=subprocess.DEVNULL, stdout=self.registro, stderr=subprocess.STDOUT,
             env=ENTORNO_WRANGLER, start_new_session=True,  # su propio grupo, para apagar también a workerd
         )
@@ -507,7 +541,7 @@ def resumen_clasificador(casos: list[dict]) -> dict:
     """Llamadas y tokens del clasificador, sacados del resumen de productos_del_grupo de cada fila (las columnas de
     tokens de la fila son solo del conversador)."""
     total = {'llamadas': 0, 'errores': 0, 'sin_tokens': 0, 'tokens_entrada': 0, 'tokens_salida': 0, 'tokens_cache': 0,
-             'duracion_ms': 0, 'modelos': set(), 'versiones': set()}
+             'duracion_ms': 0, 'duracion_max_ms': 0, 'modelos': set(), 'versiones': set()}
     for caso in casos:
         for rep in caso['repeticiones']:
             for h in rep.get('herramientas') or []:
@@ -517,6 +551,7 @@ def resumen_clasificador(casos: list[dict]) -> dict:
                 total['llamadas'] += 1
                 total['errores'] += bool(clasificacion.get('error'))
                 total['duracion_ms'] += clasificacion.get('duracion_ms') or 0
+                total['duracion_max_ms'] = max(total['duracion_max_ms'], clasificacion.get('duracion_ms') or 0)
                 if clasificacion.get('modelo'):
                     total['modelos'].add(clasificacion['modelo'])
                 if clasificacion.get('version'):
@@ -528,6 +563,8 @@ def resumen_clasificador(casos: list[dict]) -> dict:
                 total['tokens_entrada'] += tokens.get('entrada') or 0
                 total['tokens_salida'] += tokens.get('salida') or 0
                 total['tokens_cache'] += tokens.get('cache') or 0
+                if 'razonamiento' in tokens:  # solo con razonamiento; también está contado en la salida
+                    total['tokens_razonamiento'] = total.get('tokens_razonamiento', 0) + (tokens['razonamiento'] or 0)
     return {**total, 'modelos': sorted(total['modelos']), 'versiones': sorted(total['versiones'])}
 
 
@@ -547,6 +584,7 @@ def crear_evaluador(nombre: str, dev_vars: dict | None):
 
 def correr(argumentos) -> tuple[dict, Path]:
     casos = cargar_casos(argumentos.casos)
+    pedido = clasificador_pedido(argumentos)
     dev_vars = leer_dev_vars()
     evaluador = crear_evaluador(argumentos.evaluador, dev_vars)
     avance = (lambda texto: print(f'\r\033[K{texto}…', end='', file=sys.stderr, flush=True)) if sys.stderr.isatty() else (lambda texto: None)
@@ -555,7 +593,10 @@ def correr(argumentos) -> tuple[dict, Path]:
     preparar_base()
     inicial = foto()
     inventario = [{k: p[k] for k in ('codigo', 'nombre', 'precio_centavos', 'cantidad')} for p in inicial['productos']]
-    servidor = Servidor()
+    variables = None
+    if pedido['origen'] != 'wrangler.jsonc':
+        variables = {'CLASIFICADOR_ASISTENTE': {k: v for k, v in pedido.items() if k != 'origen'}}
+    servidor = Servidor(variables)
     resultados = []
     try:
         avance('arrancando wrangler dev')
@@ -582,7 +623,10 @@ def correr(argumentos) -> tuple[dict, Path]:
                 'modelos': sorted({f['modelo'] for f in filas}),
                 'versiones_instrucciones': sorted({f['version_instrucciones'] for f in filas}),
             },
-            'clasificador': {k: clasificador[k] for k in ('modelos', 'versiones')},
+            'clasificador': {
+                'pedido': {k: pedido[k] for k in ('modelo', 'razonamiento', 'origen')},
+                **{k: clasificador[k] for k in ('modelos', 'versiones')},
+            },
             'evaluador': evaluador.descripcion() if evaluador else None,
             'repeticiones': argumentos.repeticiones,
             'casos': [c['id'] for c in casos],
@@ -657,8 +701,9 @@ def imprimir_resumen(datos: dict, archivo: Path) -> None:
     clasificador = config.get('clasificador') or {}
     print(f'Conversador: {", ".join(conversador["modelos"]) or "sin filas"} '
           f'(instrucciones {", ".join(conversador["versiones_instrucciones"]) or "?"}) · '
-          + (f'Clasificador: {", ".join(clasificador["modelos"])} (versión {", ".join(clasificador["versiones"])}) · '
-             if clasificador.get('modelos') else '')
+          + (f'Clasificador: {", ".join(clasificador["modelos"])}'
+             + (' con razonamiento' if (clasificador.get('pedido') or {}).get('razonamiento') else '')
+             + f' (versión {", ".join(clasificador["versiones"])}) · ' if clasificador.get('modelos') else '')
           + f'Evaluador: {evaluador["modelo"] if evaluador else "ninguno"} · {config["repeticiones"]} repeticiones'
           + (' · BASE ALTERADA A PROPÓSITO' if config.get('alterar_base') else ''))
     resumen = datos['resumen']
@@ -703,8 +748,10 @@ def imprimir_resumen(datos: dict, archivo: Path) -> None:
     if resumen.get('clasificador'):
         uso = resumen['clasificador']
         print(f'Tokens del clasificador: {miles(uso["tokens_entrada"])} de entrada ({miles(uso["tokens_cache"])} desde la caché) '
-              f'y {miles(uso["tokens_salida"])} de salida, en {uso["llamadas"]} llamadas'
-              + (f' ({uso["errores"]} con error)' if uso['errores'] else '') + '.')
+              f'y {miles(uso["tokens_salida"])} de salida'
+              + (f' ({miles(uso["tokens_razonamiento"])} de razonamiento)' if uso.get('tokens_razonamiento') else '')
+              + f', en {uso["llamadas"]} llamadas' + (f' ({uso["errores"]} con error)' if uso['errores'] else '')
+              + (f'; la más larga tardó {uso["duracion_max_ms"] / 1000:.1f} s' if uso.get('duracion_max_ms') else '') + '.')
     if resumen.get('evaluador'):
         uso = resumen['evaluador']
         print(f'Tokens del evaluador: {miles(uso["tokens_entrada"])} de entrada ({miles(uso["tokens_cache"])} desde la caché) '
@@ -725,9 +772,16 @@ def main() -> int:
     parser.add_argument('--alterar-base', action='store_true',
                         help='solo para probar los evals: en los casos de conducta cambia un precio a mano después de '
                              'preguntar, para comprobar que la comparación de antes y después lo detecta')
+    parser.add_argument('--clasificador', metavar='MODELO',
+                        help='modelo de DeepSeek para el clasificador en esta corrida (por defecto, el de '
+                             'CLASIFICADOR_ASISTENTE en wrangler.jsonc)')
+    parser.add_argument('--clasificador-razonamiento', action='store_true',
+                        help='el clasificador razona antes de responder en esta corrida')
     argumentos = parser.parse_args()
     if argumentos.repeticiones < 1:
         parser.error('--repeticiones debe ser al menos 1')
+    if argumentos.recalificar and (argumentos.clasificador or argumentos.clasificador_razonamiento):
+        parser.error('--recalificar no vuelve a preguntar: no admite --clasificador ni --clasificador-razonamiento')
 
     # Un SIGTERM también apaga el servidor del examen (pasa por el finally de correr).
     signal.signal(signal.SIGTERM, lambda *_: (_ for _ in ()).throw(KeyboardInterrupt()))
