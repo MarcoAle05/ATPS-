@@ -143,6 +143,6 @@ Archivo `evals/resultados/2026-11-16_181130.json`, con 3 repeticiones y la memor
 ## Pendiente
 
 - **Los tres errores del clasificador son estables.** Se corrigen con las etapas 5 (aprendizaje en los evals) y 7 (correcciones desde el chat), o con otro modelo para el clasificador, que decide el dueño. Las instrucciones no se ajustaron al examen, a propósito.
-- **CPU en producción:** la única pregunta de grupo medida gastó 108 ms, con la memoria vacía. Falta medir una con la memoria ya llena. Si aparecen errores 1102 («Worker exceeded resource limits»), las salidas son las de `MEMORY.md` (2026-10-15): bajar trabajo o pasar a Workers Paid.
+- **CPU en producción:** la única pregunta de grupo medida gastó 108 ms, con la memoria vacía. Falta medir una con la memoria ya llena. Si aparecen errores 1102 («Worker exceeded resource limits»), hay que quitar trabajo del asistente o pasar a Workers Paid, como ya se anotó para el cifrado de contraseñas en `MEMORY.md` (2026-10-15).
 - **El texto previo a una consulta queda en la respuesta.** En una pregunta con dos grupos, el conversador escribió «Voy a consultar ambos grupos.» antes de llamar a la herramienta, y ese texto quedó al principio. Viene de antes de esta etapa.
 - **Los grupos no se excluyen:** Ment Mouth quedó a la vez como chicle y como pastilla de menta.
