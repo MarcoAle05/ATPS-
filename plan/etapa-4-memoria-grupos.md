@@ -140,6 +140,48 @@ Archivo `evals/resultados/2026-11-16_181130.json`, con 3 repeticiones y la memor
   - evaluador: $0.0014.
 - **CPU en el banco:** una pregunta de grupo que clasifica gasta unos 4.2 ms, contra 3.1 de una corta, y una que ya tiene la memoria, 3.5. El Worker crece unos 3 KiB comprimido.
 
+## Experimento: comparar clasificadores (aprobado el 2026-11-16)
+
+El dueño aprobó prepararlo después del visor de los evals (`plan/etapa-3-evals.md`). Es su primer experimento como AI engineer: plantear una hipótesis, medirla con los evals y decidir con números.
+
+- **Pregunta:** ¿un modelo más capaz, o razonar antes de responder, corrige los 3 errores del clasificador sin empeorar lo demás? Solo cambia el modelo, no las instrucciones, para no ajustarlo al examen.
+- **Variantes**, cada una con 3 repeticiones y la memoria fría:
+
+  | | Modelo | Razonamiento |
+  |---|---|---|
+  | A | `deepseek-flash` | apagado (el actual, punto de comparación) |
+  | B | `deepseek-flash` | encendido |
+  | C | `deepseek-v4-pro` | apagado |
+
+  Todo lo demás queda fijo: conversador, instrucciones, casos e inventario.
+- **Por qué B es posible:** en el conversador el razonamiento va apagado porque choca con las herramientas (`reasoning_content`), y el clasificador no usa herramientas. Falta comprobar que DeepSeek acepte el razonamiento junto con `response_format: json_object`.
+- **Qué hace falta construir:**
+  - que `CLASIFICADOR_ASISTENTE` admita el razonamiento, apagado por omisión y dentro de la versión del clasificador; hoy es un parámetro fijo de `PARAMETROS`;
+  - una opción de `correr.py` para elegir el clasificador de la corrida sin tocar `wrangler.jsonc`.
+
+  Lo publicado no cambia.
+- **Qué se mide:**
+  - en cada grupo, los aciertos, faltantes y sobrantes del clasificador;
+  - que los otros 10 casos sigan pasando;
+  - los tokens y la duración del clasificador.
+
+  Hoy el clasificador es el 5 % del costo de una corrida, así que las tres variantes juntas cuestan menos de 5 centavos de dólar.
+- **Regla de decisión propuesta**, que el dueño tiene que confirmar antes de correr: se cambia de clasificador si la variante:
+  - quita al menos 2 de los 3 errores;
+  - no agrega errores nuevos;
+  - no rompe ningún otro caso;
+  - tarda menos de 5 s en el clasificador.
+- **Si gana B o C:**
+  - se cambia `CLASIFICADOR_ASISTENTE` en producción con el visto bueno del dueño;
+  - se borran de la memoria publicada las filas con origen `clasificador`; las del dueño se quedan. Hoy un cambio de versión del clasificador no hace que se vuelva a juzgar: «sin revisar» solo mira si no hay fila o si cambió el nombre.
+- **Límite:** con 19 productos y 3 errores, el resultado es una pista, no una prueba. El paso siguiente sería agregar productos y trampas nuevas.
+- **Descartado: la categoría de Open Food Facts.** El 2026-11-16 se consultó para los productos mal clasificados:
+  - Yerbabuena Mentos solo tiene «snacks, sweet-snacks, confectioneries», que no distingue chicle de pastilla;
+  - Bubbaloo Pik Pop y Trident XtraCare menta fresca no tienen categoría;
+  - Ment Mouth tiene un código inventado y no está.
+
+  No habría corregido ninguno de los 3 errores.
+
 ## Pendiente
 
 - **Los tres errores del clasificador son estables.** Se corrigen con las etapas 5 (aprendizaje en los evals) y 7 (correcciones desde el chat), o con otro modelo para el clasificador, que decide el dueño. Las instrucciones no se ajustaron al examen, a propósito.
