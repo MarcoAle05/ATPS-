@@ -73,7 +73,7 @@ El estado lo cambia la sesión que planea, al enviar el primer encargo y al term
 - el modelo, `version_instrucciones` y `version_datos`;
 - la duración y los tokens, que salen de `streamUsage`. Entrada y salida quedan en NULL si alguna llamada no informó su uso. La caché va aparte: queda en NULL si el proveedor no la informó.
 
-La fila se escribe con `ejecucion.waitUntil`, y cada escritura borra lo que tenga más de 90 días. La respuesta lleva el id de la fila en la cabecera `X-Ejecucion`, también en el error JSON. El cuerpo admite `origen`: `chat` (por defecto; la interfaz no lo manda) o `eval`. `version_datos` es un contador de la tabla `contadores` que suben solos los disparadores de `productos`.
+La fila se escribe con `ejecucion.waitUntil`, y cada escritura borra lo que tenga más de 90 días. La respuesta lleva el id de la fila en la cabecera `X-Ejecucion`, también en el error JSON. El cuerpo admite `origen`: `chat` (por defecto; la interfaz no lo manda) o `eval`. `version_datos` es un contador de la tabla `contadores` que suben solos los disparadores de `productos` y de `miembros_grupo`.
 
 **Memoria de grupos** (`src/clasificador.js`, migración `0003`): `productos_del_grupo` responde por tipo de producto (chicle, refresco, producto de limpieza), no por las palabras del nombre.
 - `grupos` guarda el nombre normalizado con `validarNombreGrupo`. `miembros_grupo` guarda, por grupo y producto, si `pertenece`, quién lo dijo (`origen`: `clasificador` es «probable» y `dueno` es «confirmado»), el `nombre_visto` al juzgarlo y la `version_clasificador`. También se guarda el «no».

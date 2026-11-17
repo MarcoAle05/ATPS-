@@ -35,7 +35,8 @@ CREATE TABLE grupos (
 -- quedan en el resumen de productos_del_grupo dentro de la columna herramientas de esa fila:
 --   { grupo, total, unidades, valor, codigos, sin_revisar, clasificacion }
 --   clasificacion es null si no se llamó al clasificador; si se llamó:
---   { revisados, pertenecen, descartados, modelo, version, tokens: { entrada, salida, cache }, duracion_ms, error? }
+--   { enviados, revisados, pertenecen, descartados, modelo, version, tokens: { entrada, salida, cache }, duracion_ms, error? }
+--   enviados es cuántos productos se mandaron; revisados es cuántos quedaron juzgados (0 si el clasificador falló).
 CREATE TABLE miembros_grupo (
   grupo_id              INTEGER NOT NULL REFERENCES grupos (id) ON DELETE CASCADE,
   codigo                TEXT NOT NULL REFERENCES productos (codigo) ON DELETE CASCADE,
