@@ -111,7 +111,7 @@ Decisiones tomadas con el usuario y datos que no se deducen del código. Agrega 
 - **2026-11-16 · Etapa 4 enviada.** El encargo de la memoria de grupos y el clasificador se envió a `logperch-95`, aprobado por el dueño. El clasificador usa `deepseek-flash` con su propia configuración. Cuando una lista no la confirmó el dueño, el asistente avisa en una línea al final que puede tener errores. Las precisiones están en `plan/etapa-4-memoria-grupos.md`.
 - **2026-11-16 · Etapa 4 verificada y experimento aprobado.** El dueño hace la app para aprender a ser AI engineer.
   - Pidió un visor local de los resultados de los evals, con lo que hizo cada agente en cada pregunta. El encargo se envió a `logperch-95`; el detalle está en `plan/etapa-3-evals.md`.
-  - Aprobó un experimento para después del visor: comparar tres clasificadores con los mismos evals (`deepseek-flash` con y sin razonamiento, y `deepseek-v4-pro`). Antes de correrlo tiene que confirmar la regla de decisión. El detalle está en `plan/etapa-4-memoria-grupos.md`.
+  - Aprobó un experimento para después del visor: comparar tres clasificadores con los mismos evals (`deepseek-flash` con y sin razonamiento, y `deepseek-v4-pro`). Confirmó la regla de decisión antes de correrlo: se cambia si la variante quita al menos 2 de los 3 errores, no agrega errores nuevos, no rompe otros casos y el clasificador tarda menos de 5 s. El detalle está en `plan/etapa-4-memoria-grupos.md`.
   - Se descartó dar al clasificador la categoría de Open Food Facts: no la tiene, o es demasiado general, en los 3 productos que clasifica mal.
 
 ## Historial

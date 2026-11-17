@@ -166,7 +166,7 @@ El dueño aprobó prepararlo después del visor de los evals (`plan/etapa-3-eval
   - los tokens y la duración del clasificador.
 
   Hoy el clasificador es el 5 % del costo de una corrida, así que las tres variantes juntas cuestan menos de 5 centavos de dólar.
-- **Regla de decisión propuesta**, que el dueño tiene que confirmar antes de correr: se cambia de clasificador si la variante:
+- **Regla de decisión, confirmada por el dueño el 2026-11-16 antes de correr nada** (eligió la «equilibrada» entre tres: la estricta pedía corregir los 3 errores y la flexible, al menos 1). Se cambia de clasificador si la variante:
   - quita al menos 2 de los 3 errores;
   - no agrega errores nuevos;
   - no rompe ningún otro caso;
