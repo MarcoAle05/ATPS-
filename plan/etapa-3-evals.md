@@ -229,7 +229,7 @@ El 2026-11-16, con la etapa 4 ya publicada, el dueño pidió «un apartado para 
 
 ## Agregado después: los evals dentro de la app
 
-El 2026-11-16 el dueño preguntó si los evals se podían ver en la app publicada y eligió un apartado dentro de ella, solo para el administrador. Se descartó un enlace privado de claude.ai, que habría que publicar de nuevo con cada corrida. Se encarga cuando termine el experimento de clasificadores, porque los dos tocan `evals/visor.py`.
+El 2026-11-16 el dueño preguntó si los evals se podían ver en la app publicada y eligió un apartado dentro de ella, solo para el administrador. Se descartó un enlace privado de claude.ai, que habría que publicar de nuevo con cada corrida. Se iba a encargar al terminar el experimento de clasificadores, porque los dos tocan `evals/visor.py`.
 
 **Diseño propuesto:**
 - **Dónde se guardan:** en un espacio nuevo de Workers KV (binding `EVALS`), no en D1.
@@ -247,6 +247,12 @@ El 2026-11-16 el dueño preguntó si los evals se podían ver en la app publicad
 - **En la interfaz:** un botón «Evals», solo para el administrador, que abre el índice. La página de cada corrida lleva un enlace para volver al índice.
 - **Lo que contiene:** respuestas de los modelos sobre el inventario de prueba. Ya es público en GitHub (`evals/resultados/`), pero la app lo muestra solo al administrador, como el asistente.
 - **Para publicar** hace falta el visto bueno del dueño, para crear el espacio de KV en producción y publicar el Worker.
+- **Precisiones del encargo:**
+  - `subir.py` escribe por omisión en el KV local; solo con `--remoto` escribe en producción.
+  - Los errores de estas dos rutas responden páginas HTML cortas, porque se abren navegando.
+  - El botón «Evals» va junto a «Asistente» y abre el índice en la misma pestaña.
+- **Avance:**
+  - 2026-11-17 · El experimento quedó pospuesto, así que esto ya no lo espera. El dueño aprobó el envío, y el encargo se envió a `logperch-95`.
 
 ## Pendiente
 
