@@ -43,6 +43,7 @@
     <symbol id="i-message-square-text" viewBox="0 0 24 24"><path d="M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z"/><path d="M7 11h10"/><path d="M7 15h6"/><path d="M7 7h8"/></symbol>
     <symbol id="i-arrow-up" viewBox="0 0 24 24"><path d="m5 12 7-7 7 7"/><path d="M12 19V5"/></symbol>
     <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol>
+    <symbol id="i-clipboard-check" viewBox="0 0 24 24"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="m9 14 2 2 4-4"/></symbol>
     <symbol id="i-package" viewBox="0 0 24 24"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></symbol>
   </svg>
 
@@ -224,6 +225,11 @@
         <svg class="icono" aria-hidden="true"><use href="#i-message-square-text"/></svg>
         Asistente
       </button>
+      <!-- Solo el administrador lo ve (inicio.js lo muestra). Abre la lista de corridas de los evals en la misma pestaña. -->
+      <a class="boton chico" id="btn-evals" href="/api/evals" hidden>
+        <svg class="icono" aria-hidden="true"><use href="#i-clipboard-check"/></svg>
+        Evals
+      </a>
       <button type="button" class="boton chico" id="btn-salir">
         <svg class="icono" aria-hidden="true"><use href="#i-log-out"/></svg>
         Salir

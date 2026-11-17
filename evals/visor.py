@@ -4,6 +4,7 @@ Uso (desde evals/):
     uv run visor.py                                        la corrida más reciente de resultados/
     uv run visor.py resultados/ARCHIVO.json                esa corrida
     uv run visor.py resultados/ARCHIVO.json --no-abrir     solo escribe la página y dice la ruta
+    uv run visor.py resultados/ARCHIVO.json --app          la página como la sirve la app, con «Volver a la lista»
 
 Escribe evals/visor/ARCHIVO.html y la abre en el navegador. La carpeta visor/ no se sube: el JSON de la corrida es
 la única fuente, y la página se puede borrar y volver a generar. Solo usa la biblioteca estándar: no hace llamadas de
@@ -15,6 +16,10 @@ cada caso, un bloque por quien actuó:
 - Clasificador (modelo): cada producto que juzgó para el grupo, contra la lista del dueño.
 - Calificación por código (calificar.py): no es un modelo, y es lo que decide si la repetición pasa.
 - Evaluador (modelo): qué leyó en las líneas dudosas y cómo explicó cada fallo.
+
+La app publicada muestra estas mismas páginas en su apartado «Evals» (solo para el administrador): subir.py las arma
+con Pagina(..., enlace_lista=LISTA_EN_LA_APP) y arma la lista de corridas con armar_lista(), con los metadatos que
+saca resumen_para_lista().
 
 Las repeticiones que fallan salen abiertas y las que pasan, plegadas. Todo texto que viene del archivo pasa por
 html.escape: las respuestas las escribió un modelo y los nombres vienen del inventario. La página no lleva JavaScript
@@ -35,6 +40,10 @@ from pathlib import Path
 CARPETA = Path(__file__).resolve().parent  # evals/
 RESULTADOS = CARPETA / 'resultados'
 VISOR = CARPETA / 'visor'
+
+# Direcciones del apartado «Evals» de la app (src/evals.js).
+LISTA_EN_LA_APP = '/api/evals'
+APP = '/'
 
 MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre',
          'noviembre', 'diciembre']
@@ -173,9 +182,11 @@ def lista_de(diccionario) -> dict:
 
 
 class Pagina:
-    def __init__(self, datos: dict, archivo: Path):
+    def __init__(self, datos: dict, archivo: Path, enlace_lista: str | None = None):
+        """enlace_lista: la dirección de la lista de corridas, para el enlace «Volver a la lista» (en la app)."""
         self.datos = datos
         self.archivo = archivo
+        self.enlace_lista = enlace_lista
         self.config = lista_de(datos.get('configuracion'))
         self.resumen = lista_de(datos.get('resumen'))
         self.inventario = [p for p in datos.get('inventario') or [] if isinstance(p, dict)]
@@ -793,14 +804,84 @@ class Pagina:
             except Exception as error:  # un campo raro no debe romper la página entera
                 casos.append(f'<section class="caso" id="{destino}"><p class="alerta">No se pudo mostrar el caso '
                              f'{e(caso.get("id", numero))}: {e(type(error).__name__)}: {e(error)}</p></section>')
+        volver = (f'<nav class="arriba"><a href="{e(self.enlace_lista)}">Volver a la lista</a></nav>'
+                  if self.enlace_lista else '')
         return (f'<!doctype html>\n<html lang="es"><head><meta charset="utf-8">'
                 f'<meta name="viewport" content="width=device-width, initial-scale=1">'
                 f'<meta name="color-scheme" content="light dark">'
                 f'<title>Evals · {e(self.archivo.stem)}</title><style>{ESTILO}</style></head><body><main>'
-                f'{self.encabezado()}{self.agentes()}{self.indice()}{"".join(casos)}'
-                f'<footer><p class="suave">Página generada por <span class="cod">evals/visor.py</span> desde '
+                f'{volver}{self.encabezado()}{self.agentes()}{self.indice()}{"".join(casos)}'
+                f'<footer>{volver}<p class="suave">Página generada por <span class="cod">evals/visor.py</span> desde '
                 f'{cod(self.archivo.name)}. El archivo JSON es la fuente: esta página se puede borrar y volver a '
                 f'generar.</p></footer></main></body></html>\n')
+
+
+# ---------- Lista de corridas de la app ----------
+
+
+def resumen_para_lista(datos: dict) -> dict:
+    """Lo que la lista de corridas de la app muestra de cada una. subir.py lo guarda como metadatos de su clave en KV,
+    que no pueden pasar de 1 024 bytes: solo datos cortos (los nombres de modelo largos se recortan)."""
+    config = lista_de(datos.get('configuracion'))
+    resumen = lista_de(datos.get('resumen'))
+    casos = [c for c in datos.get('casos') or [] if isinstance(c, dict)]
+    clasificador = lista_de(config.get('clasificador'))
+    evaluador = lista_de(config.get('evaluador'))
+    corto = lambda texto: str(texto)[:60]
+    return {
+        'fecha': corto(datos.get('fecha') or ''),
+        'pasan': resumen.get('pasan', sum(bool(c.get('pasa')) for c in casos)),
+        'casos': resumen.get('casos', len(casos)),
+        'repeticiones': config.get('repeticiones'),
+        'conversador': corto(', '.join(lista_de(config.get('conversador')).get('modelos') or [])),
+        'clasificador': corto(', '.join(clasificador.get('modelos') or [])) or None,
+        'razonamiento': bool(lista_de(clasificador.get('pedido')).get('razonamiento')),
+        'evaluador': corto(evaluador.get('modelo') or '') or None,
+        'recalificada_de': corto(datos.get('recalificada_de') or '') or None,
+        'alterada': bool(config.get('alterar_base')),
+    }
+
+
+def armar_lista(corridas: list[dict]) -> str:
+    """La página con la lista de corridas publicadas en la app. corridas: [{"nombre", "metadatos"}], de la más
+    nueva a la más vieja; metadatos es lo de resumen_para_lista() (puede faltar o venir incompleto)."""
+    elementos = []
+    for corrida in corridas:
+        nombre = str(corrida.get('nombre', ''))
+        m = lista_de(corrida.get('metadatos'))
+        fecha = fecha_legible(m.get('fecha'))
+        titulo = (f'{"Recalificación" if m.get("recalificada_de") else "Corrida"} del {fecha}' if fecha else e(nombre))
+        pasan, total = m.get('pasan'), m.get('casos')
+        resultado = (f'<p class="veredicto-lista">Pasan {e(pasan)} de {e(total)} casos</p>'
+                     if pasan is not None and total is not None else '')
+        agentes = [f'Conversador {e(m["conversador"])}' if m.get('conversador') else None,
+                   (f'Clasificador {e(m["clasificador"])}' + (' con razonamiento' if m.get('razonamiento') else ''))
+                   if m.get('clasificador') else None,
+                   f'Evaluador {e(m["evaluador"])}' if m.get('evaluador') else 'Sin evaluador' if m else None]
+        notas = [f'Recalificación de {cod(m["recalificada_de"])}' if m.get('recalificada_de') else None,
+                 '<strong class="aviso">Base alterada a propósito</strong>' if m.get('alterada') else None,
+                 f'{e(m["repeticiones"])} repeticiones por caso' if m.get('repeticiones') else None]
+        elementos.append(
+            f'<li class="corrida-lista"><a class="titulo-lista" href="{e(LISTA_EN_LA_APP)}/{e(nombre)}">{titulo}</a>'
+            f'{resultado}<p class="suave">{" · ".join(a for a in agentes if a)}</p>'
+            + (f'<p class="suave">{" · ".join(n for n in notas if n)}</p>' if any(notas) else '')
+            + f'<p class="id">{cod(nombre)}</p></li>')
+    if elementos:
+        cuerpo = (f'<p class="suave">{len(elementos)} {"corrida publicada" if len(elementos) == 1 else "corridas publicadas"}, '
+                  f'de la más nueva a la más vieja.</p><ol class="lista-corridas">{"".join(elementos)}</ol>')
+    else:
+        cuerpo = ('<p>Todavía no hay corridas publicadas. Se publican desde la computadora donde corren los evals, en '
+                  'la carpeta <span class="cod">evals/</span>: <span class="cod">uv run subir.py resultados/ARCHIVO.json'
+                  '</span>. Para la app publicada se agrega <span class="cod">--remoto</span>.</p>')
+    volver = f'<nav class="arriba"><a href="{e(APP)}">Volver a la app</a></nav>'
+    return (f'<!doctype html>\n<html lang="es"><head><meta charset="utf-8">'
+            f'<meta name="viewport" content="width=device-width, initial-scale=1">'
+            f'<meta name="color-scheme" content="light dark">'
+            f'<title>Evals del asistente</title><style>{ESTILO}</style></head><body><main>{volver}'
+            f'<header class="corrida"><p class="sobre">Evals del asistente</p><h1>Corridas publicadas</h1>{cuerpo}'
+            f'</header><footer><p class="suave">Cada corrida es la página que arma <span class="cod">evals/visor.py</span>'
+            f' desde su archivo de resultados. Se publica o se quita con <span class="cod">evals/subir.py</span>.</p>'
+            f'</footer></main></body></html>\n')
 
 
 # Colores de DESIGN.md (los mismos tokens de la app), con su tema oscuro.
@@ -988,6 +1069,18 @@ td.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
 .explicaciones dt { font-weight: 600; font-size: 0.9375rem; }
 .explicaciones dd { margin: 2px 0 0; }
 .volver { margin-top: 12px; font-size: 0.875rem; }
+.arriba { margin: 0 0 16px; font-size: 0.875rem; }
+footer .arriba { margin: 0 0 8px; }
+.lista-corridas { display: grid; gap: 12px; margin: 16px 0 0; padding: 0; list-style: none; }
+.corrida-lista {
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: 12px;
+  padding: 14px 16px;
+}
+.corrida-lista p { margin: 2px 0 0; }
+.titulo-lista { font-size: 1.0625rem; font-weight: 650; }
+.veredicto-lista { font-weight: 600; }
 footer { margin-top: 48px; font-size: 0.875rem; }
 
 @media (max-width: 40rem) {
@@ -1048,6 +1141,8 @@ def main() -> int:
     parser = argparse.ArgumentParser(description='Arma una página HTML con el detalle de una corrida de los evals y la abre.')
     parser.add_argument('archivo', nargs='?', help='corrida de resultados/ (por defecto, la más reciente)')
     parser.add_argument('--no-abrir', action='store_true', help='solo escribe la página y dice la ruta')
+    parser.add_argument('--app', action='store_true',
+                        help='arma la página como la muestra la app: con el enlace «Volver a la lista»')
     argumentos = parser.parse_args()
     try:
         origen = elegir_archivo(argumentos.archivo)
@@ -1062,7 +1157,8 @@ def main() -> int:
         return 1
     VISOR.mkdir(exist_ok=True)
     destino = VISOR / f'{origen.stem}.html'
-    destino.write_text(Pagina(datos, origen.resolve()).html(), encoding='utf-8')
+    enlace = LISTA_EN_LA_APP if argumentos.app else None
+    destino.write_text(Pagina(datos, origen.resolve(), enlace_lista=enlace).html(), encoding='utf-8')
     print(f'Página: {destino}')
     if not argumentos.no_abrir:
         webbrowser.open(destino.as_uri())

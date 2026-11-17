@@ -16,6 +16,10 @@
     "bindings": [{ "name": "DIFUSOR", "class_name": "Difusor" }]
   },
   "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Difusor"] }],
+  // Páginas de los resultados de los evals (src/evals.js), que sube evals/subir.py. El id es provisional y solo sirve
+  // en local: antes de publicar hay que crear el espacio (npx wrangler kv namespace create EVALS) y poner aquí su id.
+  // No se deja sin id a propósito: sin él, wrangler deploy crearía el espacio solo (aprovisionamiento automático).
+  "kv_namespaces": [{ "binding": "EVALS", "id": "reemplazar-con-el-id-de-produccion" }],
   "d1_databases": [
     {
       "binding": "DB",

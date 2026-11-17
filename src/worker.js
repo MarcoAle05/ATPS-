@@ -7,6 +7,7 @@ import * as productos from './productos.js';
 // y no dentro de la primera petición al asistente (límite de 10 ms de CPU).
 import { conversar } from './asistente.js';
 import { conectar as conectarTiempoReal } from './tiempo-real.js';
+import * as evals from './evals.js';
 
 export { Difusor } from './tiempo-real.js';
 
@@ -36,6 +37,10 @@ const RUTAS = [
 
   // Cada mensaje gasta saldo (o cuota) del proveedor del modelo: solo el administrador.
   ['POST', /^\/api\/asistente$/, 'admin', conversar],
+
+  // Páginas de los resultados de los evals (Workers KV). Se abren navegando: sus errores también son páginas.
+  ['GET', /^\/api\/evals$/, 'admin', evals.indice],
+  ['GET', /^\/api\/evals\/([^/]+)$/, 'admin', evals.corrida],
 ];
 
 function buscarRuta(metodo, camino) {
@@ -95,6 +100,11 @@ export default {
     try {
       return await atender(request, env, ejecucion, url);
     } catch (error) {
+      // Las páginas de los evals se abren navegando: su error es una página corta, no JSON (401, 403, 404…).
+      if (evals.CAMINO_EVALS.test(url.pathname)) {
+        if (!(error instanceof ErrorApi)) console.error(error);
+        return evals.paginaDeError(error);
+      }
       if (error instanceof ErrorApi) return respuestaDeError(error);
       console.error(error);
       return json({ error: 'Error interno del servidor.' }, 500);
