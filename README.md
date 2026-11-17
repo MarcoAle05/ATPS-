@@ -132,3 +132,7 @@ No hay pruebas automatizadas ni linter. Para verificar un cambio: `node --check 
 | `--recalificar resultados/ARCHIVO.json` | Vuelve a calificar una corrida guardada, sin preguntar de nuevo |
 
 Cada corrida deja un archivo en `evals/resultados/`. El primero (`2026-11-16_145431.json`) es la línea base contra la que se miden las mejoras.
+
+## Licencia
+
+[MIT](LICENSE).

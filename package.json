@@ -11,6 +11,7 @@
     "deploy": "npm run preparar && wrangler deploy"
   },
   "private": true,
+  "license": "MIT",
   "devDependencies": {
     "@playwright/test": "^1.64.1",
     "@zxing/browser": "^0.2.1",
