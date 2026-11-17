@@ -205,6 +205,20 @@ Archivo `evals/resultados/2026-11-16_145431.json`: `deepseek-flash` como convers
 
 El número que tiene que mejorar la etapa 4 es **chicles 0 de 11** (y pastillas de menta 1 de 6).
 
+## Agregado después: visor de resultados
+
+El 2026-11-16, con la etapa 4 ya publicada, el dueño pidió «un apartado para ver los resultados de los evals con el registro de preguntas: qué agente hizo qué de cada cosa». Eligió una página local generada desde los resultados, no un apartado en la app: los resultados de los evals solo existen en la computadora, y así no se toca producción ni se gasta saldo.
+
+- **Qué es:** `uv run visor.py [resultados/ARCHIVO.json]` arma una página HTML de una corrida y la abre en el navegador. La página va en `evals/visor/`, que no se sube; el JSON sigue siendo la única fuente.
+- **Qué muestra:** por cada caso y repetición, un bloque por quien actuó:
+  - el conversador: herramientas, argumentos, respuesta y tokens;
+  - el clasificador: cada producto que juzgó, contra la lista del dueño;
+  - la calificación por código, que es la que decide si pasa;
+  - el evaluador: qué leyó y cómo explicó cada fallo.
+- **Sin dólares:** el JSON guarda tokens, no precios.
+- **Avance:**
+  - 2026-11-16 · Encargo enviado a `logperch-95`, después de que el dueño eligiera la forma.
+
 ## Pendiente
 
 - **Casos nuevos sugeridos por los fallos reales:**
