@@ -218,6 +218,13 @@ El 2026-11-16, con la etapa 4 ya publicada, el dueño pidió «un apartado para 
 - **Sin dólares:** el JSON guarda tokens, no precios.
 - **Avance:**
   - 2026-11-16 · Encargo enviado a `logperch-95`, después de que el dueño eligiera la forma.
+  - 2026-11-16 · Entrega recibida: commit `6b7676e`, sobre `4426dae`. Toca `evals/visor.py` (nuevo), una línea de `correr.py`, `README.md` y `.gitignore`.
+  - 2026-11-16 · Revisión:
+    - Leí el código completo. Todo lo que viene del archivo pasa por `html.escape`, y las anclas solo llevan `[a-z0-9-]`.
+    - Generé las dos corridas: sin errores, sin `<script` ni direcciones externas, y `evals/visor/` queda ignorada.
+    - Revisé las capturas del caso `chicles`, en claro, en oscuro y a 390 px.
+    - La entrega precisa algo del encargo: el evaluador sí influye en la calificación, porque los productos que reconoce en las líneas dudosas cuentan como nombrados. La página lo dice; sus explicaciones no cambian nada.
+    - Solo se probó en Chromium.
 
 ## Pendiente
 
