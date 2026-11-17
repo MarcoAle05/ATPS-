@@ -17,6 +17,7 @@ Decisiones tomadas con el usuario y datos que no se deducen del código. Agrega 
 - 2026-11-16 · A petición del dueño, se agregaron directo en D1 de producción 11 productos definitivos, tomados de Open Food Facts: chicles de su lista y trampas para los evals. Quedaron con precio 0 y cantidad 0, y producción pasó a 14 productos. El detalle está en `plan/etapa-3-evals.md`. Punto de restauración previo: `0000002e-00000000-00005125-4f6a4fe07e22ecf99591c9a6b0c1685a`.
   - Ese mismo día, a petición del dueño, se agregaron otros 5 productos de su lista que no están en Open Food Facts, con códigos inventados del rango interno de GS1: `2000000000015` a `2000000000053`. Producción quedó con 19 productos. Punto de restauración previo: `0000002f-00000000-00005125-77e4a3d58b118ee987c85cfddde22c7b`.
   - La app guarda los códigos tal como los lee el escáner, sin normalizar. El lector ZXing, sin formatos fijados, entrega los UPC-A con 12 dígitos, sin el 0 inicial que usa Open Food Facts.
+- 2026-11-16 · Etapa 4 del asistente publicada, a petición del dueño: migración `0003` (memoria de grupos, vacía) aplicada en producción y después el Worker (593.15 KiB comprimido, arranque de 74 ms, versión `35c377fb`). Productos sin cambios. Punto de restauración previo: `0000003e-00000000-00005126-21e459b66dc1cc46c9b488db14e02c1b`.
 
 ## Decisiones
 
@@ -124,6 +125,7 @@ Decisiones tomadas con el usuario y datos que no se deducen del código. Agrega 
 - 2026-11-13 · Etapa 2 del asistente (modelos intercambiables y Gemini) fusionada a `main` y publicada.
 - 2026-11-16 · Etapa 2 verificada en producción con una pregunta del dueño (DeepSeek, 78 ms de CPU) y marcada como terminada. Ese día Gemini respondió muy lento en flujo (de 22 s a más de 90 s antes del primer trozo) y las dos preguntas locales terminaron por tiempo. Hay que volver a medirlo antes de los evals.
 - 2026-11-16 · Etapa 3 del asistente (evals en Python y caso chicles) fusionada a `main` y marcada como terminada. No cambia la app, así que no hubo publicación.
+- 2026-11-16 · Etapa 4 del asistente (memoria de grupos y clasificador) fusionada a `main` y publicada.
 
 ## Pendiente
 

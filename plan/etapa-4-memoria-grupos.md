@@ -112,6 +112,10 @@ Punto de partida: la línea base de la etapa 3, con chicles en 0 de 11 y pastill
   - Detalles menores de documentación:
     - el comentario de `0003` no lista `enviados` en la clasificación;
     - `CLAUDE.md` todavía dice que a `version_datos` solo lo suben los disparadores de `productos`.
+- 2026-11-16 · Fusionada a `main` (`738bfa4`) y publicada, a petición del dueño. Los dos detalles de documentación se corrigieron en `dc84219`.
+  - Punto de restauración previo a la migración: `0000003e-00000000-00005126-21e459b66dc1cc46c9b488db14e02c1b`.
+  - Migración `0003` aplicada en producción: tablas, índice y los tres disparadores creados. Productos sin cambios (19) y `version_datos` en 34.
+  - Worker publicado: 593.15 KiB comprimido, arranque de 74 ms y versión `35c377fb`.
 
 ## Resultado contra la línea base (2026-11-16)
 
@@ -134,8 +138,6 @@ Archivo `evals/resultados/2026-11-16_181130.json`, con 3 repeticiones y la memor
 ## Pendiente
 
 - **Los tres errores del clasificador son estables.** Se corrigen con las etapas 5 (aprendizaje en los evals) y 7 (correcciones desde el chat), o con otro modelo para el clasificador, que decide el dueño. Las instrucciones no se ajustaron al examen, a propósito.
-- **En producción falta:**
-  - aplicar `0003` y después publicar el Worker;
-  - medir en Workers Observability el CPU de una pregunta de grupo.
+- **En producción falta** medir en Workers Observability el CPU de una pregunta de grupo, con una pregunta del dueño.
 - **El texto previo a una consulta queda en la respuesta.** En una pregunta con dos grupos, el conversador escribió «Voy a consultar ambos grupos.» antes de llamar a la herramienta, y ese texto quedó al principio. Viene de antes de esta etapa.
 - **Los grupos no se excluyen:** Ment Mouth quedó a la vez como chicle y como pastilla de menta.
