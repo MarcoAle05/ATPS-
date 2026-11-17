@@ -96,7 +96,7 @@ Sin fecha; se planean cuando lo anterior esté publicado.
 | Límite | Cómo nos toca | Señal de que ya limita |
 |---|---|---|
 | 10 ms de CPU por petición | LangChain gasta CPU por cada fragmento de la respuesta. Las respuestas guardadas y el clasificador sin flujo gastan muy poco. | Respuestas cortadas a la mitad y errores 1102 en `npx wrangler tail inventario` |
-| 3 MB comprimidos de Worker | Hoy son 585 KiB con LangChain. LangGraph sumaría bastante. | `wrangler deploy` rechaza el tamaño |
+| 64 MiB sin comprimir de Worker (documentación de Cloudflare del 2026-11-16; antes se anotó «3 MB comprimidos», que ya no rige) | Hoy son 3.3 MiB sin comprimir y 593 KiB comprimido, con LangChain. LangGraph sumaría bastante. | `wrangler deploy` rechaza el tamaño |
 | Subpeticiones por petición | Cada llamada a DeepSeek cuenta. Una pregunta de grupo en frío hace dos llamadas más al modelo. | Error "Too many subrequests" |
 | 50 consultas a D1 por petición | Un `batch` cuenta como una sola. Hoy una pregunta usa pocas: sesión, límite de mensajes y hasta 6 consultas de herramienta. | Error "Too many API requests by single Worker invocation" |
 | Lecturas y escrituras diarias de D1 | El registro agrega una escritura por pregunta, y cada cambio de producto una más por el contador. | Las consultas fallan hasta la medianoche UTC |

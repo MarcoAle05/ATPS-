@@ -227,6 +227,27 @@ El 2026-11-16, con la etapa 4 ya publicada, el dueño pidió «un apartado para 
     - Solo se probó en Chromium.
   - 2026-11-16 · Fusionado a `main` (`73873c0`) con el visto bueno del dueño. No cambia la app, así que no hay publicación. La línea del comando quedó en `CLAUDE.md`.
 
+## Agregado después: los evals dentro de la app
+
+El 2026-11-16 el dueño preguntó si los evals se podían ver en la app publicada y eligió un apartado dentro de ella, solo para el administrador. Se descartó un enlace privado de claude.ai, que habría que publicar de nuevo con cada corrida. Se encarga cuando termine el experimento de clasificadores, porque los dos tocan `evals/visor.py`.
+
+**Diseño propuesto:**
+- **Dónde se guardan:** en un espacio nuevo de Workers KV (binding `EVALS`), no en D1.
+  - D1 no acepta una sentencia de más de 100 KB (documentación de Cloudflare, 2026-11-16), y una corrida pesa unos 113 KB en JSON y 153 KB como página.
+  - KV acepta valores de hasta 25 MiB y se sube un archivo con `wrangler kv key put --path`, con la sesión de Wrangler del dueño.
+  - Límites gratuitos: 100 000 lecturas, 1 000 escrituras y 1 000 listados al día, y 1 GB.
+- **Qué se sube:** la página ya armada por `visor.py`, no el JSON. Así hay una sola forma de dibujarla, en Python, y el Worker no arma nada.
+  - Un comando nuevo, `uv run subir.py [resultados/ARCHIVO.json]`, arma la página de esa corrida y un índice de todas las subidas, y sube las dos.
+  - Con `--borrar` quita una corrida y rehace el índice.
+  - Se sube a mano: el dueño elige qué corridas se publican.
+- **Qué hace el Worker:** dos rutas de nivel `admin`, `GET /api/evals` (el índice) y `GET /api/evals/:id` (una corrida).
+  - Valida el id con una expresión estricta, lee KV y devuelve el HTML.
+  - Cabeceras: CSP sin scripts (`default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'`), `nosniff` y `no-store`.
+  - Casi no gasta CPU: una lectura de sesión y una de KV.
+- **En la interfaz:** un botón «Evals», solo para el administrador, que abre el índice. La página de cada corrida lleva un enlace para volver al índice.
+- **Lo que contiene:** respuestas de los modelos sobre el inventario de prueba. Ya es público en GitHub (`evals/resultados/`), pero la app lo muestra solo al administrador, como el asistente.
+- **Para publicar** hace falta el visto bueno del dueño, para crear el espacio de KV en producción y publicar el Worker.
+
 ## Pendiente
 
 - **Casos nuevos sugeridos por los fallos reales:**
