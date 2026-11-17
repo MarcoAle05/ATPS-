@@ -191,6 +191,7 @@ El dueño aprobó prepararlo después del visor de los evals (`plan/etapa-3-eval
     - **B** acepta el razonamiento con `json_object` y temperatura 0, pero tarda 34.5 s y gasta 5 654 tokens de salida (5 608 de razonamiento). Corrige Yerbabuena Mentos y sigue con Ment Mouth y Bubbaloo Pik Pop. Por la regla de tiempo ya no puede ganar.
     - **C** acepta `json_object` sin razonamiento y tarda 1.8 s. Corrige Ment Mouth, pero agrega dos errores, porque no reconoce Canels ni Motitas y Yucatán (marcas mexicanas) como chicles, y sigue con Yerbabuena Mentos y Bubbaloo Pik Pop.
   - 2026-11-17 · El dueño eligió correr completas A y C fuera de pico (unos 2.4 centavos en total) y dejar B solo con su comprobación.
+  - 2026-11-17 · Después el dueño pospuso el experimento: no se corre nada pagado. `logperch-95` entrega solo el código (razonamiento, opción de `correr.py` y visor), verificado sin gastar. Cuando se retome, faltan las corridas completas de A y C, fuera de pico.
 
 ## Pendiente
 

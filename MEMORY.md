@@ -113,6 +113,7 @@ Decisiones tomadas con el usuario y datos que no se deducen del código. Agrega 
   - Pidió un visor local de los resultados de los evals, con lo que hizo cada agente en cada pregunta. El encargo se envió a `logperch-95`; el detalle está en `plan/etapa-3-evals.md`.
   - Aprobó un experimento para después del visor: comparar tres clasificadores con los mismos evals (`deepseek-flash` con y sin razonamiento, y `deepseek-v4-pro`). Confirmó la regla de decisión antes de correrlo: se cambia si la variante quita al menos 2 de los 3 errores, no agrega errores nuevos, no rompe otros casos y el clasificador tarda menos de 5 s. El detalle está en `plan/etapa-4-memoria-grupos.md`.
   - Se descartó dar al clasificador la categoría de Open Food Facts: no la tiene, o es demasiado general, en los 3 productos que clasifica mal.
+  - 2026-11-17 · Una llamada de comprobación por clasificador dejó a los dos candidatos fuera de la regla: el de razonamiento tarda 34.5 s, y `deepseek-v4-pro` corrige Ment Mouth pero no reconoce Canels ni Motitas y Yucatán. El dueño pospuso las corridas completas.
   - Pidió ver los evals dentro de la app publicada, en un apartado solo para el administrador. Se encargará después del experimento: las páginas del visor se guardan en Workers KV y se suben a mano. El detalle está en `plan/etapa-3-evals.md`.
 
 ## Historial
