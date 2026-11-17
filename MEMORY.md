@@ -18,6 +18,7 @@ Decisiones tomadas con el usuario y datos que no se deducen del código. Agrega 
   - Ese mismo día, a petición del dueño, se agregaron otros 5 productos de su lista que no están en Open Food Facts, con códigos inventados del rango interno de GS1: `2000000000015` a `2000000000053`. Producción quedó con 19 productos. Punto de restauración previo: `0000002f-00000000-00005125-77e4a3d58b118ee987c85cfddde22c7b`.
   - La app guarda los códigos tal como los lee el escáner, sin normalizar. El lector ZXing, sin formatos fijados, entrega los UPC-A con 12 dígitos, sin el 0 inicial que usa Open Food Facts.
 - 2026-11-16 · Etapa 4 del asistente publicada, a petición del dueño: migración `0003` (memoria de grupos, vacía) aplicada en producción y después el Worker (593.15 KiB comprimido, arranque de 74 ms, versión `35c377fb`). Productos sin cambios. Punto de restauración previo: `0000003e-00000000-00005126-21e459b66dc1cc46c9b488db14e02c1b`.
+- 2026-11-17 · Apartado «Evals» publicado, a petición del dueño. Espacio de Workers KV nuevo, `EVALS` (id `2a18275fb977424a91d2a6728bc5b99d`), y después el Worker (595.31 KiB comprimido, arranque de 38 ms, versión `9cb916c7`), que lleva también el código del experimento de clasificadores. Se subieron las dos corridas que había. Las corridas se publican con `cd evals && uv run subir.py --remoto`.
 
 ## Decisiones
 
@@ -135,6 +136,7 @@ Decisiones tomadas con el usuario y datos que no se deducen del código. Agrega 
 - 2026-11-16 · Etapa 4 verificada en producción con una pregunta de chicles del dueño (108 ms de CPU, la cifra más alta medida; Cloudflare la dejó terminar) y marcada como terminada.
 - 2026-11-16 · Visor de los resultados de los evals (`evals/visor.py`) fusionado a `main`. No cambia la app.
 - 2026-11-17 · Código del experimento de clasificadores fusionado a `main`, sin publicar: con la configuración actual la app se comporta igual. Las corridas quedan pospuestas.
+- 2026-11-17 · Apartado «Evals» de la app fusionado a `main` y publicado.
 
 ## Pendiente
 

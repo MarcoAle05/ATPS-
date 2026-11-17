@@ -266,6 +266,12 @@ El 2026-11-16 el dueño preguntó si los evals se podían ver en la app publicad
       - el Worker crece 1.9 KiB comprimido y el CPU del asistente no cambia.
     - La fusión de prueba no tiene conflictos.
     - **Wrangler 4.151** crearía el espacio solo si faltara el id. Por eso quedó un id provisional, para que nada se cree sin el visto bueno del dueño.
+  - 2026-11-17 · Fusionado (`ee2cfcc`) y publicado, a petición del dueño:
+    - creé el espacio `EVALS` en producción (id `2a18275fb977424a91d2a6728bc5b99d`) y puse su id en `wrangler.jsonc` (`92d1fb6`);
+    - publiqué el Worker: 595.31 KiB comprimido, arranque de 38 ms y versión `9cb916c7`. Lleva también el código del experimento, que no cambia nada con la configuración actual;
+    - subí las dos corridas con `subir.py --remoto`, de 127 y 150 KB;
+    - sin sesión, `/api/evals` y una corrida dan la página 401 con las cinco cabeceras, y la app muestra el botón en su HTML;
+    - falta que el dueño lo vea como administrador.
 
 ## Pendiente
 
