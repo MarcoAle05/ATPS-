@@ -98,3 +98,44 @@ Punto de partida: la línea base de la etapa 3, con chicles en 0 de 11 y pastill
 ## Avance
 
 - 2026-11-16 · Encargo redactado y aprobado por el dueño, y enviado a `logperch-95`. Pide llevar la rama del worktree al `main` actual antes de empezar.
+- 2026-11-16 · Entrega recibida en cuatro commits sobre `c3fea29`:
+  - `673696c`: migración `0003`, `src/clasificador.js`, `productos_del_grupo`, instrucciones, `validarNombreGrupo`, `wrangler.jsonc` y banco;
+  - `c68d071`: evals con memoria fría y el clasificador calificado aparte;
+  - `e730d1e`: la corrida `evals/resultados/2026-11-16_181130.json`;
+  - `4c36e49`: `CLAUDE.md` y `.claude/rules/datos.md`, con permiso del dueño.
+- 2026-11-16 · Revisión:
+  - Leí el diff completo. La sintaxis pasa, y el banco corre `grupo`, `grupo-memoria` y los tres fallos simulados del clasificador. Con cada fallo la fila queda `bien`, `sin_revisar` en 19 y nada guardado.
+  - La corrida recalificada sin evaluador da el mismo resultado.
+  - El diff no contiene valores de `.dev.vars` ni las contraseñas de prueba.
+  - Una consulta de solo lectura en D1 de producción confirmó que acepta `json_each` y `->>`, y que `->> 'p'` devuelve un entero, como espera el upsert.
+  - Una fusión de prueba con `main` no tuvo conflictos.
+  - Detalles menores de documentación:
+    - el comentario de `0003` no lista `enviados` en la clasificación;
+    - `CLAUDE.md` todavía dice que a `version_datos` solo lo suben los disparadores de `productos`.
+
+## Resultado contra la línea base (2026-11-16)
+
+Archivo `evals/resultados/2026-11-16_181130.json`, con 3 repeticiones y la memoria fría en cada una:
+- conversador `deepseek-flash`, instrucciones `d73495c8`;
+- clasificador `deepseek-flash`, versión `cef57089`.
+
+- **Pasan 10 de 12 casos, igual que la línea base.** Un caso de grupo solo pasa sin ningún error en las tres repeticiones. Los 10 que pasaban siguen pasando 3 de 3.
+- **`chicles`: de 0 de 11 a 11 de 11** en las tres repeticiones, con 3 sobrantes: Ment Mouth, Yerbabuena Mentos y Bubbaloo Pik Pop.
+- **`pastillas-menta`: de 1 de 6 a 5 de 6**, sin sobrantes. Falta Yerbabuena Mentos, que el clasificador cree que es chicle.
+- **Todos los errores son del clasificador.** El conversador repite su lista tal cual y cierra con «Esta lista la armó el asistente y puede tener errores.» Con temperatura 0, el clasificador dio los mismos juicios en sus 6 llamadas.
+- **Trampas:** engañan 2 de 5, Yerbabuena Mentos y Bubbaloo Pik Pop, las dos por compartir marca con un chicle. También Ment Mouth, uno de los «no» del dueño.
+- **«Más de 15 pesos»** ya no incluye los productos de $15.00, aunque ese caso no lo mide.
+- **Costo:** $0.0065 por corrida fuera de pico.
+  - conversador: $0.0048;
+  - clasificador: $0.0003;
+  - evaluador: $0.0014.
+- **CPU en el banco:** una pregunta de grupo que clasifica gasta unos 4.2 ms, contra 3.1 de una corta, y una que ya tiene la memoria, 3.5. El Worker crece unos 3 KiB comprimido.
+
+## Pendiente
+
+- **Los tres errores del clasificador son estables.** Se corrigen con las etapas 5 (aprendizaje en los evals) y 7 (correcciones desde el chat), o con otro modelo para el clasificador, que decide el dueño. Las instrucciones no se ajustaron al examen, a propósito.
+- **En producción falta:**
+  - aplicar `0003` y después publicar el Worker;
+  - medir en Workers Observability el CPU de una pregunta de grupo.
+- **El texto previo a una consulta queda en la respuesta.** En una pregunta con dos grupos, el conversador escribió «Voy a consultar ambos grupos.» antes de llamar a la herramienta, y ese texto quedó al principio. Viene de antes de esta etapa.
+- **Los grupos no se excluyen:** Ment Mouth quedó a la vez como chicle y como pastilla de menta.
