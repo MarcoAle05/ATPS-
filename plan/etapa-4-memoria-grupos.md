@@ -181,6 +181,12 @@ El dueño aprobó prepararlo después del visor de los evals (`plan/etapa-3-eval
   - Ment Mouth tiene un código inventado y no está.
 
   No habría corregido ninguno de los 3 errores.
+- **Avance del experimento:**
+  - 2026-11-16 · Encargo enviado a `logperch-95`, con la regla ya confirmada. Pide:
+    - el campo `razonamiento` en `CLASIFICADOR_ASISTENTE`, sin cambiar la versión `cef57089087f2f61` de la configuración actual;
+    - una opción de `correr.py` para elegir el clasificador;
+    - una llamada de comprobación por variante nueva;
+    - las tres corridas completas, con A corrida de nuevo.
 
 ## Pendiente
 
