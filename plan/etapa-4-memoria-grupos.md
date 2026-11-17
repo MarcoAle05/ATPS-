@@ -192,6 +192,13 @@ El dueño aprobó prepararlo después del visor de los evals (`plan/etapa-3-eval
     - **C** acepta `json_object` sin razonamiento y tarda 1.8 s. Corrige Ment Mouth, pero agrega dos errores, porque no reconoce Canels ni Motitas y Yucatán (marcas mexicanas) como chicles, y sigue con Yerbabuena Mentos y Bubbaloo Pik Pop.
   - 2026-11-17 · El dueño eligió correr completas A y C fuera de pico (unos 2.4 centavos en total) y dejar B solo con su comprobación.
   - 2026-11-17 · Después el dueño pospuso el experimento: no se corre nada pagado. `logperch-95` entrega solo el código (razonamiento, opción de `correr.py` y visor), verificado sin gastar. Cuando se retome, faltan las corridas completas de A y C, fuera de pico.
+  - 2026-11-17 · Código entregado en `f1b9ed8`, sobre `e1dcf64`, y revisado:
+    - Leí el diff completo. Con la configuración de `wrangler.jsonc` todo queda igual: la versión sigue en `cef57089087f2f61` como objeto, como texto JSON y con `razonamiento: false`, y el resumen de la herramienta no cambia.
+    - Con razonamiento usa `maxTokens` 12 000 y una espera de 40 s, y ambos entran en la versión (`28ba11b96db9ddea`).
+    - `pruebas/comprobar-clasificador.mjs` hace una llamada real con el mismo `clasificar()`. No guarda las cabeceras, que es donde va la clave.
+    - Pasan el banco (`grupo`, unos 4 ms en caliente), la sintaxis y el visor con las dos corridas, y la fusión de prueba no tiene conflictos.
+    - Gasto total del experimento hasta hoy: unos 0.8 centavos.
+    - Para retomarlo, fuera de pico: `uv run correr.py` (A) y `uv run correr.py --clasificador deepseek-v4-pro` (C).
 
 ## Pendiente
 
