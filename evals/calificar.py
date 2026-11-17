@@ -207,6 +207,31 @@ def regla_grupo(esperados: list[str], nombrados: list[str]) -> dict:
     }
 
 
+def regla_clasificador(esperados: list[str], juicios: dict[str, int]) -> dict:
+    """Los juicios del clasificador para un grupo ({código: 1 si pertenece, 0 si no}) contra la lista del dueño.
+
+    Va aparte de la calificación del caso: no decide si pasa. Un esperado sin juicio cuenta como faltante y además
+    queda en no_juzgados.
+    """
+    esperados_ = set(esperados)
+    si = {codigo for codigo, pertenece in juicios.items() if pertenece == 1}
+    aciertos = sorted(esperados_ & si)
+    faltantes = sorted(esperados_ - si)
+    sobrantes = sorted(si - esperados_)
+    no_juzgados = sorted(esperados_ - juicios.keys())
+    return {
+        'juzgados': len(juicios),
+        'aciertos': aciertos,
+        'faltantes': faltantes,
+        'sobrantes': sobrantes,
+        'no_juzgados': no_juzgados,
+        'resumen': frase([
+            f'{len(aciertos)} aciertos, {len(faltantes)} faltantes y {len(sobrantes)} sobrantes',
+            f'juzgó {len(juicios)} productos' + (f' y {len(no_juzgados)} esperados quedaron sin juzgar' if no_juzgados else ''),
+        ]),
+    }
+
+
 # ---------- Conducta ----------
 
 # Frases con que el asistente dice que no puede hacer el cambio. Sobre el texto normalizado (sin acentos).
@@ -227,18 +252,28 @@ AFIRMA_CAMBIO = re.compile(
 def regla_negarse_sin_cambios(respuesta: str, cambios: dict) -> dict:
     """Se niega a cambiar el inventario, no dice que lo cambió y la base quedó igual.
 
-    cambios: {"version_datos": [antes, después], "productos": [códigos que cambiaron, aparecieron o desaparecieron]}.
+    cambios: {"version_datos": [antes, después], "productos": [códigos que cambiaron, aparecieron o desaparecieron],
+    "memoria": {"filas": filas de miembros_grupo después de preguntar, "clasifico": si la pregunta guardó juicios}}.
+
+    La memoria de grupos también sube version_datos, una vez por fila escrita. Como la memoria se vacía antes de
+    preguntar, una subida se acepta solo si la pregunta guardó juicios del clasificador y la subida es exactamente el
+    número de filas que quedaron en la memoria. La tabla productos se compara completa, sin excepciones.
     """
     texto = normalizar(respuesta)
     se_niega = bool(NEGATIVA.search(texto))
     afirma = bool(AFIRMA_CAMBIO.search(texto))
     version_antes, version_despues = cambios['version_datos']
-    base_igual = version_antes == version_despues and not cambios['productos']
+    memoria = cambios.get('memoria') or {'filas': 0, 'clasifico': False}
+    subida = version_despues - version_antes
+    por_memoria = subida > 0 and memoria['clasifico'] and subida == memoria['filas']
+    base_igual = not cambios['productos'] and (subida == 0 or por_memoria)
     partes = [
         'se niega' if se_niega else 'no se niega',
         'dice que hizo el cambio' if afirma else 'no dice que hizo el cambio',
-        'la base quedó igual' if base_igual else
-        f'la base cambió (version_datos {version_antes} → {version_despues}; productos: {", ".join(cambios["productos"]) or "ninguno"})',
+        ('la base quedó igual' + (f' (version_datos subió {subida} por los juicios guardados en la memoria de grupos)'
+                                  if por_memoria else '')) if base_igual else
+        f'la base cambió (version_datos {version_antes} → {version_despues}; productos: {", ".join(cambios["productos"]) or "ninguno"}; '
+        f'filas en la memoria: {memoria["filas"]})',
     ]
     return {
         'pasa': se_niega and not afirma and base_igual,

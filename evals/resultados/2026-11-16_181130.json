@@ -1,0 +1,3597 @@
+{
+  "fecha": "2026-11-16T18:11:30-06:00",
+  "configuracion": {
+    "conversador": {
+      "id": "deepseek",
+      "modelos": [
+        "deepseek-flash"
+      ],
+      "versiones_instrucciones": [
+        "d73495c84575eba8"
+      ]
+    },
+    "clasificador": {
+      "modelos": [
+        "deepseek-flash"
+      ],
+      "versiones": [
+        "cef57089087f2f61"
+      ]
+    },
+    "evaluador": {
+      "nombre": "deepseek-flash",
+      "modelo": "deepseek-flash",
+      "temperatura": 0,
+      "max_tokens": 1500,
+      "razonamiento": "desactivado",
+      "version": "40be4c7f16bd5ae6"
+    },
+    "repeticiones": 3,
+    "casos": [
+      "agotados",
+      "mas-caro",
+      "precio-trident-menta",
+      "unidades-bonafont",
+      "valor-inventario",
+      "chicles",
+      "pastillas-menta",
+      "cinco-mas-caros",
+      "mas-de-15-pesos",
+      "borra-tic-tac",
+      "fuera-de-tema",
+      "ponle-clorets"
+    ],
+    "alterar_base": false,
+    "inventario": {
+      "archivo": "evals/inventario.sql",
+      "huella": "cec357869b62b572",
+      "productos": 19,
+      "version_datos": 19
+    },
+    "app": {
+      "commit": "c68d071",
+      "cambios_sin_commit": false
+    }
+  },
+  "resumen": {
+    "casos": 12,
+    "pasan": 10,
+    "conversador": {
+      "preguntas": 36,
+      "sin_fila": 0,
+      "tokens_entrada": 128852,
+      "tokens_salida": 3966,
+      "tokens_cache": 114904,
+      "duracion_ms": 82625
+    },
+    "clasificador": {
+      "llamadas": 6,
+      "errores": 0,
+      "sin_tokens": 0,
+      "tokens_entrada": 3207,
+      "tokens_salida": 207,
+      "tokens_cache": 2304,
+      "duracion_ms": 5693
+    },
+    "evaluador": {
+      "llamadas": 12,
+      "errores": 0,
+      "tokens_entrada": 13080,
+      "tokens_salida": 1460,
+      "tokens_cache": 9728
+    }
+  },
+  "inventario": [
+    {
+      "codigo": "022000018366",
+      "nombre": "Life Savers Mint Pep O Mint",
+      "precio_centavos": 2500,
+      "cantidad": 0
+    },
+    {
+      "codigo": "2000000000015",
+      "nombre": "Bubbaloo Plátano",
+      "precio_centavos": 200,
+      "cantidad": 0
+    },
+    {
+      "codigo": "2000000000022",
+      "nombre": "Canels",
+      "precio_centavos": 300,
+      "cantidad": 0
+    },
+    {
+      "codigo": "2000000000039",
+      "nombre": "Motitas y Yucatán",
+      "precio_centavos": 350,
+      "cantidad": 0
+    },
+    {
+      "codigo": "2000000000046",
+      "nombre": "Pastillas Menta",
+      "precio_centavos": 1000,
+      "cantidad": 0
+    },
+    {
+      "codigo": "2000000000053",
+      "nombre": "Ment Mouth",
+      "precio_centavos": 1200,
+      "cantidad": 0
+    },
+    {
+      "codigo": "7502226812700",
+      "nombre": "Orbit Wrigleys",
+      "precio_centavos": 1650,
+      "cantidad": 0
+    },
+    {
+      "codigo": "7503027878377",
+      "nombre": "Mentos goma de mascar sabor yerbabuena",
+      "precio_centavos": 2200,
+      "cantidad": 0
+    },
+    {
+      "codigo": "7503027878629",
+      "nombre": "Yerbabuena Mentos",
+      "precio_centavos": 1400,
+      "cantidad": 0
+    },
+    {
+      "codigo": "7506105606053",
+      "nombre": "Trident Menta",
+      "precio_centavos": 3500,
+      "cantidad": 0
+    },
+    {
+      "codigo": "75073275",
+      "nombre": "Bubbaloo",
+      "precio_centavos": 200,
+      "cantidad": 0
+    },
+    {
+      "codigo": "758104100422",
+      "nombre": "BONAFONT Natural 1 L",
+      "precio_centavos": 1500,
+      "cantidad": 7
+    },
+    {
+      "codigo": "7622210267832",
+      "nombre": "Halls yerbabuena",
+      "precio_centavos": 1200,
+      "cantidad": 0
+    },
+    {
+      "codigo": "7622210530509",
+      "nombre": "X TWIST fresa y limón Trident",
+      "precio_centavos": 1500,
+      "cantidad": 1
+    },
+    {
+      "codigo": "7622210571328",
+      "nombre": "Trident XtraCare yerbabuena",
+      "precio_centavos": 1500,
+      "cantidad": 0
+    },
+    {
+      "codigo": "7622210571380",
+      "nombre": "Trident XtraCare menta fresca",
+      "precio_centavos": 1500,
+      "cantidad": 1
+    },
+    {
+      "codigo": "7622210624482",
+      "nombre": "Clorets",
+      "precio_centavos": 1400,
+      "cantidad": 0
+    },
+    {
+      "codigo": "7622210996190",
+      "nombre": "Bubbaloo Pik Pop",
+      "precio_centavos": 500,
+      "cantidad": 0
+    },
+    {
+      "codigo": "80941385",
+      "nombre": "Tic Tac",
+      "precio_centavos": 1800,
+      "cantidad": 0
+    }
+  ],
+  "casos": [
+    {
+      "id": "agotados",
+      "categoria": "cifras",
+      "pregunta": "¿Cuántos productos están agotados?",
+      "regla": "entero",
+      "tipo": "reserva",
+      "esperado_sql": "SELECT COUNT(*) AS valor FROM productos WHERE cantidad = 0",
+      "pasa": true,
+      "repeticiones": [
+        {
+          "repeticion": 1,
+          "respuesta": "Hay 16 productos agotados de 19 registrados.",
+          "error": null,
+          "ejecucion": "58544685-8375-4659-a277-52969f9f44a0",
+          "fila": {
+            "origen": "eval",
+            "modelo": "deepseek-flash",
+            "version_instrucciones": "d73495c84575eba8",
+            "version_datos": 19,
+            "resultado": "bien",
+            "motivo": null,
+            "llamadas": 2,
+            "duracion_ms": 1988,
+            "tokens_entrada": 3922,
+            "tokens_salida": 37,
+            "tokens_cache": 3456
+          },
+          "herramientas": [
+            {
+              "nombre": "resumen_inventario",
+              "argumentos": {},
+              "resultado": {
+                "productos": 19,
+                "unidades": 9,
+                "valor_total": 135,
+                "agotados": 16,
+                "precio_minimo": 2,
+                "precio_maximo": 35,
+                "precio_promedio": 13.37
+              }
+            }
+          ],
+          "memoria": [],
+          "contexto": {
+            "esperado": [
+              {
+                "valor": 16
+              }
+            ],
+            "cambios": null
+          },
+          "detalle": {
+            "pasa": true,
+            "esperado": 16,
+            "enteros": [
+              16,
+              19
+            ],
+            "resumen": "Esperado 16; números en la respuesta: 16, 19."
+          },
+          "pasa": true
+        },
+        {
+          "repeticion": 2,
+          "respuesta": "Hay 16 productos agotados de 19 registrados.",
+          "error": null,
+          "ejecucion": "3fa416bb-d505-4966-bd70-e5f6c30ebf3f",
+          "fila": {
+            "origen": "eval",
+            "modelo": "deepseek-flash",
+            "version_instrucciones": "d73495c84575eba8",
+            "version_datos": 19,
+            "resultado": "bien",
+            "motivo": null,
+            "llamadas": 2,
+            "duracion_ms": 1968,
+            "tokens_entrada": 3922,
+            "tokens_salida": 37,
+            "tokens_cache": 3456
+          },
+          "herramientas": [
+            {
+              "nombre": "resumen_inventario",
+              "argumentos": {},
+              "resultado": {
+                "productos": 19,
+                "unidades": 9,
+                "valor_total": 135,
+                "agotados": 16,
+                "precio_minimo": 2,
+                "precio_maximo": 35,
+                "precio_promedio": 13.37
+              }
+            }
+          ],
+          "memoria": [],
+          "contexto": {
+            "esperado": [
+              {
+                "valor": 16
+              }
+            ],
+            "cambios": null
+          },
+          "detalle": {
+            "pasa": true,
+            "esperado": 16,
+            "enteros": [
+              16,
+              19
+            ],
+            "resumen": "Esperado 16; números en la respuesta: 16, 19."
+          },
+          "pasa": true
+        },
+        {
+          "repeticion": 3,
+          "respuesta": "Hay 16 productos agotados de 19 registrados.",
+          "error": null,
+          "ejecucion": "9e9db9a9-9bf5-458e-b180-d37cda991caa",
+          "fila": {
+            "origen": "eval",
+            "modelo": "deepseek-flash",
+            "version_instrucciones": "d73495c84575eba8",
+            "version_datos": 19,
+            "resultado": "bien",
+            "motivo": null,
+            "llamadas": 2,
+            "duracion_ms": 2834,
+            "tokens_entrada": 3922,
+            "tokens_salida": 37,
+            "tokens_cache": 3456
+          },
+          "herramientas": [
+            {
+              "nombre": "resumen_inventario",
+              "argumentos": {},
+              "resultado": {
+                "productos": 19,
+                "unidades": 9,
+                "valor_total": 135,
+                "agotados": 16,
+                "precio_minimo": 2,
+                "precio_maximo": 35,
+                "precio_promedio": 13.37
+              }
+            }
+          ],
+          "memoria": [],
+          "contexto": {
+            "esperado": [
+              {
+                "valor": 16
+              }
+            ],
+            "cambios": null
+          },
+          "detalle": {
+            "pasa": true,
+            "esperado": 16,
+            "enteros": [
+              16,
+              19
+            ],
+            "resumen": "Esperado 16; números en la respuesta: 16, 19."
+          },
+          "pasa": true
+        }
+      ]
+    },
+    {
+      "id": "mas-caro",
+      "categoria": "cifras",
+      "pregunta": "¿Cuál es mi producto más caro?",
+      "regla": "mas-caro",
+      "tipo": "reserva",
+      "esperado_sql": "SELECT codigo, precio_centavos FROM productos WHERE precio_centavos = (SELECT MAX(precio_centavos) FROM productos)",
+      "pasa": true,
+      "repeticiones": [
+        {
+          "repeticion": 1,
+          "respuesta": "Tu producto más caro es Trident Menta (código 7506105606053), con precio de $35.00. Ahora mismo está agotado (0 unidades).",
+          "error": null,
+          "ejecucion": "208f6720-08a9-4606-9663-efa0ac66c965",
+          "fila": {
+            "origen": "eval",
+            "modelo": "deepseek-flash",
+            "version_instrucciones": "d73495c84575eba8",
+            "version_datos": 19,
+            "resultado": "bien",
+            "motivo": null,
+            "llamadas": 2,
+            "duracion_ms": 2230,
+            "tokens_entrada": 3958,
+            "tokens_salida": 98,
+            "tokens_cache": 3456
+          },
+          "herramientas": [
+            {
+              "nombre": "buscar_productos",
+              "argumentos": {
+                "orden": "precio_desc",
+                "limite": 1
+              },
+              "resultado": {
+                "total": 19,
+                "unidades": 9,
+                "valor": 135,
+                "codigos": [
+                  "7506105606053"
+                ]
+              }
+            }
+          ],
+          "memoria": [],
+          "contexto": {
+            "esperado": [
+              {
+                "codigo": "7506105606053",
+                "precio_centavos": 3500
+              }
+            ],
+            "cambios": null
+          },
+          "detalle": {
+            "pasa": true,
+            "esperados": [
+              "7506105606053"
+            ],
+            "precio_esperado": 3500,
+            "nombrados": [
+              "7506105606053"
+            ],
+            "montos": [
+              3500
+            ],
+            "resumen": "Nombra el más caro (7506105606053); precio $35.00 bien.",
+            "nombrados_por_codigo": [
+              "7506105606053"
+            ],
+            "lineas_sin_coincidencia": []
+          },
+          "pasa": true
+        },
+        {
+          "repeticion": 2,
+          "respuesta": "Tu producto más caro es Trident Menta (código 7506105606053), con precio de $35.00. Ahora mismo está agotado (0 unidades).",
+          "error": null,
+          "ejecucion": "31bee70e-2fe0-49e1-90a6-dc487a0d6420",
+          "fila": {
+            "origen": "eval",
+            "modelo": "deepseek-flash",
+            "version_instrucciones": "d73495c84575eba8",
+            "version_datos": 19,
+            "resultado": "bien",
+            "motivo": null,
+            "llamadas": 2,
+            "duracion_ms": 2347,
+            "tokens_entrada": 3958,
+            "tokens_salida": 98,
+            "tokens_cache": 3456
+          },
+          "herramientas": [
+            {
+              "nombre": "buscar_productos",
+              "argumentos": {
+                "orden": "precio_desc",
+                "limite": 1
+              },
+              "resultado": {
+                "total": 19,
+                "unidades": 9,
+                "valor": 135,
+                "codigos": [
+                  "7506105606053"
+                ]
+              }
+            }
+          ],
+          "memoria": [],
+          "contexto": {
+            "esperado": [
+              {
+                "codigo": "7506105606053",
+                "precio_centavos": 3500
+              }
+            ],
+            "cambios": null
+          },
+          "detalle": {
+            "pasa": true,
+            "esperados": [
+              "7506105606053"
+            ],
+            "precio_esperado": 3500,
+            "nombrados": [
+              "7506105606053"
+            ],
+            "montos": [
+              3500
+            ],
+            "resumen": "Nombra el más caro (7506105606053); precio $35.00 bien.",
+            "nombrados_por_codigo": [
+              "7506105606053"
+            ],
+            "lineas_sin_coincidencia": []
+          },
+          "pasa": true
+        },
+        {
+          "repeticion": 3,
+          "respuesta": "Tu producto más caro es Trident Menta (código 7506105606053), con precio de $35.00. Ahora mismo está agotado (0 unidades).",
+          "error": null,
+          "ejecucion": "e7c707e4-3bfe-4b18-a0a4-796c5ac8e333",
+          "fila": {
+            "origen": "eval",
+            "modelo": "deepseek-flash",
+            "version_instrucciones": "d73495c84575eba8",
+            "version_datos": 19,
+            "resultado": "bien",
+            "motivo": null,
+            "llamadas": 2,
+            "duracion_ms": 2421,
+            "tokens_entrada": 3958,
+            "tokens_salida": 98,
+            "tokens_cache": 3456
+          },
+          "herramientas": [
+            {
+              "nombre": "buscar_productos",
+              "argumentos": {
+                "orden": "precio_desc",
+                "limite": 1
+              },
+              "resultado": {
+                "total": 19,
+                "unidades": 9,
+                "valor": 135,
+                "codigos": [
+                  "7506105606053"
+                ]
+              }
+            }
+          ],
+          "memoria": [],
+          "contexto": {
+            "esperado": [
+              {
+                "codigo": "7506105606053",
+                "precio_centavos": 3500
+              }
+            ],
+            "cambios": null
+          },
+          "detalle": {
+            "pasa": true,
+            "esperados": [
+              "7506105606053"
+            ],
+            "precio_esperado": 3500,
+            "nombrados": [
+              "7506105606053"
+            ],
+            "montos": [
+              3500
+            ],
+            "resumen": "Nombra el más caro (7506105606053); precio $35.00 bien.",
+            "nombrados_por_codigo": [
+              "7506105606053"
+            ],
+            "lineas_sin_coincidencia": []
+          },
+          "pasa": true
+        }
+      ]
+    },
+    {
+      "id": "precio-trident-menta",
+      "categoria": "cifras",
+      "pregunta": "¿Cuánto cuesta el Trident Menta?",
+      "regla": "dinero",
+      "tipo": "reserva",
+      "esperado_sql": "SELECT precio_centavos AS valor FROM productos WHERE codigo = '7506105606053'",
+      "pasa": true,
+      "repeticiones": [
+        {
+          "repeticion": 1,
+          "respuesta": "Hay dos productos que coinciden:\n\nTrident Menta (7506105606053): $35.00, agotado (0 unidades).\nTrident XtraCare menta fresca (7622210571380): $15.00, 1 unidad disponible.",
+          "error": null,
+          "ejecucion": "7bc8c364-36c1-4651-aaf1-2a5050053bbd",
+          "fila": {
+            "origen": "eval",
+            "modelo": "deepseek-flash",
+            "version_instrucciones": "d73495c84575eba8",
+            "version_datos": 19,
+            "resultado": "bien",
+            "motivo": null,
+            "llamadas": 2,
+            "duracion_ms": 2018,
+            "tokens_entrada": 3982,
+            "tokens_salida": 99,
+            "tokens_cache": 3584
+          },
+          "herramientas": [
+            {
+              "nombre": "buscar_productos",
+              "argumentos": {
+                "texto": "Trident Menta"
+              },
+              "resultado": {
+                "total": 2,
+                "unidades": 1,
+                "valor": 15,
+                "codigos": [
+                  "7506105606053",
+                  "7622210571380"
+                ]
+              }
+            }
+          ],
+          "memoria": [],
+          "contexto": {
+            "esperado": [
+              {
+                "valor": 3500
+              }
+            ],
+            "cambios": null
+          },
+          "detalle": {
+            "pasa": true,
+            "esperado": 3500,
+            "montos": [
+              3500,
+              1500
+            ],
+            "resumen": "Esperado $35.00; montos en la respuesta: $35.00, $15.00."
+          },
+          "pasa": true
+        },
+        {
+          "repeticion": 2,
+          "respuesta": "Hay dos productos que coinciden:\n\nTrident Menta (7506105606053): $35.00, agotado (0 unidades).\nTrident XtraCare menta fresca (7622210571380): $15.00, 1 unidad disponible.",
+          "error": null,
+          "ejecucion": "89d7c10d-9647-4817-b670-fffe34812193",
+          "fila": {
+            "origen": "eval",
+            "modelo": "deepseek-flash",
+            "version_instrucciones": "d73495c84575eba8",
+            "version_datos": 19,
+            "resultado": "bien",
+            "motivo": null,
+            "llamadas": 2,
+            "duracion_ms": 2504,
+            "tokens_entrada": 3982,
+            "tokens_salida": 99,
+            "tokens_cache": 3708
+          },
+          "herramientas": [
+            {
+              "nombre": "buscar_productos",
+              "argumentos": {
+                "texto": "Trident Menta"
+              },
+              "resultado": {
+                "total": 2,
+                "unidades": 1,
+                "valor": 15,
+                "codigos": [
+                  "7506105606053",
+                  "7622210571380"
+                ]
+              }
+            }
+          ],
+          "memoria": [],
+          "contexto": {
+            "esperado": [
+              {
+                "valor": 3500
+              }
+            ],
+            "cambios": null
+          },
+          "detalle": {
+            "pasa": true,
+            "esperado": 3500,
+            "montos": [
+              3500,
+              1500
+            ],
+            "resumen": "Esperado $35.00; montos en la respuesta: $35.00, $15.00."
+          },
+          "pasa": true
+        },
+        {
+          "repeticion": 3,
+          "respuesta": "Hay dos productos que coinciden:\n\nTrident Menta (código 7506105606053): $35.00, agotado (0 unidades).\nTrident XtraCare menta fresca (código 7622210571380): $15.00, 1 unidad disponible.",
+          "error": null,
+          "ejecucion": "ee32997c-d3bb-4ca4-92c3-924b7237829f",
+          "fila": {
+            "origen": "eval",
+            "modelo": "deepseek-flash",
+            "version_instrucciones": "d73495c84575eba8",
+            "version_datos": 19,
+            "resultado": "bien",
+            "motivo": null,
+            "llamadas": 2,
+            "duracion_ms": 2234,
+            "tokens_entrada": 3982,
+            "tokens_salida": 107,
+            "tokens_cache": 3708
+          },
+          "herramientas": [
+            {
+              "nombre": "buscar_productos",
+              "argumentos": {
+                "texto": "Trident Menta"
+              },
+              "resultado": {
+                "total": 2,
+                "unidades": 1,
+                "valor": 15,
+                "codigos": [
+                  "7506105606053",
+                  "7622210571380"
+                ]
+              }
+            }
+          ],
+          "memoria": [],
+          "contexto": {
+            "esperado": [
+              {
+                "valor": 3500
+              }
+            ],
+            "cambios": null
+          },
+          "detalle": {
+            "pasa": true,
+            "esperado": 3500,
+            "montos": [
+              3500,
+              1500
+            ],
+            "resumen": "Esperado $35.00; montos en la respuesta: $35.00, $15.00."
+          },
+          "pasa": true
+        }
+      ]
+    },
+    {
+      "id": "unidades-bonafont",
+      "categoria": "cifras",
+      "pregunta": "¿Cuántas unidades tengo de Bonafont?",
+      "regla": "entero",
+      "tipo": "reserva",
+      "esperado_sql": "SELECT cantidad AS valor FROM productos WHERE codigo = '758104100422'",
+      "pasa": true,
+      "repeticiones": [
+        {
+          "repeticion": 1,
+          "respuesta": "Tienes 7 unidades de Bonafont Natural 1 L, a $15.00 cada una (valor total $105.00).",
+          "error": null,
+          "ejecucion": "bad8447a-a0e8-4d80-be81-adfad5df8bde",
+          "fila": {
+            "origen": "eval",
+            "modelo": "deepseek-flash",
+            "version_instrucciones": "d73495c84575eba8",
+            "version_datos": 19,
+            "resultado": "bien",
+            "motivo": null,
+            "llamadas": 2,
+            "duracion_ms": 2234,
+            "tokens_entrada": 3949,
+            "tokens_salida": 72,
+            "tokens_cache": 3456
+          },
+          "herramientas": [
+            {
+              "nombre": "buscar_productos",
+              "argumentos": {
+                "texto": "Bonafont"
+              },
+              "resultado": {
+                "total": 1,
+                "unidades": 7,
+                "valor": 105,
+                "codigos": [
+                  "758104100422"
+                ]
+              }
+            }
+          ],
+          "memoria": [],
+          "contexto": {
+            "esperado": [
+              {
+                "valor": 7
+              }
+            ],
+            "cambios": null
+          },
+          "detalle": {
+            "pasa": true,
+            "esperado": 7,
+            "enteros": [
+              7,
+              1
+            ],
+            "resumen": "Esperado 7; números en la respuesta: 7, 1."
+          },
+          "pasa": true
+        },
+        {
+          "repeticion": 2,
+          "respuesta": "Tienes 7 unidades de Bonafont Natural 1 L, a $15.00 cada una (valor total $105.00).",
+          "error": null,
+          "ejecucion": "8a76d275-fbee-4ff1-b499-a15fd5145858",
+          "fila": {
+            "origen": "eval",
+            "modelo": "deepseek-flash",
+            "version_instrucciones": "d73495c84575eba8",
+            "version_datos": 19,
+            "resultado": "bien",
+            "motivo": null,
+            "llamadas": 2,
+            "duracion_ms": 2098,
+            "tokens_entrada": 3949,
+            "tokens_salida": 72,
+            "tokens_cache": 3580
+          },
+          "herramientas": [
+            {
+              "nombre": "buscar_productos",
+              "argumentos": {
+                "texto": "Bonafont"
+              },
+              "resultado": {
+                "total": 1,
+                "unidades": 7,
+                "valor": 105,
+                "codigos": [
+                  "758104100422"
+                ]
+              }
+            }
+          ],
+          "memoria": [],
+          "contexto": {
+            "esperado": [
+              {
+                "valor": 7
+              }
+            ],
+            "cambios": null
+          },
+          "detalle": {
+            "pasa": true,
+            "esperado": 7,
+            "enteros": [
+              7,
+              1
+            ],
+            "resumen": "Esperado 7; números en la respuesta: 7, 1."
+          },
+          "pasa": true
+        },
+        {
+          "repeticion": 3,
+          "respuesta": "Tienes 7 unidades de Bonafont Natural 1 L, a $15.00 cada una (valor total $105.00).",
+          "error": null,
+          "ejecucion": "4a19a34a-48ae-4597-a981-43ebd67b95db",
+          "fila": {
+            "origen": "eval",
+            "modelo": "deepseek-flash",
+            "version_instrucciones": "d73495c84575eba8",
+            "version_datos": 19,
+            "resultado": "bien",
+            "motivo": null,
+            "llamadas": 2,
+            "duracion_ms": 2550,
+            "tokens_entrada": 3949,
+            "tokens_salida": 72,
+            "tokens_cache": 3580
+          },
+          "herramientas": [
+            {
+              "nombre": "buscar_productos",
+              "argumentos": {
+                "texto": "Bonafont"
+              },
+              "resultado": {
+                "total": 1,
+                "unidades": 7,
+                "valor": 105,
+                "codigos": [
+                  "758104100422"
+                ]
+              }
+            }
+          ],
+          "memoria": [],
+          "contexto": {
+            "esperado": [
+              {
+                "valor": 7
+              }
+            ],
+            "cambios": null
+          },
+          "detalle": {
+            "pasa": true,
+            "esperado": 7,
+            "enteros": [
+              7,
+              1
+            ],
+            "resumen": "Esperado 7; números en la respuesta: 7, 1."
+          },
+          "pasa": true
+        }
+      ]
+    },
+    {
+      "id": "valor-inventario",
+      "categoria": "cifras",
+      "pregunta": "¿Cuánto vale mi inventario?",
+      "regla": "dinero",
+      "tipo": "reserva",
+      "esperado_sql": "SELECT TOTAL(precio_centavos * cantidad) AS valor FROM productos",
+      "pasa": true,
+      "repeticiones": [
+        {
+          "repeticion": 1,
+          "respuesta": "Tu inventario vale $135.00 en total, con 19 productos registrados y 9 unidades en existencia. Hay 16 productos agotados. El precio mínimo es $2.00, el máximo $35.00 y el promedio $13.37.",
+          "error": null,
+          "ejecucion": "62ef44f6-e393-4374-9003-a6ba77ba4f29",
+          "fila": {
+            "origen": "eval",
+            "modelo": "deepseek-flash",
+            "version_instrucciones": "d73495c84575eba8",
+            "version_datos": 19,
+            "resultado": "bien",
+            "motivo": null,
+            "llamadas": 2,
+            "duracion_ms": 1611,
+            "tokens_entrada": 3920,
+            "tokens_salida": 79,
+            "tokens_cache": 3456
+          },
+          "herramientas": [
+            {
+              "nombre": "resumen_inventario",
+              "argumentos": {},
+              "resultado": {
+                "productos": 19,
+                "unidades": 9,
+                "valor_total": 135,
+                "agotados": 16,
+                "precio_minimo": 2,
+                "precio_maximo": 35,
+                "precio_promedio": 13.37
+              }
+            }
+          ],
+          "memoria": [],
+          "contexto": {
+            "esperado": [
+              {
+                "valor": 13500
+              }
+            ],
+            "cambios": null
+          },
+          "detalle": {
+            "pasa": true,
+            "esperado": 13500,
+            "montos": [
+              13500,
+              200,
+              3500,
+              1337
+            ],
+            "resumen": "Esperado $135.00; montos en la respuesta: $135.00, $2.00, $35.00, $13.37."
+          },
+          "pasa": true
+        },
+        {
+          "repeticion": 2,
+          "respuesta": "Tu inventario vale $135.00 en total, con 19 productos registrados y 9 unidades en existencia. Hay 16 productos agotados. El precio mínimo es $2.00, el máximo $35.00 y el promedio $13.37.",
+          "error": null,
+          "ejecucion": "39476b23-3763-4883-966a-ad06a83976d0",
+          "fila": {
+            "origen": "eval",
+            "modelo": "deepseek-flash",
+            "version_instrucciones": "d73495c84575eba8",
+            "version_datos": 19,
+            "resultado": "bien",
+            "motivo": null,
+            "llamadas": 2,
+            "duracion_ms": 2332,
+            "tokens_entrada": 3920,
+            "tokens_salida": 79,
+            "tokens_cache": 3456
+          },
+          "herramientas": [
+            {
+              "nombre": "resumen_inventario",
+              "argumentos": {},
+              "resultado": {
+                "productos": 19,
+                "unidades": 9,
+                "valor_total": 135,
+                "agotados": 16,
+                "precio_minimo": 2,
+                "precio_maximo": 35,
+                "precio_promedio": 13.37
+              }
+            }
+          ],
+          "memoria": [],
+          "contexto": {
+            "esperado": [
+              {
+                "valor": 13500
+              }
+            ],
+            "cambios": null
+          },
+          "detalle": {
+            "pasa": true,
+            "esperado": 13500,
+            "montos": [
+              13500,
+              200,
+              3500,
+              1337
+            ],
+            "resumen": "Esperado $135.00; montos en la respuesta: $135.00, $2.00, $35.00, $13.37."
+          },
+          "pasa": true
+        },
+        {
+          "repeticion": 3,
+          "respuesta": "Tu inventario vale $135.00 en total, con 19 productos registrados y 9 unidades en existencia. Hay 16 productos agotados. El precio mínimo es $2.00, el máximo $35.00 y el promedio $13.37.",
+          "error": null,
+          "ejecucion": "3d519933-c98b-4c22-9458-7ed0e9f0f202",
+          "fila": {
+            "origen": "eval",
+            "modelo": "deepseek-flash",
+            "version_instrucciones": "d73495c84575eba8",
+            "version_datos": 19,
+            "resultado": "bien",
+            "motivo": null,
+            "llamadas": 2,
+            "duracion_ms": 1872,
+            "tokens_entrada": 3920,
+            "tokens_salida": 79,
+            "tokens_cache": 3456
+          },
+          "herramientas": [
+            {
+              "nombre": "resumen_inventario",
+              "argumentos": {},
+              "resultado": {
+                "productos": 19,
+                "unidades": 9,
+                "valor_total": 135,
+                "agotados": 16,
+                "precio_minimo": 2,
+                "precio_maximo": 35,
+                "precio_promedio": 13.37
+              }
+            }
+          ],
+          "memoria": [],
+          "contexto": {
+            "esperado": [
+              {
+                "valor": 13500
+              }
+            ],
+            "cambios": null
+          },
+          "detalle": {
+            "pasa": true,
+            "esperado": 13500,
+            "montos": [
+              13500,
+              200,
+              3500,
+              1337
+            ],
+            "resumen": "Esperado $135.00; montos en la respuesta: $135.00, $2.00, $35.00, $13.37."
+          },
+          "pasa": true
+        }
+      ]
+    },
+    {
+      "id": "chicles",
+      "categoria": "grupos",
+      "pregunta": "¿Qué productos son chicles?",
+      "regla": "grupo",
+      "grupo": "chicle",
+      "tipo": "aprendizaje",
+      "esperados": [
+        "7622210571380",
+        "7622210530509",
+        "7506105606053",
+        "7622210571328",
+        "7622210624482",
+        "7502226812700",
+        "75073275",
+        "2000000000015",
+        "2000000000022",
+        "2000000000039",
+        "7503027878377"
+      ],
+      "pasa": false,
+      "repeticiones": [
+        {
+          "repeticion": 1,
+          "respuesta": "Hay 14 productos de tipo chicle, con 2 unidades en existencia y un valor de $30.00:\n\nBubbaloo, $2.00, 0\nBubbaloo Pik Pop, $5.00, 0\nBubbaloo Plátano, $2.00, 0\nCanels, $3.00, 0\nClorets, $14.00, 0\nMent Mouth, $12.00, 0\nMentos goma de mascar sabor yerbabuena, $22.00, 0\nMotitas y Yucatán, $3.50, 0\nOrbit Wrigleys, $16.50, 0\nTrident Menta, $35.00, 0\nTrident XtraCare menta fresca, $15.00, 1\nTrident XtraCare yerbabuena, $15.00, 0\nX TWIST fresa y limón Trident, $15.00, 1\nYerbabuena Mentos, $14.00, 0\n\nEsta lista la armó el asistente y puede tener errores.",
+          "error": null,
+          "ejecucion": "c39c77a0-75d0-4a25-b738-d9cd6284298f",
+          "fila": {
+            "origen": "eval",
+            "modelo": "deepseek-flash",
+            "version_instrucciones": "d73495c84575eba8",
+            "version_datos": 19,
+            "resultado": "bien",
+            "motivo": null,
+            "llamadas": 2,
+            "duracion_ms": 3972,
+            "tokens_entrada": 4464,
+            "tokens_salida": 315,
+            "tokens_cache": 3968
+          },
+          "herramientas": [
+            {
+              "nombre": "productos_del_grupo",
+              "argumentos": {
+                "grupo": "chicle",
+                "limite": 25
+              },
+              "resultado": {
+                "grupo": "chicle",
+                "total": 14,
+                "unidades": 2,
+                "valor": 30,
+                "codigos": [
+                  "75073275",
+                  "7622210996190",
+                  "2000000000015",
+                  "2000000000022",
+                  "7622210624482",
+                  "2000000000053",
+                  "7503027878377",
+                  "2000000000039",
+                  "7502226812700",
+                  "7506105606053",
+                  "7622210571380",
+                  "7622210571328",
+                  "7622210530509",
+                  "7503027878629"
+                ],
+                "sin_revisar": 0,
+                "clasificacion": {
+                  "enviados": 19,
+                  "revisados": 19,
+                  "pertenecen": 14,
+                  "descartados": 0,
+                  "modelo": "deepseek-flash",
+                  "version": "cef57089087f2f61",
+                  "tokens": {
+                    "entrada": 533,
+                    "salida": 48,
+                    "cache": 384
+                  },
+                  "duracion_ms": 1410
+                }
+              }
+            }
+          ],
+          "memoria": [
+            {
+              "grupo": "chicle",
+              "codigo": "022000018366",
+              "pertenece": 0,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "chicle",
+              "codigo": "2000000000015",
+              "pertenece": 1,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "chicle",
+              "codigo": "2000000000022",
+              "pertenece": 1,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "chicle",
+              "codigo": "2000000000039",
+              "pertenece": 1,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "chicle",
+              "codigo": "2000000000046",
+              "pertenece": 0,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "chicle",
+              "codigo": "2000000000053",
+              "pertenece": 1,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "chicle",
+              "codigo": "7502226812700",
+              "pertenece": 1,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "chicle",
+              "codigo": "7503027878377",
+              "pertenece": 1,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "chicle",
+              "codigo": "7503027878629",
+              "pertenece": 1,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "chicle",
+              "codigo": "7506105606053",
+              "pertenece": 1,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "chicle",
+              "codigo": "75073275",
+              "pertenece": 1,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "chicle",
+              "codigo": "758104100422",
+              "pertenece": 0,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "chicle",
+              "codigo": "7622210267832",
+              "pertenece": 0,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "chicle",
+              "codigo": "7622210530509",
+              "pertenece": 1,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "chicle",
+              "codigo": "7622210571328",
+              "pertenece": 1,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "chicle",
+              "codigo": "7622210571380",
+              "pertenece": 1,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "chicle",
+              "codigo": "7622210624482",
+              "pertenece": 1,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "chicle",
+              "codigo": "7622210996190",
+              "pertenece": 1,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "chicle",
+              "codigo": "80941385",
+              "pertenece": 0,
+              "origen": "clasificador"
+            }
+          ],
+          "contexto": {
+            "esperado": null,
+            "cambios": null
+          },
+          "detalle": {
+            "pasa": false,
+            "aciertos": [
+              "2000000000015",
+              "2000000000022",
+              "2000000000039",
+              "7502226812700",
+              "7503027878377",
+              "7506105606053",
+              "75073275",
+              "7622210530509",
+              "7622210571328",
+              "7622210571380",
+              "7622210624482"
+            ],
+            "faltantes": [],
+            "sobrantes": [
+              "2000000000053",
+              "7503027878629",
+              "7622210996190"
+            ],
+            "resumen": "11 aciertos, 0 faltantes y 3 sobrantes.",
+            "nombrados_por_codigo": [
+              "2000000000015",
+              "2000000000022",
+              "2000000000039",
+              "2000000000053",
+              "7502226812700",
+              "7503027878377",
+              "7503027878629",
+              "7506105606053",
+              "75073275",
+              "7622210530509",
+              "7622210571328",
+              "7622210571380",
+              "7622210624482",
+              "7622210996190"
+            ],
+            "lineas_sin_coincidencia": [
+              {
+                "numero": 1,
+                "texto": "Hay 14 productos de tipo chicle, con 2 unidades en existencia y un valor de $30.00:"
+              },
+              {
+                "numero": 18,
+                "texto": "Esta lista la armó el asistente y puede tener errores."
+              }
+            ],
+            "lecturas_evaluador": [
+              {
+                "numero": 1,
+                "texto": "Hay 14 productos de tipo chicle, con 2 unidades en existencia y un valor de $30.00:",
+                "codigos": [],
+                "invalidos": []
+              },
+              {
+                "numero": 18,
+                "texto": "Esta lista la armó el asistente y puede tener errores.",
+                "codigos": [],
+                "invalidos": []
+              }
+            ],
+            "clasificador": {
+              "llamo": true,
+              "grupos": [
+                {
+                  "grupo": "chicle",
+                  "juzgados": 19,
+                  "aciertos": [
+                    "2000000000015",
+                    "2000000000022",
+                    "2000000000039",
+                    "7502226812700",
+                    "7503027878377",
+                    "7506105606053",
+                    "75073275",
+                    "7622210530509",
+                    "7622210571328",
+                    "7622210571380",
+                    "7622210624482"
+                  ],
+                  "faltantes": [],
+                  "sobrantes": [
+                    "2000000000053",
+                    "7503027878629",
+                    "7622210996190"
+                  ],
+                  "no_juzgados": [],
+                  "resumen": "11 aciertos, 0 faltantes y 3 sobrantes; juzgó 19 productos."
+                }
+              ],
+              "resumen": "«chicle»: 11 aciertos, 0 faltantes y 3 sobrantes; juzgó 19 productos."
+            },
+            "explicaciones": {
+              "2000000000053": "El nombre «Ment Mouth» no indica que sea chicle y suena a caramelo o menta, pero el clasificador lo marcó como «sí» y el asistente lo copió sin cuestionarlo.",
+              "7503027878629": "«Yerbabuena Mentos» comparte marca y sabor con los Mentos de goma de mascar, así que el clasificador lo juzgó «sí» por parecido y el asistente lo incluyó tal cual.",
+              "7622210996190": "«Bubbaloo Pik Pop» lleva la marca Bubbaloo, que sí es chicle, y el clasificador lo dio por «sí» por asociación de marca, error que el asistente repitió al armar la lista."
+            }
+          },
+          "pasa": false
+        },
+        {
+          "repeticion": 2,
+          "respuesta": "Hay 14 productos de tipo chicle, con 2 unidades en existencia y un valor de $30.00:\n\nBubbaloo, $2.00, agotado\nBubbaloo Pik Pop, $5.00, agotado\nBubbaloo Plátano, $2.00, agotado\nCanels, $3.00, agotado\nClorets, $14.00, agotado\nMent Mouth, $12.00, agotado\nMentos goma de mascar sabor yerbabuena, $22.00, agotado\nMotitas y Yucatán, $3.50, agotado\nOrbit Wrigleys, $16.50, agotado\nTrident Menta, $35.00, agotado\nTrident XtraCare menta fresca, $15.00, 1 unidad\nTrident XtraCare yerbabuena, $15.00, agotado\nX TWIST fresa y limón Trident, $15.00, 1 unidad\nYerbabuena Mentos, $14.00, agotado\n\nEsta lista la armó el asistente y puede tener errores.",
+          "error": null,
+          "ejecucion": "1976c9c7-87b0-4594-aa3a-6ff2d13d5110",
+          "fila": {
+            "origen": "eval",
+            "modelo": "deepseek-flash",
+            "version_instrucciones": "d73495c84575eba8",
+            "version_datos": 57,
+            "resultado": "bien",
+            "motivo": null,
+            "llamadas": 2,
+            "duracion_ms": 3941,
+            "tokens_entrada": 4464,
+            "tokens_salida": 329,
+            "tokens_cache": 3968
+          },
+          "herramientas": [
+            {
+              "nombre": "productos_del_grupo",
+              "argumentos": {
+                "grupo": "chicle",
+                "limite": 25
+              },
+              "resultado": {
+                "grupo": "chicle",
+                "total": 14,
+                "unidades": 2,
+                "valor": 30,
+                "codigos": [
+                  "75073275",
+                  "7622210996190",
+                  "2000000000015",
+                  "2000000000022",
+                  "7622210624482",
+                  "2000000000053",
+                  "7503027878377",
+                  "2000000000039",
+                  "7502226812700",
+                  "7506105606053",
+                  "7622210571380",
+                  "7622210571328",
+                  "7622210530509",
+                  "7503027878629"
+                ],
+                "sin_revisar": 0,
+                "clasificacion": {
+                  "enviados": 19,
+                  "revisados": 19,
+                  "pertenecen": 14,
+                  "descartados": 0,
+                  "modelo": "deepseek-flash",
+                  "version": "cef57089087f2f61",
+                  "tokens": {
+                    "entrada": 533,
+                    "salida": 48,
+                    "cache": 384
+                  },
+                  "duracion_ms": 944
+                }
+              }
+            }
+          ],
+          "memoria": [
+            {
+              "grupo": "chicle",
+              "codigo": "022000018366",
+              "pertenece": 0,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "chicle",
+              "codigo": "2000000000015",
+              "pertenece": 1,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "chicle",
+              "codigo": "2000000000022",
+              "pertenece": 1,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "chicle",
+              "codigo": "2000000000039",
+              "pertenece": 1,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "chicle",
+              "codigo": "2000000000046",
+              "pertenece": 0,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "chicle",
+              "codigo": "2000000000053",
+              "pertenece": 1,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "chicle",
+              "codigo": "7502226812700",
+              "pertenece": 1,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "chicle",
+              "codigo": "7503027878377",
+              "pertenece": 1,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "chicle",
+              "codigo": "7503027878629",
+              "pertenece": 1,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "chicle",
+              "codigo": "7506105606053",
+              "pertenece": 1,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "chicle",
+              "codigo": "75073275",
+              "pertenece": 1,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "chicle",
+              "codigo": "758104100422",
+              "pertenece": 0,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "chicle",
+              "codigo": "7622210267832",
+              "pertenece": 0,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "chicle",
+              "codigo": "7622210530509",
+              "pertenece": 1,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "chicle",
+              "codigo": "7622210571328",
+              "pertenece": 1,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "chicle",
+              "codigo": "7622210571380",
+              "pertenece": 1,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "chicle",
+              "codigo": "7622210624482",
+              "pertenece": 1,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "chicle",
+              "codigo": "7622210996190",
+              "pertenece": 1,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "chicle",
+              "codigo": "80941385",
+              "pertenece": 0,
+              "origen": "clasificador"
+            }
+          ],
+          "contexto": {
+            "esperado": null,
+            "cambios": null
+          },
+          "detalle": {
+            "pasa": false,
+            "aciertos": [
+              "2000000000015",
+              "2000000000022",
+              "2000000000039",
+              "7502226812700",
+              "7503027878377",
+              "7506105606053",
+              "75073275",
+              "7622210530509",
+              "7622210571328",
+              "7622210571380",
+              "7622210624482"
+            ],
+            "faltantes": [],
+            "sobrantes": [
+              "2000000000053",
+              "7503027878629",
+              "7622210996190"
+            ],
+            "resumen": "11 aciertos, 0 faltantes y 3 sobrantes.",
+            "nombrados_por_codigo": [
+              "2000000000015",
+              "2000000000022",
+              "2000000000039",
+              "2000000000053",
+              "7502226812700",
+              "7503027878377",
+              "7503027878629",
+              "7506105606053",
+              "75073275",
+              "7622210530509",
+              "7622210571328",
+              "7622210571380",
+              "7622210624482",
+              "7622210996190"
+            ],
+            "lineas_sin_coincidencia": [
+              {
+                "numero": 1,
+                "texto": "Hay 14 productos de tipo chicle, con 2 unidades en existencia y un valor de $30.00:"
+              },
+              {
+                "numero": 18,
+                "texto": "Esta lista la armó el asistente y puede tener errores."
+              }
+            ],
+            "lecturas_evaluador": [
+              {
+                "numero": 1,
+                "texto": "Hay 14 productos de tipo chicle, con 2 unidades en existencia y un valor de $30.00:",
+                "codigos": [],
+                "invalidos": []
+              },
+              {
+                "numero": 18,
+                "texto": "Esta lista la armó el asistente y puede tener errores.",
+                "codigos": [],
+                "invalidos": []
+              }
+            ],
+            "clasificador": {
+              "llamo": true,
+              "grupos": [
+                {
+                  "grupo": "chicle",
+                  "juzgados": 19,
+                  "aciertos": [
+                    "2000000000015",
+                    "2000000000022",
+                    "2000000000039",
+                    "7502226812700",
+                    "7503027878377",
+                    "7506105606053",
+                    "75073275",
+                    "7622210530509",
+                    "7622210571328",
+                    "7622210571380",
+                    "7622210624482"
+                  ],
+                  "faltantes": [],
+                  "sobrantes": [
+                    "2000000000053",
+                    "7503027878629",
+                    "7622210996190"
+                  ],
+                  "no_juzgados": [],
+                  "resumen": "11 aciertos, 0 faltantes y 3 sobrantes; juzgó 19 productos."
+                }
+              ],
+              "resumen": "«chicle»: 11 aciertos, 0 faltantes y 3 sobrantes; juzgó 19 productos."
+            },
+            "explicaciones": {
+              "2000000000053": "El clasificador juzgó «Ment Mouth» como chicle y el asistente lo copió sin cuestionar, aunque el nombre sugiere menta o caramelos de menta y no chicle.",
+              "7503027878629": "El clasificador dijo que «Yerbabuena Mentos» era chicle y el asistente lo incluyó, pese a que el nombre lo emparenta con los caramelos Mentos y no con la goma de mascar.",
+              "7622210996190": "El clasificador marcó «Bubbaloo Pik Pop» como chicle y el asistente lo repitió, aunque el nombre lo asocia a la marca Bubbaloo de dulces tipo paleta o polvo, no a la goma de mascar."
+            }
+          },
+          "pasa": false
+        },
+        {
+          "repeticion": 3,
+          "respuesta": "Hay 14 productos de tipo chicle, con 2 unidades en existencia y un valor de $30.00:\n\nBubbaloo, $2.00, agotado\nBubbaloo Pik Pop, $5.00, agotado\nBubbaloo Plátano, $2.00, agotado\nCanels, $3.00, agotado\nClorets, $14.00, agotado\nMent Mouth, $12.00, agotado\nMentos goma de mascar sabor yerbabuena, $22.00, agotado\nMotitas y Yucatán, $3.50, agotado\nOrbit Wrigleys, $16.50, agotado\nTrident Menta, $35.00, agotado\nTrident XtraCare menta fresca, $15.00, 1 unidad\nTrident XtraCare yerbabuena, $15.00, agotado\nX TWIST fresa y limón Trident, $15.00, 1 unidad\nYerbabuena Mentos, $14.00, agotado\n\nEsta lista la armó el asistente y puede tener errores.",
+          "error": null,
+          "ejecucion": "44a18617-b261-4032-a8a0-eb564244a5dc",
+          "fila": {
+            "origen": "eval",
+            "modelo": "deepseek-flash",
+            "version_instrucciones": "d73495c84575eba8",
+            "version_datos": 95,
+            "resultado": "bien",
+            "motivo": null,
+            "llamadas": 2,
+            "duracion_ms": 3963,
+            "tokens_entrada": 4464,
+            "tokens_salida": 329,
+            "tokens_cache": 3968
+          },
+          "herramientas": [
+            {
+              "nombre": "productos_del_grupo",
+              "argumentos": {
+                "grupo": "chicle",
+                "limite": 25
+              },
+              "resultado": {
+                "grupo": "chicle",
+                "total": 14,
+                "unidades": 2,
+                "valor": 30,
+                "codigos": [
+                  "75073275",
+                  "7622210996190",
+                  "2000000000015",
+                  "2000000000022",
+                  "7622210624482",
+                  "2000000000053",
+                  "7503027878377",
+                  "2000000000039",
+                  "7502226812700",
+                  "7506105606053",
+                  "7622210571380",
+                  "7622210571328",
+                  "7622210530509",
+                  "7503027878629"
+                ],
+                "sin_revisar": 0,
+                "clasificacion": {
+                  "enviados": 19,
+                  "revisados": 19,
+                  "pertenecen": 14,
+                  "descartados": 0,
+                  "modelo": "deepseek-flash",
+                  "version": "cef57089087f2f61",
+                  "tokens": {
+                    "entrada": 533,
+                    "salida": 48,
+                    "cache": 384
+                  },
+                  "duracion_ms": 989
+                }
+              }
+            }
+          ],
+          "memoria": [
+            {
+              "grupo": "chicle",
+              "codigo": "022000018366",
+              "pertenece": 0,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "chicle",
+              "codigo": "2000000000015",
+              "pertenece": 1,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "chicle",
+              "codigo": "2000000000022",
+              "pertenece": 1,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "chicle",
+              "codigo": "2000000000039",
+              "pertenece": 1,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "chicle",
+              "codigo": "2000000000046",
+              "pertenece": 0,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "chicle",
+              "codigo": "2000000000053",
+              "pertenece": 1,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "chicle",
+              "codigo": "7502226812700",
+              "pertenece": 1,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "chicle",
+              "codigo": "7503027878377",
+              "pertenece": 1,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "chicle",
+              "codigo": "7503027878629",
+              "pertenece": 1,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "chicle",
+              "codigo": "7506105606053",
+              "pertenece": 1,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "chicle",
+              "codigo": "75073275",
+              "pertenece": 1,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "chicle",
+              "codigo": "758104100422",
+              "pertenece": 0,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "chicle",
+              "codigo": "7622210267832",
+              "pertenece": 0,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "chicle",
+              "codigo": "7622210530509",
+              "pertenece": 1,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "chicle",
+              "codigo": "7622210571328",
+              "pertenece": 1,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "chicle",
+              "codigo": "7622210571380",
+              "pertenece": 1,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "chicle",
+              "codigo": "7622210624482",
+              "pertenece": 1,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "chicle",
+              "codigo": "7622210996190",
+              "pertenece": 1,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "chicle",
+              "codigo": "80941385",
+              "pertenece": 0,
+              "origen": "clasificador"
+            }
+          ],
+          "contexto": {
+            "esperado": null,
+            "cambios": null
+          },
+          "detalle": {
+            "pasa": false,
+            "aciertos": [
+              "2000000000015",
+              "2000000000022",
+              "2000000000039",
+              "7502226812700",
+              "7503027878377",
+              "7506105606053",
+              "75073275",
+              "7622210530509",
+              "7622210571328",
+              "7622210571380",
+              "7622210624482"
+            ],
+            "faltantes": [],
+            "sobrantes": [
+              "2000000000053",
+              "7503027878629",
+              "7622210996190"
+            ],
+            "resumen": "11 aciertos, 0 faltantes y 3 sobrantes.",
+            "nombrados_por_codigo": [
+              "2000000000015",
+              "2000000000022",
+              "2000000000039",
+              "2000000000053",
+              "7502226812700",
+              "7503027878377",
+              "7503027878629",
+              "7506105606053",
+              "75073275",
+              "7622210530509",
+              "7622210571328",
+              "7622210571380",
+              "7622210624482",
+              "7622210996190"
+            ],
+            "lineas_sin_coincidencia": [
+              {
+                "numero": 1,
+                "texto": "Hay 14 productos de tipo chicle, con 2 unidades en existencia y un valor de $30.00:"
+              },
+              {
+                "numero": 18,
+                "texto": "Esta lista la armó el asistente y puede tener errores."
+              }
+            ],
+            "lecturas_evaluador": [
+              {
+                "numero": 1,
+                "texto": "Hay 14 productos de tipo chicle, con 2 unidades en existencia y un valor de $30.00:",
+                "codigos": [],
+                "invalidos": []
+              },
+              {
+                "numero": 18,
+                "texto": "Esta lista la armó el asistente y puede tener errores.",
+                "codigos": [],
+                "invalidos": []
+              }
+            ],
+            "clasificador": {
+              "llamo": true,
+              "grupos": [
+                {
+                  "grupo": "chicle",
+                  "juzgados": 19,
+                  "aciertos": [
+                    "2000000000015",
+                    "2000000000022",
+                    "2000000000039",
+                    "7502226812700",
+                    "7503027878377",
+                    "7506105606053",
+                    "75073275",
+                    "7622210530509",
+                    "7622210571328",
+                    "7622210571380",
+                    "7622210624482"
+                  ],
+                  "faltantes": [],
+                  "sobrantes": [
+                    "2000000000053",
+                    "7503027878629",
+                    "7622210996190"
+                  ],
+                  "no_juzgados": [],
+                  "resumen": "11 aciertos, 0 faltantes y 3 sobrantes; juzgó 19 productos."
+                }
+              ],
+              "resumen": "«chicle»: 11 aciertos, 0 faltantes y 3 sobrantes; juzgó 19 productos."
+            },
+            "explicaciones": {
+              "2000000000053": "El clasificador juzgó «Ment Mouth» como chicle y el asistente lo copió sin cuestionar, aunque el nombre sugiere mentas y no chicle.",
+              "7503027878629": "El clasificador dijo que «Yerbabuena Mentos» era chicle y el asistente lo incluyó, pese a que el nombre lo emparenta con las mentas Mentos y no con un chicle.",
+              "7622210996190": "El clasificador marcó «Bubbaloo Pik Pop» como chicle y el asistente lo repitió, aunque el nombre alude a un dulce tipo paleta y no a goma de mascar."
+            }
+          },
+          "pasa": false
+        }
+      ]
+    },
+    {
+      "id": "pastillas-menta",
+      "categoria": "grupos",
+      "pregunta": "¿Qué pastillas de menta tengo?",
+      "regla": "grupo",
+      "grupo": "pastilla de menta",
+      "tipo": "reserva",
+      "esperados": [
+        "022000018366",
+        "2000000000046",
+        "2000000000053",
+        "80941385",
+        "7503027878629",
+        "7622210267832"
+      ],
+      "pasa": false,
+      "repeticiones": [
+        {
+          "repeticion": 1,
+          "respuesta": "Tienes 5 productos de pastillas de menta, pero todos están agotados (0 unidades):\n\nHalls yerbabuena, $12.00\nLife Savers Mint Pep O Mint, $25.00\nMent Mouth, $12.00\nPastillas Menta, $10.00\nTic Tac, $18.00\n\nEsta lista la armó el asistente y puede tener errores.",
+          "error": null,
+          "ejecucion": "b665ed67-eed8-47c4-933e-637729d094f4",
+          "fila": {
+            "origen": "eval",
+            "modelo": "deepseek-flash",
+            "version_instrucciones": "d73495c84575eba8",
+            "version_datos": 133,
+            "resultado": "bien",
+            "motivo": null,
+            "llamadas": 2,
+            "duracion_ms": 2899,
+            "tokens_entrada": 4108,
+            "tokens_salida": 137,
+            "tokens_cache": 3712
+          },
+          "herramientas": [
+            {
+              "nombre": "productos_del_grupo",
+              "argumentos": {
+                "grupo": "pastilla de menta"
+              },
+              "resultado": {
+                "grupo": "pastilla de menta",
+                "total": 5,
+                "unidades": 0,
+                "valor": 0,
+                "codigos": [
+                  "7622210267832",
+                  "022000018366",
+                  "2000000000053",
+                  "2000000000046",
+                  "80941385"
+                ],
+                "sin_revisar": 0,
+                "clasificacion": {
+                  "enviados": 19,
+                  "revisados": 19,
+                  "pertenecen": 5,
+                  "descartados": 0,
+                  "modelo": "deepseek-flash",
+                  "version": "cef57089087f2f61",
+                  "tokens": {
+                    "entrada": 536,
+                    "salida": 21,
+                    "cache": 384
+                  },
+                  "duracion_ms": 734
+                }
+              }
+            }
+          ],
+          "memoria": [
+            {
+              "grupo": "pastilla de menta",
+              "codigo": "022000018366",
+              "pertenece": 1,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "pastilla de menta",
+              "codigo": "2000000000015",
+              "pertenece": 0,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "pastilla de menta",
+              "codigo": "2000000000022",
+              "pertenece": 0,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "pastilla de menta",
+              "codigo": "2000000000039",
+              "pertenece": 0,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "pastilla de menta",
+              "codigo": "2000000000046",
+              "pertenece": 1,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "pastilla de menta",
+              "codigo": "2000000000053",
+              "pertenece": 1,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "pastilla de menta",
+              "codigo": "7502226812700",
+              "pertenece": 0,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "pastilla de menta",
+              "codigo": "7503027878377",
+              "pertenece": 0,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "pastilla de menta",
+              "codigo": "7503027878629",
+              "pertenece": 0,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "pastilla de menta",
+              "codigo": "7506105606053",
+              "pertenece": 0,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "pastilla de menta",
+              "codigo": "75073275",
+              "pertenece": 0,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "pastilla de menta",
+              "codigo": "758104100422",
+              "pertenece": 0,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "pastilla de menta",
+              "codigo": "7622210267832",
+              "pertenece": 1,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "pastilla de menta",
+              "codigo": "7622210530509",
+              "pertenece": 0,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "pastilla de menta",
+              "codigo": "7622210571328",
+              "pertenece": 0,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "pastilla de menta",
+              "codigo": "7622210571380",
+              "pertenece": 0,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "pastilla de menta",
+              "codigo": "7622210624482",
+              "pertenece": 0,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "pastilla de menta",
+              "codigo": "7622210996190",
+              "pertenece": 0,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "pastilla de menta",
+              "codigo": "80941385",
+              "pertenece": 1,
+              "origen": "clasificador"
+            }
+          ],
+          "contexto": {
+            "esperado": null,
+            "cambios": null
+          },
+          "detalle": {
+            "pasa": false,
+            "aciertos": [
+              "022000018366",
+              "2000000000046",
+              "2000000000053",
+              "7622210267832",
+              "80941385"
+            ],
+            "faltantes": [
+              "7503027878629"
+            ],
+            "sobrantes": [],
+            "resumen": "5 aciertos, 1 faltantes y 0 sobrantes.",
+            "nombrados_por_codigo": [
+              "022000018366",
+              "2000000000046",
+              "2000000000053",
+              "7622210267832",
+              "80941385"
+            ],
+            "lineas_sin_coincidencia": [
+              {
+                "numero": 1,
+                "texto": "Tienes 5 productos de pastillas de menta, pero todos están agotados (0 unidades):"
+              },
+              {
+                "numero": 9,
+                "texto": "Esta lista la armó el asistente y puede tener errores."
+              }
+            ],
+            "lecturas_evaluador": [
+              {
+                "numero": 1,
+                "texto": "Tienes 5 productos de pastillas de menta, pero todos están agotados (0 unidades):",
+                "codigos": [],
+                "invalidos": []
+              },
+              {
+                "numero": 9,
+                "texto": "Esta lista la armó el asistente y puede tener errores.",
+                "codigos": [],
+                "invalidos": []
+              }
+            ],
+            "clasificador": {
+              "llamo": true,
+              "grupos": [
+                {
+                  "grupo": "pastilla de menta",
+                  "juzgados": 19,
+                  "aciertos": [
+                    "022000018366",
+                    "2000000000046",
+                    "2000000000053",
+                    "7622210267832",
+                    "80941385"
+                  ],
+                  "faltantes": [
+                    "7503027878629"
+                  ],
+                  "sobrantes": [],
+                  "no_juzgados": [],
+                  "resumen": "5 aciertos, 1 faltantes y 0 sobrantes; juzgó 19 productos."
+                }
+              ],
+              "resumen": "«pastilla de menta»: 5 aciertos, 1 faltantes y 0 sobrantes; juzgó 19 productos."
+            },
+            "explicaciones": {
+              "7503027878629": "El producto nunca apareció en las consultas del asistente y el clasificador lo descartó como «no» pese a ser una pastilla de menta (yerbabuena), así que el faltante viene del juicio erróneo del clasificador al no reconocerlo como miembro del grupo."
+            }
+          },
+          "pasa": false
+        },
+        {
+          "repeticion": 2,
+          "respuesta": "Hay 5 pastillas de menta registradas, todas agotadas (cantidad 0):\n\nHalls yerbabuena, $12.00\nLife Savers Mint Pep O Mint, $25.00\nMent Mouth, $12.00\nPastillas Menta, $10.00\nTic Tac, $18.00\n\nEsta lista la armó el asistente y puede tener errores.",
+          "error": null,
+          "ejecucion": "fce25eef-f731-4adc-9494-9db0184c0a29",
+          "fila": {
+            "origen": "eval",
+            "modelo": "deepseek-flash",
+            "version_instrucciones": "d73495c84575eba8",
+            "version_datos": 171,
+            "resultado": "bien",
+            "motivo": null,
+            "llamadas": 2,
+            "duracion_ms": 3111,
+            "tokens_entrada": 4108,
+            "tokens_salida": 135,
+            "tokens_cache": 3712
+          },
+          "herramientas": [
+            {
+              "nombre": "productos_del_grupo",
+              "argumentos": {
+                "grupo": "pastilla de menta"
+              },
+              "resultado": {
+                "grupo": "pastilla de menta",
+                "total": 5,
+                "unidades": 0,
+                "valor": 0,
+                "codigos": [
+                  "7622210267832",
+                  "022000018366",
+                  "2000000000053",
+                  "2000000000046",
+                  "80941385"
+                ],
+                "sin_revisar": 0,
+                "clasificacion": {
+                  "enviados": 19,
+                  "revisados": 19,
+                  "pertenecen": 5,
+                  "descartados": 0,
+                  "modelo": "deepseek-flash",
+                  "version": "cef57089087f2f61",
+                  "tokens": {
+                    "entrada": 536,
+                    "salida": 21,
+                    "cache": 384
+                  },
+                  "duracion_ms": 813
+                }
+              }
+            }
+          ],
+          "memoria": [
+            {
+              "grupo": "pastilla de menta",
+              "codigo": "022000018366",
+              "pertenece": 1,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "pastilla de menta",
+              "codigo": "2000000000015",
+              "pertenece": 0,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "pastilla de menta",
+              "codigo": "2000000000022",
+              "pertenece": 0,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "pastilla de menta",
+              "codigo": "2000000000039",
+              "pertenece": 0,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "pastilla de menta",
+              "codigo": "2000000000046",
+              "pertenece": 1,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "pastilla de menta",
+              "codigo": "2000000000053",
+              "pertenece": 1,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "pastilla de menta",
+              "codigo": "7502226812700",
+              "pertenece": 0,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "pastilla de menta",
+              "codigo": "7503027878377",
+              "pertenece": 0,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "pastilla de menta",
+              "codigo": "7503027878629",
+              "pertenece": 0,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "pastilla de menta",
+              "codigo": "7506105606053",
+              "pertenece": 0,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "pastilla de menta",
+              "codigo": "75073275",
+              "pertenece": 0,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "pastilla de menta",
+              "codigo": "758104100422",
+              "pertenece": 0,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "pastilla de menta",
+              "codigo": "7622210267832",
+              "pertenece": 1,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "pastilla de menta",
+              "codigo": "7622210530509",
+              "pertenece": 0,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "pastilla de menta",
+              "codigo": "7622210571328",
+              "pertenece": 0,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "pastilla de menta",
+              "codigo": "7622210571380",
+              "pertenece": 0,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "pastilla de menta",
+              "codigo": "7622210624482",
+              "pertenece": 0,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "pastilla de menta",
+              "codigo": "7622210996190",
+              "pertenece": 0,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "pastilla de menta",
+              "codigo": "80941385",
+              "pertenece": 1,
+              "origen": "clasificador"
+            }
+          ],
+          "contexto": {
+            "esperado": null,
+            "cambios": null
+          },
+          "detalle": {
+            "pasa": false,
+            "aciertos": [
+              "022000018366",
+              "2000000000046",
+              "2000000000053",
+              "7622210267832",
+              "80941385"
+            ],
+            "faltantes": [
+              "7503027878629"
+            ],
+            "sobrantes": [],
+            "resumen": "5 aciertos, 1 faltantes y 0 sobrantes.",
+            "nombrados_por_codigo": [
+              "022000018366",
+              "2000000000046",
+              "2000000000053",
+              "7622210267832",
+              "80941385"
+            ],
+            "lineas_sin_coincidencia": [
+              {
+                "numero": 1,
+                "texto": "Hay 5 pastillas de menta registradas, todas agotadas (cantidad 0):"
+              },
+              {
+                "numero": 9,
+                "texto": "Esta lista la armó el asistente y puede tener errores."
+              }
+            ],
+            "lecturas_evaluador": [
+              {
+                "numero": 1,
+                "texto": "Hay 5 pastillas de menta registradas, todas agotadas (cantidad 0):",
+                "codigos": [
+                  "2000000000046"
+                ],
+                "invalidos": []
+              },
+              {
+                "numero": 9,
+                "texto": "Esta lista la armó el asistente y puede tener errores.",
+                "codigos": [],
+                "invalidos": []
+              }
+            ],
+            "clasificador": {
+              "llamo": true,
+              "grupos": [
+                {
+                  "grupo": "pastilla de menta",
+                  "juzgados": 19,
+                  "aciertos": [
+                    "022000018366",
+                    "2000000000046",
+                    "2000000000053",
+                    "7622210267832",
+                    "80941385"
+                  ],
+                  "faltantes": [
+                    "7503027878629"
+                  ],
+                  "sobrantes": [],
+                  "no_juzgados": [],
+                  "resumen": "5 aciertos, 1 faltantes y 0 sobrantes; juzgó 19 productos."
+                }
+              ],
+              "resumen": "«pastilla de menta»: 5 aciertos, 1 faltantes y 0 sobrantes; juzgó 19 productos."
+            },
+            "explicaciones": {
+              "7503027878629": "El producto se llama «Yerbabuena Mentos» y no dice «menta», así que el clasificador lo descartó como «no» y el asistente nunca llegó a verlo en sus consultas, por lo que el error viene del juicio del clasificador."
+            }
+          },
+          "pasa": false
+        },
+        {
+          "repeticion": 3,
+          "respuesta": "Tienes 5 pastillas de menta registradas, todas agotadas (cantidad 0):\n\nHalls yerbabuena, $12.00\nLife Savers Mint Pep O Mint, $25.00\nMent Mouth, $12.00\nPastillas Menta, $10.00\nTic Tac, $18.00\n\nEsta lista la armó el asistente y puede tener errores.",
+          "error": null,
+          "ejecucion": "b3e7fd15-cd42-4da9-8c42-1a2521ec6037",
+          "fila": {
+            "origen": "eval",
+            "modelo": "deepseek-flash",
+            "version_instrucciones": "d73495c84575eba8",
+            "version_datos": 209,
+            "resultado": "bien",
+            "motivo": null,
+            "llamadas": 2,
+            "duracion_ms": 2850,
+            "tokens_entrada": 4108,
+            "tokens_salida": 137,
+            "tokens_cache": 3712
+          },
+          "herramientas": [
+            {
+              "nombre": "productos_del_grupo",
+              "argumentos": {
+                "grupo": "pastilla de menta"
+              },
+              "resultado": {
+                "grupo": "pastilla de menta",
+                "total": 5,
+                "unidades": 0,
+                "valor": 0,
+                "codigos": [
+                  "7622210267832",
+                  "022000018366",
+                  "2000000000053",
+                  "2000000000046",
+                  "80941385"
+                ],
+                "sin_revisar": 0,
+                "clasificacion": {
+                  "enviados": 19,
+                  "revisados": 19,
+                  "pertenecen": 5,
+                  "descartados": 0,
+                  "modelo": "deepseek-flash",
+                  "version": "cef57089087f2f61",
+                  "tokens": {
+                    "entrada": 536,
+                    "salida": 21,
+                    "cache": 384
+                  },
+                  "duracion_ms": 803
+                }
+              }
+            }
+          ],
+          "memoria": [
+            {
+              "grupo": "pastilla de menta",
+              "codigo": "022000018366",
+              "pertenece": 1,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "pastilla de menta",
+              "codigo": "2000000000015",
+              "pertenece": 0,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "pastilla de menta",
+              "codigo": "2000000000022",
+              "pertenece": 0,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "pastilla de menta",
+              "codigo": "2000000000039",
+              "pertenece": 0,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "pastilla de menta",
+              "codigo": "2000000000046",
+              "pertenece": 1,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "pastilla de menta",
+              "codigo": "2000000000053",
+              "pertenece": 1,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "pastilla de menta",
+              "codigo": "7502226812700",
+              "pertenece": 0,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "pastilla de menta",
+              "codigo": "7503027878377",
+              "pertenece": 0,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "pastilla de menta",
+              "codigo": "7503027878629",
+              "pertenece": 0,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "pastilla de menta",
+              "codigo": "7506105606053",
+              "pertenece": 0,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "pastilla de menta",
+              "codigo": "75073275",
+              "pertenece": 0,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "pastilla de menta",
+              "codigo": "758104100422",
+              "pertenece": 0,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "pastilla de menta",
+              "codigo": "7622210267832",
+              "pertenece": 1,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "pastilla de menta",
+              "codigo": "7622210530509",
+              "pertenece": 0,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "pastilla de menta",
+              "codigo": "7622210571328",
+              "pertenece": 0,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "pastilla de menta",
+              "codigo": "7622210571380",
+              "pertenece": 0,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "pastilla de menta",
+              "codigo": "7622210624482",
+              "pertenece": 0,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "pastilla de menta",
+              "codigo": "7622210996190",
+              "pertenece": 0,
+              "origen": "clasificador"
+            },
+            {
+              "grupo": "pastilla de menta",
+              "codigo": "80941385",
+              "pertenece": 1,
+              "origen": "clasificador"
+            }
+          ],
+          "contexto": {
+            "esperado": null,
+            "cambios": null
+          },
+          "detalle": {
+            "pasa": false,
+            "aciertos": [
+              "022000018366",
+              "2000000000046",
+              "2000000000053",
+              "7622210267832",
+              "80941385"
+            ],
+            "faltantes": [
+              "7503027878629"
+            ],
+            "sobrantes": [],
+            "resumen": "5 aciertos, 1 faltantes y 0 sobrantes.",
+            "nombrados_por_codigo": [
+              "022000018366",
+              "2000000000046",
+              "2000000000053",
+              "7622210267832",
+              "80941385"
+            ],
+            "lineas_sin_coincidencia": [
+              {
+                "numero": 1,
+                "texto": "Tienes 5 pastillas de menta registradas, todas agotadas (cantidad 0):"
+              },
+              {
+                "numero": 9,
+                "texto": "Esta lista la armó el asistente y puede tener errores."
+              }
+            ],
+            "lecturas_evaluador": [
+              {
+                "numero": 1,
+                "texto": "Tienes 5 pastillas de menta registradas, todas agotadas (cantidad 0):",
+                "codigos": [
+                  "2000000000046"
+                ],
+                "invalidos": []
+              },
+              {
+                "numero": 9,
+                "texto": "Esta lista la armó el asistente y puede tener errores.",
+                "codigos": [],
+                "invalidos": []
+              }
+            ],
+            "clasificador": {
+              "llamo": true,
+              "grupos": [
+                {
+                  "grupo": "pastilla de menta",
+                  "juzgados": 19,
+                  "aciertos": [
+                    "022000018366",
+                    "2000000000046",
+                    "2000000000053",
+                    "7622210267832",
+                    "80941385"
+                  ],
+                  "faltantes": [
+                    "7503027878629"
+                  ],
+                  "sobrantes": [],
+                  "no_juzgados": [],
+                  "resumen": "5 aciertos, 1 faltantes y 0 sobrantes; juzgó 19 productos."
+                }
+              ],
+              "resumen": "«pastilla de menta»: 5 aciertos, 1 faltantes y 0 sobrantes; juzgó 19 productos."
+            },
+            "explicaciones": {
+              "7503027878629": "El clasificador dijo que «Yerbabuena Mentos» no era del grupo, probablemente porque el nombre no dice «menta» y se parece a otros productos de yerbabuena como Halls yerbabuena, así que el asistente nunca lo vio ni lo pudo incluir."
+            }
+          },
+          "pasa": false
+        }
+      ]
+    },
+    {
+      "id": "cinco-mas-caros",
+      "categoria": "formato",
+      "pregunta": "Dame los 5 productos más caros con su precio",
+      "regla": "formato",
+      "tipo": "reserva",
+      "precios_minimos": 5,
+      "pasa": true,
+      "repeticiones": [
+        {
+          "repeticion": 1,
+          "respuesta": "Los 5 productos más caros:\n\nTrident Menta, código 7506105606053, $35.00 (agotado)\nLife Savers Mint Pep O Mint, código 022000018366, $25.00 (agotado)\nMentos goma de mascar sabor yerbabuena, código 7503027878377, $22.00 (agotado)\nTic Tac, código 80941385, $18.00 (agotado)\nOrbit Wrigleys, código 7502226812700, $16.50 (agotado)",
+          "error": null,
+          "ejecucion": "fb682b3c-3d5e-4524-b6fe-50fde27a0cdc",
+          "fila": {
+            "origen": "eval",
+            "modelo": "deepseek-flash",
+            "version_instrucciones": "d73495c84575eba8",
+            "version_datos": 247,
+            "resultado": "bien",
+            "motivo": null,
+            "llamadas": 2,
+            "duracion_ms": 2894,
+            "tokens_entrada": 4093,
+            "tokens_salida": 185,
+            "tokens_cache": 3584
+          },
+          "herramientas": [
+            {
+              "nombre": "buscar_productos",
+              "argumentos": {
+                "orden": "precio_desc",
+                "limite": 5
+              },
+              "resultado": {
+                "total": 19,
+                "unidades": 9,
+                "valor": 135,
+                "codigos": [
+                  "7506105606053",
+                  "022000018366",
+                  "7503027878377",
+                  "80941385",
+                  "7502226812700"
+                ]
+              }
+            }
+          ],
+          "memoria": [],
+          "contexto": {
+            "esperado": null,
+            "cambios": null
+          },
+          "detalle": {
+            "pasa": true,
+            "faltas": [],
+            "precios": [
+              "$35.00",
+              "$25.00",
+              "$22.00",
+              "$18.00",
+              "$16.50"
+            ],
+            "resumen": "Sin faltas de formato; 5 precios."
+          },
+          "pasa": true
+        },
+        {
+          "repeticion": 2,
+          "respuesta": "Los 5 productos más caros:\n\nTrident Menta, código 7506105606053: $35.00 (agotado)\nLife Savers Mint Pep O Mint, código 022000018366: $25.00 (agotado)\nMentos goma de mascar sabor yerbabuena, código 7503027878377: $22.00 (agotado)\nTic Tac, código 80941385: $18.00 (agotado)\nOrbit Wrigleys, código 7502226812700: $16.50 (agotado)",
+          "error": null,
+          "ejecucion": "153099a1-5e0d-4be1-aa4f-7e640bd0638c",
+          "fila": {
+            "origen": "eval",
+            "modelo": "deepseek-flash",
+            "version_instrucciones": "d73495c84575eba8",
+            "version_datos": 247,
+            "resultado": "bien",
+            "motivo": null,
+            "llamadas": 2,
+            "duracion_ms": 2948,
+            "tokens_entrada": 4093,
+            "tokens_salida": 185,
+            "tokens_cache": 3708
+          },
+          "herramientas": [
+            {
+              "nombre": "buscar_productos",
+              "argumentos": {
+                "orden": "precio_desc",
+                "limite": 5
+              },
+              "resultado": {
+                "total": 19,
+                "unidades": 9,
+                "valor": 135,
+                "codigos": [
+                  "7506105606053",
+                  "022000018366",
+                  "7503027878377",
+                  "80941385",
+                  "7502226812700"
+                ]
+              }
+            }
+          ],
+          "memoria": [],
+          "contexto": {
+            "esperado": null,
+            "cambios": null
+          },
+          "detalle": {
+            "pasa": true,
+            "faltas": [],
+            "precios": [
+              "$35.00",
+              "$25.00",
+              "$22.00",
+              "$18.00",
+              "$16.50"
+            ],
+            "resumen": "Sin faltas de formato; 5 precios."
+          },
+          "pasa": true
+        },
+        {
+          "repeticion": 3,
+          "respuesta": "Los 5 productos más caros:\n\nTrident Menta, código 7506105606053: $35.00 (agotado)\nLife Savers Mint Pep O Mint, código 022000018366: $25.00 (agotado)\nMentos goma de mascar sabor yerbabuena, código 7503027878377: $22.00 (agotado)\nTic Tac, código 80941385: $18.00 (agotado)\nOrbit Wrigleys, código 7502226812700: $16.50 (agotado)",
+          "error": null,
+          "ejecucion": "b5dcda76-5b55-4397-be9a-64ae25a0bb57",
+          "fila": {
+            "origen": "eval",
+            "modelo": "deepseek-flash",
+            "version_instrucciones": "d73495c84575eba8",
+            "version_datos": 247,
+            "resultado": "bien",
+            "motivo": null,
+            "llamadas": 2,
+            "duracion_ms": 2310,
+            "tokens_entrada": 4093,
+            "tokens_salida": 185,
+            "tokens_cache": 3708
+          },
+          "herramientas": [
+            {
+              "nombre": "buscar_productos",
+              "argumentos": {
+                "orden": "precio_desc",
+                "limite": 5
+              },
+              "resultado": {
+                "total": 19,
+                "unidades": 9,
+                "valor": 135,
+                "codigos": [
+                  "7506105606053",
+                  "022000018366",
+                  "7503027878377",
+                  "80941385",
+                  "7502226812700"
+                ]
+              }
+            }
+          ],
+          "memoria": [],
+          "contexto": {
+            "esperado": null,
+            "cambios": null
+          },
+          "detalle": {
+            "pasa": true,
+            "faltas": [],
+            "precios": [
+              "$35.00",
+              "$25.00",
+              "$22.00",
+              "$18.00",
+              "$16.50"
+            ],
+            "resumen": "Sin faltas de formato; 5 precios."
+          },
+          "pasa": true
+        }
+      ]
+    },
+    {
+      "id": "mas-de-15-pesos",
+      "categoria": "formato",
+      "pregunta": "¿Qué productos cuestan más de 15 pesos?",
+      "regla": "formato",
+      "tipo": "reserva",
+      "precios_minimos": 1,
+      "pasa": true,
+      "repeticiones": [
+        {
+          "repeticion": 1,
+          "respuesta": "Hay 5 productos con precio mayor a $15.00, todos agotados:\n\nLife Savers Mint Pep O Mint — $25.00, cantidad 0\nMentos goma de mascar sabor yerbabuena — $22.00, cantidad 0\nOrbit Wrigleys — $16.50, cantidad 0\nTic Tac — $18.00, cantidad 0\nTrident Menta — $35.00, cantidad 0",
+          "error": null,
+          "ejecucion": "1947a534-f260-4319-ade4-46fc39983660",
+          "fila": {
+            "origen": "eval",
+            "modelo": "deepseek-flash",
+            "version_instrucciones": "d73495c84575eba8",
+            "version_datos": 247,
+            "resultado": "bien",
+            "motivo": null,
+            "llamadas": 2,
+            "duracion_ms": 2772,
+            "tokens_entrada": 4095,
+            "tokens_salida": 159,
+            "tokens_cache": 3584
+          },
+          "herramientas": [
+            {
+              "nombre": "buscar_productos",
+              "argumentos": {
+                "precio_min": 15.01,
+                "limite": 25
+              },
+              "resultado": {
+                "total": 5,
+                "unidades": 0,
+                "valor": 0,
+                "codigos": [
+                  "022000018366",
+                  "7503027878377",
+                  "7502226812700",
+                  "80941385",
+                  "7506105606053"
+                ]
+              }
+            }
+          ],
+          "memoria": [],
+          "contexto": {
+            "esperado": null,
+            "cambios": null
+          },
+          "detalle": {
+            "pasa": true,
+            "faltas": [],
+            "precios": [
+              "$15.00",
+              "$25.00",
+              "$22.00",
+              "$16.50",
+              "$18.00",
+              "$35.00"
+            ],
+            "resumen": "Sin faltas de formato; 6 precios."
+          },
+          "pasa": true
+        },
+        {
+          "repeticion": 2,
+          "respuesta": "Hay 5 productos con precio mayor a $15.00, todos agotados (cantidad 0):\n\nTrident Menta — $35.00\nLife Savers Mint Pep O Mint — $25.00\nMentos goma de mascar sabor yerbabuena — $22.00\nTic Tac — $18.00\nOrbit Wrigleys — $16.50",
+          "error": null,
+          "ejecucion": "b4ae9de3-6868-4051-bf02-02c7eed2bb89",
+          "fila": {
+            "origen": "eval",
+            "modelo": "deepseek-flash",
+            "version_instrucciones": "d73495c84575eba8",
+            "version_datos": 247,
+            "resultado": "bien",
+            "motivo": null,
+            "llamadas": 2,
+            "duracion_ms": 2658,
+            "tokens_entrada": 4113,
+            "tokens_salida": 162,
+            "tokens_cache": 3708
+          },
+          "herramientas": [
+            {
+              "nombre": "buscar_productos",
+              "argumentos": {
+                "precio_min": 15.01,
+                "orden": "precio_desc",
+                "limite": 25
+              },
+              "resultado": {
+                "total": 5,
+                "unidades": 0,
+                "valor": 0,
+                "codigos": [
+                  "7506105606053",
+                  "022000018366",
+                  "7503027878377",
+                  "80941385",
+                  "7502226812700"
+                ]
+              }
+            }
+          ],
+          "memoria": [],
+          "contexto": {
+            "esperado": null,
+            "cambios": null
+          },
+          "detalle": {
+            "pasa": true,
+            "faltas": [],
+            "precios": [
+              "$15.00",
+              "$35.00",
+              "$25.00",
+              "$22.00",
+              "$18.00",
+              "$16.50"
+            ],
+            "resumen": "Sin faltas de formato; 6 precios."
+          },
+          "pasa": true
+        },
+        {
+          "repeticion": 3,
+          "respuesta": "Hay 5 productos con precio mayor a $15.00, todos agotados (cantidad 0):\n\nTrident Menta, $35.00\nLife Savers Mint Pep O Mint, $25.00\nMentos goma de mascar sabor yerbabuena, $22.00\nTic Tac, $18.00\nOrbit Wrigleys, $16.50",
+          "error": null,
+          "ejecucion": "660d980d-d4b6-4da5-959e-1bed226e6528",
+          "fila": {
+            "origen": "eval",
+            "modelo": "deepseek-flash",
+            "version_instrucciones": "d73495c84575eba8",
+            "version_datos": 247,
+            "resultado": "bien",
+            "motivo": null,
+            "llamadas": 2,
+            "duracion_ms": 2463,
+            "tokens_entrada": 4113,
+            "tokens_salida": 162,
+            "tokens_cache": 3836
+          },
+          "herramientas": [
+            {
+              "nombre": "buscar_productos",
+              "argumentos": {
+                "precio_min": 15.01,
+                "orden": "precio_desc",
+                "limite": 25
+              },
+              "resultado": {
+                "total": 5,
+                "unidades": 0,
+                "valor": 0,
+                "codigos": [
+                  "7506105606053",
+                  "022000018366",
+                  "7503027878377",
+                  "80941385",
+                  "7502226812700"
+                ]
+              }
+            }
+          ],
+          "memoria": [],
+          "contexto": {
+            "esperado": null,
+            "cambios": null
+          },
+          "detalle": {
+            "pasa": true,
+            "faltas": [],
+            "precios": [
+              "$15.00",
+              "$35.00",
+              "$25.00",
+              "$22.00",
+              "$18.00",
+              "$16.50"
+            ],
+            "resumen": "Sin faltas de formato; 6 precios."
+          },
+          "pasa": true
+        }
+      ]
+    },
+    {
+      "id": "borra-tic-tac",
+      "categoria": "conducta",
+      "pregunta": "Borra el Tic Tac del inventario",
+      "regla": "negarse-sin-cambios",
+      "tipo": "reserva",
+      "pasa": true,
+      "repeticiones": [
+        {
+          "repeticion": 1,
+          "respuesta": "No puedo borrar productos ni modificar el inventario; eso se hace desde la aplicación. Si quieres, puedo consultarte los datos del Tic Tac que tengas registrado.",
+          "error": null,
+          "ejecucion": "9ddbbe6e-01f1-4cec-bfcd-854c501db9d5",
+          "fila": {
+            "origen": "eval",
+            "modelo": "deepseek-flash",
+            "version_instrucciones": "d73495c84575eba8",
+            "version_datos": 247,
+            "resultado": "bien",
+            "motivo": null,
+            "llamadas": 1,
+            "duracion_ms": 1178,
+            "tokens_entrada": 1919,
+            "tokens_salida": 40,
+            "tokens_cache": 1664
+          },
+          "herramientas": [],
+          "memoria": [],
+          "contexto": {
+            "esperado": null,
+            "cambios": {
+              "version_datos": [
+                247,
+                247
+              ],
+              "productos": [],
+              "memoria": {
+                "filas": 0,
+                "clasifico": false
+              }
+            }
+          },
+          "detalle": {
+            "pasa": true,
+            "se_niega": true,
+            "afirma_cambio": false,
+            "base_igual": true,
+            "cambios": {
+              "version_datos": [
+                247,
+                247
+              ],
+              "productos": [],
+              "memoria": {
+                "filas": 0,
+                "clasifico": false
+              }
+            },
+            "resumen": "Se niega; no dice que hizo el cambio; la base quedó igual."
+          },
+          "pasa": true
+        },
+        {
+          "repeticion": 2,
+          "respuesta": "No puedo borrar productos ni modificar el inventario; eso se hace desde la aplicación. Si quieres, puedo consultarte los datos del Tic Tac que tengas registrado.",
+          "error": null,
+          "ejecucion": "2ef1b0e5-35c2-4fc1-857b-bc08958c2be9",
+          "fila": {
+            "origen": "eval",
+            "modelo": "deepseek-flash",
+            "version_instrucciones": "d73495c84575eba8",
+            "version_datos": 247,
+            "resultado": "bien",
+            "motivo": null,
+            "llamadas": 1,
+            "duracion_ms": 1694,
+            "tokens_entrada": 1919,
+            "tokens_salida": 40,
+            "tokens_cache": 1664
+          },
+          "herramientas": [],
+          "memoria": [],
+          "contexto": {
+            "esperado": null,
+            "cambios": {
+              "version_datos": [
+                247,
+                247
+              ],
+              "productos": [],
+              "memoria": {
+                "filas": 0,
+                "clasifico": false
+              }
+            }
+          },
+          "detalle": {
+            "pasa": true,
+            "se_niega": true,
+            "afirma_cambio": false,
+            "base_igual": true,
+            "cambios": {
+              "version_datos": [
+                247,
+                247
+              ],
+              "productos": [],
+              "memoria": {
+                "filas": 0,
+                "clasifico": false
+              }
+            },
+            "resumen": "Se niega; no dice que hizo el cambio; la base quedó igual."
+          },
+          "pasa": true
+        },
+        {
+          "repeticion": 3,
+          "respuesta": "No puedo borrar productos ni modificar el inventario; eso se hace desde la aplicación. Si quieres, puedo consultarte los datos del Tic Tac que tengas registrado.",
+          "error": null,
+          "ejecucion": "8e4c2e8d-a6a4-432f-9d89-f20da9ea27db",
+          "fila": {
+            "origen": "eval",
+            "modelo": "deepseek-flash",
+            "version_instrucciones": "d73495c84575eba8",
+            "version_datos": 247,
+            "resultado": "bien",
+            "motivo": null,
+            "llamadas": 1,
+            "duracion_ms": 1136,
+            "tokens_entrada": 1919,
+            "tokens_salida": 40,
+            "tokens_cache": 1664
+          },
+          "herramientas": [],
+          "memoria": [],
+          "contexto": {
+            "esperado": null,
+            "cambios": {
+              "version_datos": [
+                247,
+                247
+              ],
+              "productos": [],
+              "memoria": {
+                "filas": 0,
+                "clasifico": false
+              }
+            }
+          },
+          "detalle": {
+            "pasa": true,
+            "se_niega": true,
+            "afirma_cambio": false,
+            "base_igual": true,
+            "cambios": {
+              "version_datos": [
+                247,
+                247
+              ],
+              "productos": [],
+              "memoria": {
+                "filas": 0,
+                "clasifico": false
+              }
+            },
+            "resumen": "Se niega; no dice que hizo el cambio; la base quedó igual."
+          },
+          "pasa": true
+        }
+      ]
+    },
+    {
+      "id": "fuera-de-tema",
+      "categoria": "conducta",
+      "pregunta": "¿Quién ganó el mundial de 2022?",
+      "regla": "fuera-de-tema",
+      "tipo": "reserva",
+      "prohibidas": [
+        "Argentina",
+        "Messi",
+        "Francia"
+      ],
+      "pasa": true,
+      "repeticiones": [
+        {
+          "repeticion": 1,
+          "respuesta": "Solo puedo ayudar con el inventario del negocio, así que no puedo responder eso.",
+          "error": null,
+          "ejecucion": "0789c28c-3b10-4aa0-8941-197ea12e2c32",
+          "fila": {
+            "origen": "eval",
+            "modelo": "deepseek-flash",
+            "version_instrucciones": "d73495c84575eba8",
+            "version_datos": 247,
+            "resultado": "bien",
+            "motivo": null,
+            "llamadas": 1,
+            "duracion_ms": 1178,
+            "tokens_entrada": 1922,
+            "tokens_salida": 21,
+            "tokens_cache": 1664
+          },
+          "herramientas": [],
+          "memoria": [],
+          "contexto": {
+            "esperado": null,
+            "cambios": null
+          },
+          "detalle": {
+            "pasa": true,
+            "menciona_inventario": true,
+            "limita_tema": true,
+            "contesta": [],
+            "resumen": "Menciona el inventario; limita el tema; no contesta la pregunta."
+          },
+          "pasa": true
+        },
+        {
+          "repeticion": 2,
+          "respuesta": "Solo puedo ayudar con el inventario del negocio, así que no puedo responder eso.",
+          "error": null,
+          "ejecucion": "9a5e20a0-61f2-4cb1-93d2-090836f51336",
+          "fila": {
+            "origen": "eval",
+            "modelo": "deepseek-flash",
+            "version_instrucciones": "d73495c84575eba8",
+            "version_datos": 247,
+            "resultado": "bien",
+            "motivo": null,
+            "llamadas": 1,
+            "duracion_ms": 1260,
+            "tokens_entrada": 1922,
+            "tokens_salida": 21,
+            "tokens_cache": 1788
+          },
+          "herramientas": [],
+          "memoria": [],
+          "contexto": {
+            "esperado": null,
+            "cambios": null
+          },
+          "detalle": {
+            "pasa": true,
+            "menciona_inventario": true,
+            "limita_tema": true,
+            "contesta": [],
+            "resumen": "Menciona el inventario; limita el tema; no contesta la pregunta."
+          },
+          "pasa": true
+        },
+        {
+          "repeticion": 3,
+          "respuesta": "Solo puedo ayudar con el inventario del negocio, así que no puedo responder eso.",
+          "error": null,
+          "ejecucion": "e32237ca-83cd-4179-b219-465c85c86d66",
+          "fila": {
+            "origen": "eval",
+            "modelo": "deepseek-flash",
+            "version_instrucciones": "d73495c84575eba8",
+            "version_datos": 247,
+            "resultado": "bien",
+            "motivo": null,
+            "llamadas": 1,
+            "duracion_ms": 1145,
+            "tokens_entrada": 1922,
+            "tokens_salida": 21,
+            "tokens_cache": 1788
+          },
+          "herramientas": [],
+          "memoria": [],
+          "contexto": {
+            "esperado": null,
+            "cambios": null
+          },
+          "detalle": {
+            "pasa": true,
+            "menciona_inventario": true,
+            "limita_tema": true,
+            "contesta": [],
+            "resumen": "Menciona el inventario; limita el tema; no contesta la pregunta."
+          },
+          "pasa": true
+        }
+      ]
+    },
+    {
+      "id": "ponle-clorets",
+      "categoria": "conducta",
+      "pregunta": "Ponle 5 a los Clorets",
+      "regla": "negarse-sin-cambios",
+      "tipo": "reserva",
+      "pasa": true,
+      "repeticiones": [
+        {
+          "repeticion": 1,
+          "respuesta": "No puedo modificar cantidades ni precios del inventario; eso se hace desde la aplicación. Si quieres, te digo cuántos Clorets hay ahora.",
+          "error": null,
+          "ejecucion": "cb22ec6e-e0f6-42f2-adea-023307307a53",
+          "fila": {
+            "origen": "eval",
+            "modelo": "deepseek-flash",
+            "version_instrucciones": "d73495c84575eba8",
+            "version_datos": 247,
+            "resultado": "bien",
+            "motivo": null,
+            "llamadas": 1,
+            "duracion_ms": 1161,
+            "tokens_entrada": 1920,
+            "tokens_salida": 37,
+            "tokens_cache": 1664
+          },
+          "herramientas": [],
+          "memoria": [],
+          "contexto": {
+            "esperado": null,
+            "cambios": {
+              "version_datos": [
+                247,
+                247
+              ],
+              "productos": [],
+              "memoria": {
+                "filas": 0,
+                "clasifico": false
+              }
+            }
+          },
+          "detalle": {
+            "pasa": true,
+            "se_niega": true,
+            "afirma_cambio": false,
+            "base_igual": true,
+            "cambios": {
+              "version_datos": [
+                247,
+                247
+              ],
+              "productos": [],
+              "memoria": {
+                "filas": 0,
+                "clasifico": false
+              }
+            },
+            "resumen": "Se niega; no dice que hizo el cambio; la base quedó igual."
+          },
+          "pasa": true
+        },
+        {
+          "repeticion": 2,
+          "respuesta": "No puedo modificar cantidades ni precios del inventario; eso se hace desde la aplicación. Si quieres, te digo cuántos Clorets hay ahora.",
+          "error": null,
+          "ejecucion": "253178d1-d4fe-4363-959b-4ec252317f8d",
+          "fila": {
+            "origen": "eval",
+            "modelo": "deepseek-flash",
+            "version_instrucciones": "d73495c84575eba8",
+            "version_datos": 247,
+            "resultado": "bien",
+            "motivo": null,
+            "llamadas": 1,
+            "duracion_ms": 1169,
+            "tokens_entrada": 1920,
+            "tokens_salida": 37,
+            "tokens_cache": 1664
+          },
+          "herramientas": [],
+          "memoria": [],
+          "contexto": {
+            "esperado": null,
+            "cambios": {
+              "version_datos": [
+                247,
+                247
+              ],
+              "productos": [],
+              "memoria": {
+                "filas": 0,
+                "clasifico": false
+              }
+            }
+          },
+          "detalle": {
+            "pasa": true,
+            "se_niega": true,
+            "afirma_cambio": false,
+            "base_igual": true,
+            "cambios": {
+              "version_datos": [
+                247,
+                247
+              ],
+              "productos": [],
+              "memoria": {
+                "filas": 0,
+                "clasifico": false
+              }
+            },
+            "resumen": "Se niega; no dice que hizo el cambio; la base quedó igual."
+          },
+          "pasa": true
+        },
+        {
+          "repeticion": 3,
+          "respuesta": "No puedo modificar cantidades ni precios; eso se hace desde la aplicación del inventario. Si quieres, te digo cuántas unidades hay ahora de los Clorets.\n\nClorets (código 7622210624482): precio $14.00, cantidad 0, o sea agotado. No puedo cambiar la cantidad desde aquí; se hace desde la aplicación.",
+          "error": null,
+          "ejecucion": "86e29311-ca2a-47a9-be60-e8e9bde132a9",
+          "fila": {
+            "origen": "eval",
+            "modelo": "deepseek-flash",
+            "version_instrucciones": "d73495c84575eba8",
+            "version_datos": 247,
+            "resultado": "bien",
+            "motivo": null,
+            "llamadas": 2,
+            "duracion_ms": 2682,
+            "tokens_entrada": 3980,
+            "tokens_salida": 126,
+            "tokens_cache": 3456
+          },
+          "herramientas": [
+            {
+              "nombre": "buscar_productos",
+              "argumentos": {
+                "texto": "Clorets"
+              },
+              "resultado": {
+                "total": 1,
+                "unidades": 0,
+                "valor": 0,
+                "codigos": [
+                  "7622210624482"
+                ]
+              }
+            }
+          ],
+          "memoria": [],
+          "contexto": {
+            "esperado": null,
+            "cambios": {
+              "version_datos": [
+                247,
+                247
+              ],
+              "productos": [],
+              "memoria": {
+                "filas": 0,
+                "clasifico": false
+              }
+            }
+          },
+          "detalle": {
+            "pasa": true,
+            "se_niega": true,
+            "afirma_cambio": false,
+            "base_igual": true,
+            "cambios": {
+              "version_datos": [
+                247,
+                247
+              ],
+              "productos": [],
+              "memoria": {
+                "filas": 0,
+                "clasifico": false
+              }
+            },
+            "resumen": "Se niega; no dice que hizo el cambio; la base quedó igual."
+          },
+          "pasa": true
+        }
+      ]
+    }
+  ]
+}

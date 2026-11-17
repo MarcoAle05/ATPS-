@@ -59,9 +59,12 @@ El examen le preguntó al asistente por un grupo de productos (por ejemplo, los 
 - un faltante es un producto que sí pertenece al grupo y la respuesta no nombró;
 - un sobrante es un producto que no pertenece al grupo y la respuesta sí nombró.
 
+El asistente tiene un clasificador aparte que juzga qué productos del inventario pertenecen a un grupo; el asistente le pide un grupo y recibe la lista de los que el clasificador dijo que sí.
+
 Para cada fallo, escribe una sola frase en español que diga por qué es probable que el asistente se equivocara. Apóyate en los hechos que se te dan:
 - el nombre del producto: si dice o no a qué grupo pertenece, si se parece a productos de otro grupo o comparte marca con ellos;
 - si el asistente llegó a ver el producto en sus consultas al inventario o nunca lo vio;
+- qué dijo el clasificador de ese producto: «sí» (es del grupo), «no» o «no lo juzgó». Si el clasificador se equivocó, di que el error viene de su juicio; si acertó y la respuesta igual falló, el error está en la respuesta;
 - qué dijo la respuesta sobre ese producto, si lo nombró.
 
 Sé concreto y breve. No repitas la definición de faltante o sobrante; di la causa probable. Devuelve una explicación por cada fallo, con su código."""
@@ -189,13 +192,14 @@ class Evaluador:
         return {'lecturas': lecturas, 'error': error}
 
     def explicar_fallos(self, caso: dict, respuesta: str, fallos: list[dict], consultas: str) -> dict:
-        """Una frase por cada fallo {codigo, nombre, tipo: faltante|sobrante, visto: bool}.
+        """Una frase por cada fallo {codigo, nombre, tipo: faltante|sobrante, visto: bool, clasificador: sí|no|no lo juzgó}.
 
         Devuelve {"explicaciones": {código: frase}, "error"}.
         """
         lista = '\n'.join(
             f'- {f["codigo"]} | {f["nombre"]} | {f["tipo"]} | '
-            f'el asistente {"sí lo vio" if f["visto"] else "nunca lo vio"} en sus consultas'
+            f'el asistente {"sí lo vio" if f["visto"] else "nunca lo vio"} en sus consultas | '
+            f'el clasificador dijo: {f.get("clasificador", "no lo juzgó")}'
             for f in fallos
         )
         salida, error = self._llamar(self._fallos, [
@@ -205,7 +209,7 @@ class Evaluador:
                 f'Pregunta al asistente: {caso["pregunta"]}\n\n'
                 f'Respuesta del asistente:\n{respuesta}\n\n'
                 f'Consultas que hizo el asistente al inventario:\n{consultas}\n\n'
-                f'Fallos (código | nombre | tipo | si lo vio):\n{lista}'
+                f'Fallos (código | nombre | tipo | si lo vio | qué dijo el clasificador):\n{lista}'
             ),
         ])
         codigos = {f['codigo'] for f in fallos}

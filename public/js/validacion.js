@@ -283,3 +283,28 @@ export function validarModeloAsistente(entrada) {
   }
   return ok(entrada);
 }
+
+// ---------- Memoria de grupos del asistente ----------
+
+// Sin acentos y en minúsculas. Es el pliegue con que el asistente busca nombres de productos
+// (src/consultas-inventario.js): «Café», «cafe» y «CAFÉ» quedan iguales, y la ñ queda como n.
+export const plegar = (texto) => texto.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase();
+
+export const GRUPO_NOMBRE_MAX = 40;
+// Lo que queda de un nombre en español después de plegar: letras a-z, dígitos y espacios.
+const GRUPO_PERMITIDO = /^[a-z0-9 ]+$/;
+
+// Nombre de un grupo de productos (chicle, refresco, producto de limpieza), como lo pide el conversador del
+// asistente. Devuelve el nombre ya normalizado (plegado y con los espacios colapsados), que es la llave del grupo
+// en la tabla grupos: «Chicle» y «chiclé» son el mismo grupo. El singular lo pone quien llama; aquí no se intenta.
+// Las letras que no pasan a a-z al plegar (ß, ø, griegas…) no se aceptan. El CHECK de grupos.nombre repite estas reglas.
+export function validarNombreGrupo(entrada) {
+  if (typeof entrada !== 'string') return falla('Escribe el nombre del grupo.');
+  const nombre = plegar(entrada.normalize('NFC')).replace(/\s+/gu, ' ').trim();
+  if (nombre === '') return falla('Escribe el nombre del grupo.');
+  if (longitud(nombre) > GRUPO_NOMBRE_MAX) {
+    return falla(`El nombre del grupo no puede pasar de ${GRUPO_NOMBRE_MAX} caracteres.`);
+  }
+  if (!GRUPO_PERMITIDO.test(nombre)) return falla('El nombre del grupo solo puede tener letras, números y espacios.');
+  return ok(nombre);
+}

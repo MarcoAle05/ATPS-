@@ -13,10 +13,12 @@ Cada corrida empieza desde cero y no toca la base de desarrollo ni producción:
 2. Arranca un wrangler dev aparte, con ese estado y en un puerto libre.
 3. Crea la cuenta de administrador del examen con /api/configurar (el código sale de .dev.vars) y usa su sesión.
 4. Hace cada pregunta, con origen "eval" y modelo "deepseek", y lee su fila de ejecuciones_asistente en la base
-   del examen. Antes de cada caso borra los intentos del asistente, para no chocar con el límite de 30 mensajes
-   cada 10 minutos.
+   del examen. Antes de cada repetición vacía la memoria de grupos (memoria fría: cada repetición mide al
+   clasificador desde cero) y borra los intentos del asistente, para no chocar con el límite de 30 mensajes cada
+   10 minutos. Después de cada pregunta lee lo que quedó en la memoria.
 5. Califica (calificar.py), con el evaluador si está activo (evaluador.py), guarda el archivo de la corrida en
-   evals/resultados/ y apaga el servidor.
+   evals/resultados/ y apaga el servidor. En los casos de grupo califica aparte los juicios del clasificador; eso
+   no decide si el caso pasa: lo decide la respuesta.
 
 En la consola solo sale un resumen. Las claves y el código de configuración de .dev.vars nunca se imprimen ni se
 escriben en archivos.
@@ -67,6 +69,11 @@ FOTO_BASE = [
     "SELECT valor FROM contadores WHERE nombre = 'version_datos'",
     'SELECT codigo, nombre, precio_centavos, cantidad, creado_en, actualizado_en FROM productos ORDER BY codigo',
 ]
+# Memoria fría y sin intentos del asistente: va antes de cada repetición.
+VACIAR = ['DELETE FROM miembros_grupo', 'DELETE FROM grupos', "DELETE FROM intentos WHERE clave LIKE 'asistente:%'"]
+# Lo que quedó en la memoria de grupos después de una pregunta (antes estaba vacía).
+MEMORIA = ('SELECT g.nombre AS grupo, m.codigo, m.pertenece, m.origen FROM miembros_grupo AS m '
+           'JOIN grupos AS g ON g.id = m.grupo_id ORDER BY g.nombre, m.codigo')
 # Solo para --alterar-base: un cambio a mano que la comparación de antes y después debe detectar.
 ALTERACION = "UPDATE productos SET precio_centavos = precio_centavos + 100 WHERE codigo = '80941385'"
 
@@ -142,29 +149,42 @@ def foto() -> dict:
     return {'version_datos': version[0]['valor'], 'productos': productos}
 
 
-def comparar(antes: dict, despues: dict) -> dict:
-    """Qué cambió en la base: version_datos [antes, después] y los códigos de productos que cambiaron."""
+def clasifico(herramientas: list[dict] | None) -> bool:
+    """Si la pregunta guardó juicios del clasificador (productos_del_grupo con una clasificación que salió bien)."""
+    return any(
+        h.get('nombre') == 'productos_del_grupo'
+        and ((h.get('resultado') or {}).get('clasificacion') or {}).get('revisados', 0) > 0
+        for h in herramientas or []
+    )
+
+
+def comparar(antes: dict, despues: dict, memoria: list[dict], herramientas: list[dict] | None) -> dict:
+    """Qué cambió en la base: version_datos [antes, después], los códigos de productos que cambiaron y qué escribió
+    la pregunta en la memoria de grupos (que estaba vacía antes de preguntar)."""
     a = {p['codigo']: p for p in antes['productos']}
     d = {p['codigo']: p for p in despues['productos']}
     distintos = sorted(c for c in a.keys() | d.keys() if a.get(c) != d.get(c))
-    return {'version_datos': [antes['version_datos'], despues['version_datos']], 'productos': distintos}
+    return {
+        'version_datos': [antes['version_datos'], despues['version_datos']],
+        'productos': distintos,
+        'memoria': {'filas': len(memoria), 'clasifico': clasifico(herramientas)},
+    }
 
 
-def leer_ejecucion(ejecucion: str, con_foto: bool) -> tuple[dict | None, dict | None]:
-    """La fila de ejecuciones_asistente (se escribe con waitUntil, justo después del flujo) y, si se pide,
-    la foto de la base de después."""
+def leer_ejecucion(ejecucion: str, extras: list[str]) -> tuple[dict | None, list[list[dict]]]:
+    """La fila de ejecuciones_asistente (se escribe con waitUntil, justo después del flujo) y las filas de las
+    consultas extra, leídas en la misma llamada a Wrangler."""
     if not re.fullmatch(r'[0-9a-f-]{36}', ejecucion or ''):
-        return None, foto() if con_foto else None
+        return None, sql(*extras)
     consulta = f"SELECT {CAMPOS_EJECUCION} FROM ejecuciones_asistente WHERE id = '{ejecucion}'"
     for _ in range(8):
-        bloques = sql(consulta, *(FOTO_BASE if con_foto else []))
+        bloques = sql(consulta, *extras)
         if bloques[0]:
-            despues = {'version_datos': bloques[1][0]['valor'], 'productos': bloques[2]} if con_foto else None
             fila = bloques[0][0]
             fila['herramientas'] = json.loads(fila['herramientas'])
-            return fila, despues
+            return fila, bloques[1:]
         time.sleep(0.5)
-    return None, foto() if con_foto else None
+    return None, bloques[1:]
 
 
 # ---------- Servidor del examen ----------
@@ -302,7 +322,19 @@ def resumir_consultas(herramientas: list[dict], inventario: list[dict]) -> tuple
     for h in herramientas:
         resultado = h.get('resultado') or {}
         argumentos = json.dumps(h.get('argumentos'), ensure_ascii=False)
-        if 'codigos' in resultado:
+        if h.get('nombre') == 'productos_del_grupo' and 'codigos' in resultado:
+            vistos.update(resultado['codigos'])
+            lista = ', '.join(nombres.get(c, c) for c in resultado['codigos']) or 'ninguno'
+            clasificacion = resultado.get('clasificacion')
+            if not clasificacion:
+                juicio = 'no llamó al clasificador'
+            elif clasificacion.get('error'):
+                juicio = f'el clasificador falló ({clasificacion["error"]}) con {clasificacion["enviados"]} productos y no se guardó nada'
+            else:
+                juicio = f'el clasificador juzgó {clasificacion["revisados"]} productos y dijo que {clasificacion["pertenecen"]} son del grupo'
+            lineas.append(f'- {h["nombre"]} {argumentos}: grupo «{resultado["grupo"]}»; {juicio}; '
+                          f'{resultado["total"]} miembros, {resultado.get("sin_revisar", 0)} sin revisar; devolvió: {lista}')
+        elif 'codigos' in resultado:
             vistos.update(resultado['codigos'])
             lista = ', '.join(nombres.get(c, c) for c in resultado['codigos']) or 'ninguno'
             lineas.append(f'- {h["nombre"]} {argumentos}: {resultado["total"]} coincidencias; devolvió: {lista}')
@@ -313,8 +345,54 @@ def resumir_consultas(herramientas: list[dict], inventario: list[dict]) -> tuple
     return '\n'.join(lineas) or 'Ninguna.', vistos
 
 
+def juicios_por_grupo(memoria: list[dict] | None) -> dict[str, dict[str, int]]:
+    """{grupo: {código: pertenece}} de las filas de la memoria leídas después de preguntar."""
+    grupos = {}
+    for fila in memoria or []:
+        grupos.setdefault(fila['grupo'], {})[fila['codigo']] = fila['pertenece']
+    return grupos
+
+
+def calificar_clasificador(caso: dict, rep: dict) -> dict:
+    """Los juicios del clasificador para el grupo que pidió el conversador, contra los esperados del caso.
+
+    El grupo sale del resumen de productos_del_grupo en herramientas (ya normalizado). Si pidió varios, se califica
+    cada uno. No cambia si el caso pasa.
+    """
+    llamadas = [h for h in rep.get('herramientas') or [] if h.get('nombre') == 'productos_del_grupo']
+    if not llamadas:
+        return {'llamo': False, 'grupos': [], 'resumen': 'El conversador no llamó a productos_del_grupo.'}
+    juicios = juicios_por_grupo(rep.get('memoria'))
+    grupos = []
+    for llamada in llamadas:
+        resultado = llamada.get('resultado') or {}
+        if 'grupo' not in resultado or any(g['grupo'] == resultado['grupo'] for g in grupos):
+            continue
+        clasificacion = resultado.get('clasificacion') or {}
+        grupos.append({
+            'grupo': resultado['grupo'],
+            **calificar.regla_clasificador(caso['esperados'], juicios.get(resultado['grupo'], {})),
+            **({'error': clasificacion['error']} if clasificacion.get('error') else {}),
+        })
+    if not grupos:
+        return {'llamo': True, 'grupos': [], 'resumen': 'El conversador llamó a productos_del_grupo, pero sin un grupo válido.'}
+    return {'llamo': True, 'grupos': grupos, 'resumen': ' '.join(f'«{g["grupo"]}»: {g["resumen"]}' for g in grupos)}
+
+
+def lo_que_dijo_el_clasificador(codigo: str, clasificador: dict | None, juicios: dict) -> str:
+    """sí, no o no lo juzgó, por cada grupo que pidió el conversador; para el evaluador."""
+    if not clasificador or not clasificador['grupos']:
+        return 'no lo juzgó (el asistente no pidió ningún grupo)'
+    partes = []
+    for grupo in clasificador['grupos']:
+        pertenece = juicios.get(grupo['grupo'], {}).get(codigo)
+        texto = 'no lo juzgó' if pertenece is None else 'sí' if pertenece == 1 else 'no'
+        partes.append(texto if len(clasificador['grupos']) == 1 else f'{grupo["grupo"]}: {texto}')
+    return '; '.join(partes)
+
+
 def calificar_repeticion(caso: dict, rep: dict, inventario: list[dict], evaluador) -> dict:
-    """Detalle de la calificación de una repetición. rep trae respuesta, error, herramientas y contexto."""
+    """Detalle de la calificación de una repetición. rep trae respuesta, error, herramientas, memoria y contexto."""
     if rep['error']:
         detalle = {'pasa': False, 'resumen': f'El asistente no respondió: {rep["error"]}'}
         if rep['contexto'].get('cambios'):
@@ -340,11 +418,15 @@ def calificar_repeticion(caso: dict, rep: dict, inventario: list[dict], evaluado
             detalle['lecturas_evaluador'] = lectura['lecturas']
             if lectura['error']:
                 detalle.setdefault('errores_evaluador', []).append(lectura['error'])
+    if caso['regla'] == 'grupo':
+        detalle['clasificador'] = calificar_clasificador(caso, rep)
     if evaluador and caso['regla'] == 'grupo' and not detalle['pasa']:
         consultas, vistos = resumir_consultas(rep.get('herramientas') or [], inventario)
         nombres = {p['codigo']: p['nombre'] for p in inventario}
+        juicios = juicios_por_grupo(rep.get('memoria'))
         fallos = [
-            {'codigo': c, 'nombre': nombres.get(c, c), 'tipo': tipo, 'visto': c in vistos}
+            {'codigo': c, 'nombre': nombres.get(c, c), 'tipo': tipo, 'visto': c in vistos,
+             'clasificador': lo_que_dijo_el_clasificador(c, detalle['clasificador'], juicios)}
             for tipo, codigos in (('faltante', detalle['faltantes']), ('sobrante', detalle['sobrantes']))
             for c in codigos
         ]
@@ -360,29 +442,37 @@ def calificar_repeticion(caso: dict, rep: dict, inventario: list[dict], evaluado
 
 def correr_caso(caso: dict, cliente: httpx.Client, inventario: list[dict], evaluador, repeticiones: int,
                 alterar_base: bool, avance) -> dict:
-    # Cada caso empieza sin intentos del asistente: el límite es de 30 mensajes cada 10 minutos por usuario.
-    sentencias = ["DELETE FROM intentos WHERE clave LIKE 'asistente:%'"]
-    if caso.get('esperado_sql'):
-        sentencias.append(caso['esperado_sql'])
-    bloques = sql(*sentencias)
-    esperado = bloques[1] if caso.get('esperado_sql') else None
     compara_base = caso['regla'] == 'negarse-sin-cambios'
+    esperado = None
     reps = []
     for numero in range(1, repeticiones + 1):
         avance(f'{caso["id"]} {numero}/{repeticiones}')
-        antes = foto() if compara_base else None
+        # Memoria fría y sin intentos (el límite es de 30 mensajes cada 10 minutos por usuario). La foto de antes va
+        # después de vaciar la memoria, que también sube version_datos.
+        primera = numero == 1 and caso.get('esperado_sql')
+        bloques = sql(*VACIAR, *([caso['esperado_sql']] if primera else []), *(FOTO_BASE if compara_base else []))
+        if primera:
+            esperado = bloques[len(VACIAR)]
+        antes = {'version_datos': bloques[-2][0]['valor'], 'productos': bloques[-1]} if compara_base else None
         salida = preguntar(cliente, caso['pregunta'])
         if alterar_base and compara_base:
             sql(ALTERACION)
-        fila, despues = leer_ejecucion(salida['ejecucion'], compara_base)
+        fila, bloques = leer_ejecucion(salida['ejecucion'], [*(FOTO_BASE if compara_base else []), MEMORIA])
+        memoria = bloques[-1]
+        herramientas = (fila or {}).get('herramientas')
+        cambios = None
+        if compara_base:
+            despues = {'version_datos': bloques[0][0]['valor'], 'productos': bloques[1]}
+            cambios = comparar(antes, despues, memoria, herramientas)
         rep = {
             'repeticion': numero,
             'respuesta': salida['respuesta'],
             'error': salida['error'],
             'ejecucion': salida['ejecucion'],
             'fila': {k: v for k, v in (fila or {}).items() if k not in ('id', 'herramientas')} or None,
-            'herramientas': (fila or {}).get('herramientas'),
-            'contexto': {'esperado': esperado, 'cambios': comparar(antes, despues) if compara_base else None},
+            'herramientas': herramientas,
+            'memoria': memoria,
+            'contexto': {'esperado': esperado, 'cambios': cambios},
         }
         rep['detalle'] = calificar_repeticion(caso, rep, inventario, evaluador)
         rep['pasa'] = rep['detalle']['pasa']
@@ -411,6 +501,34 @@ def resumen_tokens(casos: list[dict]) -> dict:
             for campo in ('tokens_entrada', 'tokens_salida', 'tokens_cache', 'duracion_ms'):
                 total[campo] += fila.get(campo) or 0
     return total
+
+
+def resumen_clasificador(casos: list[dict]) -> dict:
+    """Llamadas y tokens del clasificador, sacados del resumen de productos_del_grupo de cada fila (las columnas de
+    tokens de la fila son solo del conversador)."""
+    total = {'llamadas': 0, 'errores': 0, 'sin_tokens': 0, 'tokens_entrada': 0, 'tokens_salida': 0, 'tokens_cache': 0,
+             'duracion_ms': 0, 'modelos': set(), 'versiones': set()}
+    for caso in casos:
+        for rep in caso['repeticiones']:
+            for h in rep.get('herramientas') or []:
+                clasificacion = (h.get('resultado') or {}).get('clasificacion') if h.get('nombre') == 'productos_del_grupo' else None
+                if not clasificacion:
+                    continue
+                total['llamadas'] += 1
+                total['errores'] += bool(clasificacion.get('error'))
+                total['duracion_ms'] += clasificacion.get('duracion_ms') or 0
+                if clasificacion.get('modelo'):
+                    total['modelos'].add(clasificacion['modelo'])
+                if clasificacion.get('version'):
+                    total['versiones'].add(clasificacion['version'])
+                tokens = clasificacion.get('tokens')
+                if not tokens:
+                    total['sin_tokens'] += 1
+                    continue
+                total['tokens_entrada'] += tokens.get('entrada') or 0
+                total['tokens_salida'] += tokens.get('salida') or 0
+                total['tokens_cache'] += tokens.get('cache') or 0
+    return {**total, 'modelos': sorted(total['modelos']), 'versiones': sorted(total['versiones'])}
 
 
 def guardar(datos: dict, sufijo: str = '') -> Path:
@@ -455,6 +573,7 @@ def correr(argumentos) -> tuple[dict, Path]:
             print('\r\033[K', end='', file=sys.stderr)
 
     filas = [r['fila'] for c in resultados for r in c['repeticiones'] if r.get('fila')]
+    clasificador = resumen_clasificador(resultados)
     datos = {
         'fecha': datetime.now().astimezone().isoformat(timespec='seconds'),
         'configuracion': {
@@ -463,6 +582,7 @@ def correr(argumentos) -> tuple[dict, Path]:
                 'modelos': sorted({f['modelo'] for f in filas}),
                 'versiones_instrucciones': sorted({f['version_instrucciones'] for f in filas}),
             },
+            'clasificador': {k: clasificador[k] for k in ('modelos', 'versiones')},
             'evaluador': evaluador.descripcion() if evaluador else None,
             'repeticiones': argumentos.repeticiones,
             'casos': [c['id'] for c in casos],
@@ -479,6 +599,7 @@ def correr(argumentos) -> tuple[dict, Path]:
             'casos': len(resultados),
             'pasan': sum(c['pasa'] for c in resultados),
             'conversador': resumen_tokens(resultados),
+            'clasificador': {k: v for k, v in clasificador.items() if k not in ('modelos', 'versiones')},
             'evaluador': evaluador.uso if evaluador else None,
         },
         'inventario': inventario,
@@ -533,9 +654,12 @@ def imprimir_resumen(datos: dict, archivo: Path) -> None:
     conversador = config['conversador']
     evaluador = config['evaluador']
     print(f'Evals del asistente · {datos["fecha"]}' + (f' · recalificada de {datos["recalificada_de"]}' if datos.get('recalificada_de') else ''))
+    clasificador = config.get('clasificador') or {}
     print(f'Conversador: {", ".join(conversador["modelos"]) or "sin filas"} '
           f'(instrucciones {", ".join(conversador["versiones_instrucciones"]) or "?"}) · '
-          f'Evaluador: {evaluador["modelo"] if evaluador else "ninguno"} · {config["repeticiones"]} repeticiones'
+          + (f'Clasificador: {", ".join(clasificador["modelos"])} (versión {", ".join(clasificador["versiones"])}) · '
+             if clasificador.get('modelos') else '')
+          + f'Evaluador: {evaluador["modelo"] if evaluador else "ninguno"} · {config["repeticiones"]} repeticiones'
           + (' · BASE ALTERADA A PROPÓSITO' if config.get('alterar_base') else ''))
     resumen = datos['resumen']
     porcentaje = round(100 * resumen['pasan'] / resumen['casos']) if resumen['casos'] else 0
@@ -559,11 +683,28 @@ def imprimir_resumen(datos: dict, archivo: Path) -> None:
             for etiqueta, codigos in (('Faltan', detalle['faltantes']), ('Sobran', detalle['sobrantes'])):
                 if codigos:
                     print(f'    {etiqueta}: {", ".join(nombres.get(c, c) for c in codigos)}')
+            clasificador = detalle.get('clasificador')
+            if not clasificador:
+                continue
+            if not clasificador['grupos']:
+                print(f'    Clasificador: {clasificador["resumen"]}')
+            for grupo in clasificador['grupos']:
+                print(f'    Clasificador («{grupo["grupo"]}», juzgó {grupo["juzgados"]}): '
+                      f'{cuantos(grupo["aciertos"], "acierto")}, {cuantos(grupo["faltantes"], "faltante")}, '
+                      f'{cuantos(grupo["sobrantes"], "sobrante")}' + (f' · falló: {grupo["error"]}' if grupo.get('error') else ''))
+                for etiqueta, codigos in (('Faltan', grupo['faltantes']), ('Sobran', grupo['sobrantes'])):
+                    if codigos:
+                        print(f'      {etiqueta}: {", ".join(nombres.get(c, c) for c in codigos)}')
 
     tokens = resumen['conversador']
     print(f'\nTokens del conversador: {miles(tokens["tokens_entrada"])} de entrada '
           f'({miles(tokens["tokens_cache"])} desde la caché) y {miles(tokens["tokens_salida"])} de salida, '
           f'en {tokens["preguntas"]} preguntas' + (f' ({tokens["sin_fila"]} sin fila)' if tokens['sin_fila'] else '') + '.')
+    if resumen.get('clasificador'):
+        uso = resumen['clasificador']
+        print(f'Tokens del clasificador: {miles(uso["tokens_entrada"])} de entrada ({miles(uso["tokens_cache"])} desde la caché) '
+              f'y {miles(uso["tokens_salida"])} de salida, en {uso["llamadas"]} llamadas'
+              + (f' ({uso["errores"]} con error)' if uso['errores'] else '') + '.')
     if resumen.get('evaluador'):
         uso = resumen['evaluador']
         print(f'Tokens del evaluador: {miles(uso["tokens_entrada"])} de entrada ({miles(uso["tokens_cache"])} desde la caché) '
