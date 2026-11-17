@@ -116,6 +116,11 @@ Punto de partida: la línea base de la etapa 3, con chicles en 0 de 11 y pastill
   - Punto de restauración previo a la migración: `0000003e-00000000-00005126-21e459b66dc1cc46c9b488db14e02c1b`.
   - Migración `0003` aplicada en producción: tablas, índice y los tres disparadores creados. Productos sin cambios (19) y `version_datos` en 34.
   - Worker publicado: 593.15 KiB comprimido, arranque de 74 ms y versión `35c377fb`.
+- 2026-11-16 · Verificada en producción con una pregunta de chicles del dueño (2026-11-17 01:56 UTC). Etapa terminada.
+  - La fila quedó `bien`, con 2 llamadas al modelo y 4.7 s. El clasificador juzgó los 19 productos en 1 s, con 533 tokens de entrada y 48 de salida.
+  - La respuesta dio los mismos 14 productos que los evals y cerró con el aviso de que puede tener errores.
+  - La memoria guardó 19 filas de «chicle»: 14 sí y 5 no, todas del clasificador. `version_datos` pasó de 34 a 53, una vez por fila, como estaba previsto.
+  - CPU: 108 ms según Workers Observability, y Cloudflare la dejó terminar. Es la cifra más alta medida: las preguntas de la etapa 1 iban de 33 a 79 ms y la de la etapa 2 gastó 78. El aumento contra esa (unos 38 %) se parece al que calculó el banco (de 3.1 a 4.2 ms).
 
 ## Resultado contra la línea base (2026-11-16)
 
@@ -138,6 +143,6 @@ Archivo `evals/resultados/2026-11-16_181130.json`, con 3 repeticiones y la memor
 ## Pendiente
 
 - **Los tres errores del clasificador son estables.** Se corrigen con las etapas 5 (aprendizaje en los evals) y 7 (correcciones desde el chat), o con otro modelo para el clasificador, que decide el dueño. Las instrucciones no se ajustaron al examen, a propósito.
-- **En producción falta** medir en Workers Observability el CPU de una pregunta de grupo, con una pregunta del dueño.
+- **CPU en producción:** la única pregunta de grupo medida gastó 108 ms, con la memoria vacía. Falta medir una con la memoria ya llena. Si aparecen errores 1102 («Worker exceeded resource limits»), las salidas son las de `MEMORY.md` (2026-10-15): bajar trabajo o pasar a Workers Paid.
 - **El texto previo a una consulta queda en la respuesta.** En una pregunta con dos grupos, el conversador escribió «Voy a consultar ambos grupos.» antes de llamar a la herramienta, y ese texto quedó al principio. Viene de antes de esta etapa.
 - **Los grupos no se excluyen:** Ment Mouth quedó a la vez como chicle y como pastilla de menta.

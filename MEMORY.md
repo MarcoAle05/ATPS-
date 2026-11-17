@@ -126,6 +126,7 @@ Decisiones tomadas con el usuario y datos que no se deducen del código. Agrega 
 - 2026-11-16 · Etapa 2 verificada en producción con una pregunta del dueño (DeepSeek, 78 ms de CPU) y marcada como terminada. Ese día Gemini respondió muy lento en flujo (de 22 s a más de 90 s antes del primer trozo) y las dos preguntas locales terminaron por tiempo. Hay que volver a medirlo antes de los evals.
 - 2026-11-16 · Etapa 3 del asistente (evals en Python y caso chicles) fusionada a `main` y marcada como terminada. No cambia la app, así que no hubo publicación.
 - 2026-11-16 · Etapa 4 del asistente (memoria de grupos y clasificador) fusionada a `main` y publicada.
+- 2026-11-16 · Etapa 4 verificada en producción con una pregunta de chicles del dueño (108 ms de CPU, la cifra más alta medida; Cloudflare la dejó terminar) y marcada como terminada.
 
 ## Pendiente
 
