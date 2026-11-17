@@ -14,6 +14,7 @@ const el = {
   nombre: $('cuenta-nombre'),
   rol: $('cuenta-rol'),
   btnSalir: $('btn-salir'),
+  btnEvals: $('btn-evals'),
 };
 
 const CLAVE_AVISO = 'aviso-acceso';
@@ -47,6 +48,7 @@ function mostrarApp(usuario) {
   if (esAdmin) {
     iniciarUsuarios();
     iniciarAsistente();
+    el.btnEvals.hidden = false; // un enlace a /api/evals; el servidor también exige el rol
   }
   conectarTiempoReal({
     alCambiarProducto: refrescarProducto,

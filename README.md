@@ -153,6 +153,15 @@ uv run visor.py resultados/ARCHIVO.json        # esa corrida
 
 Arma una página HTML en `evals/visor/` y la abre en el navegador; con `--no-abrir` solo dice dónde quedó. En cada repetición separa lo que hizo el conversador (herramientas, respuesta y tokens), el clasificador (cada producto que juzgó, contra la lista del dueño), la calificación por código (la que decide si pasa) y el evaluador (qué leyó y cómo explicó cada fallo). No gasta saldo, y la carpeta `evals/visor/` no se sube: la página se vuelve a generar desde el JSON.
 
+Las corridas también se pueden ver en la app, en el apartado «Evals», que solo ve el administrador. Se publican a mano, desde `evals/`:
+
+```sh
+uv run subir.py resultados/ARCHIVO.json            # publica esa corrida (sin archivo, la más reciente)
+uv run subir.py --borrar 2026-11-16_181130         # la quita
+```
+
+`subir.py` arma la página con el visor, la sube a Workers KV (binding `EVALS`) y rehace la lista de corridas. Sin más opciones escribe en el KV local de `npm run dev`; con `--remoto`, en la app publicada, con la sesión de Wrangler del dueño. El Worker solo lee esas páginas y las devuelve sin scripts.
+
 ## Licencia
 
 [MIT](LICENSE).

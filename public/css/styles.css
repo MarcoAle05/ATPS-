@@ -262,6 +262,7 @@ p { text-wrap: pretty; }
     background-color 150ms ease,
     box-shadow 150ms ease;
 }
+a.boton { text-decoration: none; }
 /* El lado del icono lleva 2px menos de relleno para que se vea centrado. */
 .boton:not(.cuadrado):has(> .icono:first-child, > .icono-par:first-child) { padding-inline-start: 14px; }
 
@@ -930,8 +931,11 @@ input::placeholder { color: var(--color-text-muted); }
     border-top: 1px solid var(--color-border-subtle);
   }
   .cuenta .boton { margin-left: auto; }
-  /* Con «Asistente» visible, «Salir» queda junto a él a la derecha (el margen automático lo lleva el primero). */
+  /* Con «Asistente» y «Evals» visibles, los botones quedan juntos a la derecha (el margen automático lo lleva el primero). */
   .cuenta .boton:not([hidden]) ~ .boton { margin-left: 0; }
+  /* Los tres botones del administrador no caben junto al nombre: pasan juntos a su propia línea. */
+  .app[data-rol="admin"] .cuenta { flex-wrap: wrap; row-gap: 12px; }
+  .app[data-rol="admin"] .cuenta-texto { flex-basis: calc(100% - 46px); } /* 36 px del avatar y 10 de separación */
 }
 
 /* Aviso para cuentas de solo lectura. */
