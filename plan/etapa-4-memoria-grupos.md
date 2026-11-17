@@ -187,6 +187,10 @@ El dueño aprobó prepararlo después del visor de los evals (`plan/etapa-3-eval
     - una opción de `correr.py` para elegir el clasificador;
     - una llamada de comprobación por variante nueva;
     - las tres corridas completas, con A corrida de nuevo.
+  - 2026-11-17 · `logperch-95` se detuvo antes de las corridas porque el gasto pasaba de 5 centavos. Lo comprobado con una llamada real por variante, que revisé en su evidencia:
+    - **B** acepta el razonamiento con `json_object` y temperatura 0, pero tarda 34.5 s y gasta 5 654 tokens de salida (5 608 de razonamiento). Corrige Yerbabuena Mentos y sigue con Ment Mouth y Bubbaloo Pik Pop. Por la regla de tiempo ya no puede ganar.
+    - **C** acepta `json_object` sin razonamiento y tarda 1.8 s. Corrige Ment Mouth, pero agrega dos errores, porque no reconoce Canels ni Motitas y Yucatán (marcas mexicanas) como chicles, y sigue con Yerbabuena Mentos y Bubbaloo Pik Pop.
+  - 2026-11-17 · El dueño eligió correr completas A y C fuera de pico (unos 2.4 centavos en total) y dejar B solo con su comprobación.
 
 ## Pendiente
 
