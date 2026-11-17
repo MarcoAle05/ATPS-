@@ -133,6 +133,15 @@ No hay pruebas automatizadas ni linter. Para verificar un cambio: `node --check 
 
 Cada corrida deja un archivo en `evals/resultados/`. El primero (`2026-11-16_145431.json`) es la línea base contra la que se miden las mejoras.
 
+Para ver una corrida en detalle, con qué hizo cada agente en cada pregunta, usa el visor desde `evals/`:
+
+```sh
+uv run visor.py                                # la corrida más reciente
+uv run visor.py resultados/ARCHIVO.json        # esa corrida
+```
+
+Arma una página HTML en `evals/visor/` y la abre en el navegador; con `--no-abrir` solo dice dónde quedó. En cada repetición separa lo que hizo el conversador (herramientas, respuesta y tokens), el clasificador (cada producto que juzgó, contra la lista del dueño), la calificación por código (la que decide si pasa) y el evaluador (qué leyó y cómo explicó cada fallo). No gasta saldo, y la carpeta `evals/visor/` no se sube: la página se vuelve a generar desde el JSON.
+
 ## Licencia
 
 [MIT](LICENSE).

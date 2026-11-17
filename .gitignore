@@ -5,8 +5,9 @@ data/
 public/vendor/
 .nexo/
 
-# Evals: estado desechable de cada corrida y entorno de Python
+# Evals: estado desechable de cada corrida, páginas del visor (se rearman desde resultados/) y entorno de Python
 evals/.estado/
+evals/visor/
 evals/.venv/
 __pycache__/
 
