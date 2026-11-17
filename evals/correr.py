@@ -21,7 +21,7 @@ Cada corrida empieza desde cero y no toca la base de desarrollo ni producción:
    no decide si el caso pasa: lo decide la respuesta.
 
 En la consola solo sale un resumen. Las claves y el código de configuración de .dev.vars nunca se imprimen ni se
-escriben en archivos.
+escriben en archivos. Qué hizo cada agente en cada pregunta se ve con uv run visor.py resultados/ARCHIVO.json.
 """
 
 import argparse
@@ -711,6 +711,7 @@ def imprimir_resumen(datos: dict, archivo: Path) -> None:
               f'y {miles(uso["tokens_salida"])} de salida, en {uso["llamadas"]} llamadas'
               + (f' ({uso["errores"]} con error)' if uso['errores'] else '') + '.')
     print(f'Resultados: {archivo.relative_to(RAIZ)}')
+    print(f'Detalle por agente: uv run visor.py {archivo.relative_to(CARPETA)}')
 
 
 def main() -> int:
