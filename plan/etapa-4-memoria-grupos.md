@@ -199,6 +199,7 @@ El dueño aprobó prepararlo después del visor de los evals (`plan/etapa-3-eval
     - Pasan el banco (`grupo`, unos 4 ms en caliente), la sintaxis y el visor con las dos corridas, y la fusión de prueba no tiene conflictos.
     - Gasto total del experimento hasta hoy: unos 0.8 centavos.
     - Para retomarlo, fuera de pico: `uv run correr.py` (A) y `uv run correr.py --clasificador deepseek-v4-pro` (C).
+  - 2026-11-17 · Fusionado a `main` (`e8353f9`) con el visto bueno del dueño. No se publica: con la configuración de `wrangler.jsonc` la app se comporta igual. Se publicará junto con el siguiente cambio de la app.
 
 ## Pendiente
 

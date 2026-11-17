@@ -134,6 +134,7 @@ Decisiones tomadas con el usuario y datos que no se deducen del código. Agrega 
 - 2026-11-16 · Etapa 4 del asistente (memoria de grupos y clasificador) fusionada a `main` y publicada.
 - 2026-11-16 · Etapa 4 verificada en producción con una pregunta de chicles del dueño (108 ms de CPU, la cifra más alta medida; Cloudflare la dejó terminar) y marcada como terminada.
 - 2026-11-16 · Visor de los resultados de los evals (`evals/visor.py`) fusionado a `main`. No cambia la app.
+- 2026-11-17 · Código del experimento de clasificadores fusionado a `main`, sin publicar: con la configuración actual la app se comporta igual. Las corridas quedan pospuestas.
 
 ## Pendiente
 
