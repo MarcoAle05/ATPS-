@@ -26,11 +26,14 @@
   ],
   // Modelos que puede usar el asistente (src/modelos-asistente.js). POST /api/asistente elige uno con "modelo": <id>;
   // sin él se usa el primero. proveedor es "deepseek" o "gemini"; sus parámetros fijos viven en el código.
+  // CLASIFICADOR_ASISTENTE es el modelo del clasificador (src/clasificador.js), que juzga qué productos son de un grupo
+  // para la herramienta productos_del_grupo. Es aparte del conversador; por ahora solo acepta "deepseek".
   "vars": {
     "MODELOS_ASISTENTE": [
       { "id": "deepseek", "proveedor": "deepseek", "modelo": "deepseek-flash" },
       { "id": "gemini", "proveedor": "gemini", "modelo": "gemini-3.6-flash" }
-    ]
+    ],
+    "CLASIFICADOR_ASISTENTE": { "proveedor": "deepseek", "modelo": "deepseek-flash" }
   }
   // Secretos (no van en este archivo): PIMIENTA, CODIGO_CONFIGURACION, DEEPSEEK_API_KEY y GEMINI_API_KEY.
   // Sin la clave de un proveedor la app funciona igual, pero el asistente responde 503 (asistente-sin-configurar)

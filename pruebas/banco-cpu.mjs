@@ -12,6 +12,9 @@
 //               («Please pass a valid API key»). Resultado error, motivo proveedor-401 o proveedor-400.
 //     cuota     el proveedor responde 429 a la primera llamada: DeepSeek por saturación («ocupado») y Gemini por
 //               la cuota del día agotada, con el cuerpo que manda Google. Resultado error, motivo proveedor-429.
+//     grupo          el conversador llama a productos_del_grupo («chicle») y el clasificador simulado, sin flujo,
+//                    juzga 19 productos sin revisar. Una consulta y 30 fragmentos, como corta.
+//     grupo-memoria  la misma pregunta con todos los productos ya juzgados: no se llama al clasificador.
 //   repeticiones: peticiones calientes después de la fría (100 por defecto).
 //   --modelo gemini   pide el modelo "gemini". El simulador imita a Gemini: firma en cada llamada de herramienta
 //                     (extra_content.google.thought_signature), uso en cada fragmento y sin tokens de caché.
@@ -19,7 +22,14 @@
 //   --carpeta <ruta>  mide otra copia del proyecto en vez de esta (ver «Antes y después» abajo).
 //   --sin-cache       el proveedor no manda prompt_tokens_details: tokens_cache debe quedar en NULL.
 //   --falla-version   falla la lectura de version_datos: la columna debe quedar en NULL.
-//   --fila            imprime la fila que se escribiría en ejecuciones_asistente.
+//   --fila            imprime la fila que se escribiría en ejecuciones_asistente (en grupo, con herramientas completas).
+//   Solo con grupo y grupo-memoria:
+//   --clasificador falla|corta|ilegible
+//                     el clasificador responde 500 (con su reintento), corta su salida (finish_reason length) o
+//                     devuelve algo que no es el JSON pedido. La pregunta debe terminar bien, sin guardar juicios.
+//   --pendientes N    productos sin revisar al empezar (19 en grupo, 0 en grupo-memoria). Se juzgan 100 como máximo.
+//   --dos-grupos      el conversador pide dos grupos en la misma ronda: el clasificador se llama una sola vez.
+//   --herramienta     imprime lo que el conversador recibió de cada herramienta.
 //
 // Qué mide: process.threadCpuUsage() (solo el hilo principal, como el CPU de un Worker) desde que entra a
 // conversar() hasta que terminan el flujo y las tareas de waitUntil. La primera petición del proceso es «fría»
@@ -34,7 +44,8 @@
 //   ln -s "$PWD/node_modules" /tmp/antes/node_modules
 //   for i in 1 2 3 4 5 6 7; do node pruebas/banco-cpu.mjs larga --carpeta /tmp/antes; node pruebas/banco-cpu.mjs larga; done
 // y toma la mediana de caliente_media_ms (o de caliente_ms) de cada lado. Referencia del 2026-11-13 (Node 26, 7 procesos intercalados,
-// etapa 1 del asistente): corta ≈ 3.0 ms y larga ≈ 19–20 ms.
+// etapa 1 del asistente): corta ≈ 3.0 ms y larga ≈ 19–20 ms. Del 2026-11-16 (etapa 4, misma forma, caliente_media_ms):
+// corta ≈ 3.1 ms, larga ≈ 22 ms, grupo ≈ 4.2 ms y grupo-memoria ≈ 3.4 ms.
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
@@ -44,10 +55,11 @@ const valorDe = (nombre) => {
   const i = argumentos.indexOf(nombre);
   return i >= 0 ? argumentos[i + 1] : undefined;
 };
-const sueltos = argumentos.filter((a, i) => !a.startsWith('--') && !argumentos[i - 1]?.startsWith('--carpeta'));
+const CON_VALOR = ['--carpeta', '--modelo', '--clasificador', '--pendientes'];
+const sueltos = argumentos.filter((a, i) => !a.startsWith('--') && !CON_VALOR.includes(argumentos[i - 1]));
 const [escenario = 'corta', repeticionesTexto = '100'] = sueltos;
 const repeticiones = Number(repeticionesTexto);
-const ESCENARIOS = ['corta', 'larga', 'longitud', 'muchas', 'rechazo', 'cuota'];
+const ESCENARIOS = ['corta', 'larga', 'longitud', 'muchas', 'rechazo', 'cuota', 'grupo', 'grupo-memoria'];
 if (!ESCENARIOS.includes(escenario) || !Number.isInteger(repeticiones) || repeticiones < 1) {
   console.error(`Uso: node pruebas/banco-cpu.mjs [${ESCENARIOS.join('|')}] [repeticiones ≥ 1] [opciones]. Ver el comentario inicial.`);
   process.exit(1);
@@ -56,6 +68,17 @@ const carpeta = path.resolve(valorDe('--carpeta') ?? fileURLToPath(new URL('..',
 const gemini = valorDe('--modelo') === 'gemini';
 if (valorDe('--modelo') !== undefined && !gemini) {
   console.error('--modelo solo admite "gemini" (sin la opción se simula DeepSeek).');
+  process.exit(1);
+}
+const grupo = escenario.startsWith('grupo');
+const fallaClasificador = valorDe('--clasificador');
+if (fallaClasificador !== undefined && !['falla', 'corta', 'ilegible'].includes(fallaClasificador)) {
+  console.error('--clasificador admite falla, corta o ilegible.');
+  process.exit(1);
+}
+const PENDIENTES = Number(valorDe('--pendientes') ?? (escenario === 'grupo' ? 19 : 0));
+if (!Number.isInteger(PENDIENTES) || PENDIENTES < 0) {
+  console.error('--pendientes debe ser un entero ≥ 0.');
   process.exit(1);
 }
 const medirCpu = process.threadCpuUsage ? (antes) => process.threadCpuUsage(antes) : (antes) => process.cpuUsage(antes);
@@ -95,6 +118,46 @@ function rondaHerramienta() {
     delta({ tool_calls: [{ index: 0, function: { arguments: ' 0}' } }] }),
     delta({}, 'tool_calls'),
   ];
+}
+
+function rondaGrupo() {
+  const llamadas = [{ name: 'productos_del_grupo', arguments: '{"grupo":"chicle"}' }];
+  if (bandera('--dos-grupos')) llamadas.push({ name: 'productos_del_grupo', arguments: '{"grupo":"pastilla de menta"}' });
+  if (gemini) {
+    return [delta({ role: 'assistant', tool_calls: llamadas.map((f, i) => llamadaGemini(`call_${i}`, f)) }), delta({}, 'stop')];
+  }
+  return [
+    delta({ role: 'assistant', content: '' }),
+    ...llamadas.map((funcion, index) => delta({ tool_calls: [{ index, id: `call_${index}`, type: 'function', function: funcion }] })),
+    delta({}, 'tool_calls'),
+  ];
+}
+
+// El clasificador, sin flujo: una respuesta chat.completion completa. Dice que pertenecen los números impares.
+const clasificador = { llamadas: 0, enviados: [] };
+function respuestaClasificador(cuerpo) {
+  clasificador.llamadas++;
+  const entrada = cuerpo.messages.at(-1).content;
+  const numeros = [...entrada.matchAll(/^(\d+)\. /gm)].map((m) => Number(m[1]));
+  clasificador.enviados.push(numeros.length);
+  if (fallaClasificador === 'falla') {
+    return new Response(JSON.stringify({ error: { message: 'Internal error (simulado)', type: 'server_error' } }), {
+      status: 500, headers: { 'content-type': 'application/json' },
+    });
+  }
+  const impares = numeros.filter((n) => n % 2 === 1);
+  const contenido = {
+    corta: `{"pertenecen": [${impares.slice(0, 3).join(', ')}`,
+    ilegible: 'Los productos del grupo son el 1 y el 3.',
+  }[fallaClasificador] ?? JSON.stringify({ pertenecen: impares });
+  return new Response(JSON.stringify({
+    ...base,
+    object: 'chat.completion',
+    choices: [{ index: 0, message: { role: 'assistant', content: contenido }, logprobs: null,
+      finish_reason: fallaClasificador === 'corta' ? 'length' : 'stop' }],
+    usage: { prompt_tokens: 420 + 9 * numeros.length, completion_tokens: 6 + numeros.length, total_tokens: 0,
+      prompt_tokens_details: { cached_tokens: 384 } },
+  }), { status: 200, headers: { 'content-type': 'application/json' } });
 }
 
 function rondaMuchas() {
@@ -139,7 +202,8 @@ function uso(entrada, salida, cache) {
   return evento({ choices: [], usage: { prompt_tokens: entrada, completion_tokens: salida, total_tokens: entrada + salida, ...detalle } });
 }
 
-const FRAGMENTOS = { corta: 30, larga: 800, longitud: 30, muchas: 30 };
+const FRAGMENTOS = { corta: 30, larga: 800, longitud: 30, muchas: 30, grupo: 30, 'grupo-memoria': 30 };
+const recibidas = []; // lo que el conversador recibió de las herramientas, en la petición fría
 // Errores como los mandan los proveedores (los de Google, copiados de respuestas reales del 2026-11-14).
 const ERRORES = {
   rechazo: gemini
@@ -168,7 +232,9 @@ globalThis.fetch = async (_url, init) => {
     return new Response(JSON.stringify(cuerpoError), { status: estado, headers: { 'content-type': 'application/json' } });
   }
   const cuerpo = JSON.parse(init.body);
+  if (!cuerpo.stream) return respuestaClasificador(cuerpo);
   const yaConsulto = cuerpo.messages.some((m) => m.role === 'tool');
+  if (yaConsulto) recibidas.push(...cuerpo.messages.filter((m) => m.role === 'tool').map((m) => m.content));
   if (gemini) {
     // Como Google: la primera llamada de cada ronda tiene que volver con su firma.
     const sinFirma = cuerpo.messages.some((m) => m.tool_calls?.length && !m.tool_calls[0].extra_content?.google?.thought_signature);
@@ -182,7 +248,7 @@ globalThis.fetch = async (_url, init) => {
   }
   const trozos = yaConsulto
     ? rondaTexto(FRAGMENTOS[escenario], escenario === 'longitud' ? 'length' : 'stop')
-    : escenario === 'muchas' ? rondaMuchas() : rondaHerramienta();
+    : escenario === 'muchas' ? rondaMuchas() : grupo ? rondaGrupo() : rondaHerramienta();
   if (cuerpo.stream_options?.include_usage) trozos.push(yaConsulto ? uso(1310, 34, 1152) : uso(1223, 24, 1024));
   trozos.push(FIN);
   let i = 0;
@@ -203,6 +269,14 @@ const AGOTADOS = [
   { codigo: '7501000000042', nombre: 'Jabon', precio_centavos: 2100, cantidad: 0 },
 ];
 const filas = [];
+// Memoria de grupos simulada: cuántos productos siguen sin revisar en la petición en curso y cuántos juicios se
+// escribieron. Los miembros que se devuelven son fijos.
+const memoria = { pendientes: PENDIENTES, juicios: 0, escrituras: 0 };
+const MIEMBROS = [
+  { codigo: '7501000000103', nombre: 'Producto de prueba 1', precio_centavos: 1500, cantidad: 2, confirmado: 0 },
+  { codigo: '7501000000110', nombre: 'Producto de prueba 3', precio_centavos: 1200, cantidad: 0, confirmado: 1 },
+  { codigo: '7501000000127', nombre: 'Producto de prueba 5', precio_centavos: 300, cantidad: 4, confirmado: 0 },
+];
 
 function sentencia(sql) {
   const s = {
@@ -227,6 +301,7 @@ function sentencia(sql) {
     },
     // Lo que devuelve dentro de un batch.
     resultado() {
+      if (sql.includes('miembros_grupo') || sql.startsWith('INSERT INTO grupos')) return resultadoGrupo(sql, s.valores);
       if (sql.includes('COUNT(*) AS total')) return { results: [{ total: 4, unidades: 0, valor_centavos: 0 }] };
       if (sql.includes('SELECT codigo, nombre')) return { results: AGOTADOS };
       if (sql.startsWith('INSERT INTO ejecuciones_asistente')) {
@@ -239,6 +314,25 @@ function sentencia(sql) {
   return s;
 }
 
+function resultadoGrupo(sql, valores) {
+  if (sql.startsWith('INSERT INTO grupos')) return { results: [], meta: { changes: 0 } };
+  if (sql.startsWith('INSERT INTO miembros_grupo')) {
+    const juicios = JSON.parse(valores.at(-1)).length;
+    memoria.escrituras++;
+    memoria.juicios += juicios;
+    memoria.pendientes -= juicios;
+    return { results: [], meta: { changes: juicios } };
+  }
+  if (sql.startsWith('SELECT p.codigo, p.nombre')) {
+    const cuantos = Math.min(memoria.pendientes, valores.at(-1));
+    return { results: Array.from({ length: cuantos }, (_, i) => ({ codigo: `75010000${String(i).padStart(5, '0')}`, nombre: `Producto de prueba ${i + 1}` })) };
+  }
+  if (sql.includes('COUNT(*) AS total')) return { results: [{ total: MIEMBROS.length, unidades: 6, valor_centavos: 4200 }] };
+  if (sql.includes('confirmado FROM')) return { results: MIEMBROS };
+  if (sql.includes('COUNT(*) AS n')) return { results: [{ n: memoria.pendientes }] };
+  throw new Error(`D1 simulado: consulta de grupo desconocida: ${sql.slice(0, 80)}`);
+}
+
 const env = {
   DEEPSEEK_API_KEY: 'simulada',
   GEMINI_API_KEY: 'simulada',
@@ -248,6 +342,7 @@ const env = {
     { id: 'gemini', proveedor: 'gemini', modelo: 'gemini-3.6-flash' },
   ],
   MODELO_ASISTENTE: 'deepseek-flash',
+  CLASIFICADOR_ASISTENTE: { proveedor: 'deepseek', modelo: 'deepseek-flash' },
   DB: { prepare: sentencia, batch: async (lista) => lista.map((s) => s.resultado()) },
 };
 
@@ -255,12 +350,13 @@ const env = {
 const { conversar } = await import(pathToFileURL(path.join(carpeta, 'src/asistente.js')).href);
 
 async function unaPeticion() {
+  memoria.pendientes = PENDIENTES;
   const pendientes = [];
   const ejecucion = { waitUntil: (promesa) => pendientes.push(promesa) };
   const request = new Request('http://localhost:8787/api/asistente', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ mensajes: [{ rol: 'usuario', texto: '¿Qué productos están agotados?' }], ...(gemini ? { modelo: 'gemini' } : {}) }),
+    body: JSON.stringify({ mensajes: [{ rol: 'usuario', texto: grupo ? '¿Qué productos son chicles?' : '¿Qué productos están agotados?' }], ...(gemini ? { modelo: 'gemini' } : {}) }),
   });
   const antes = medirCpu();
   let estado;
@@ -281,6 +377,8 @@ async function unaPeticion() {
 }
 
 const fria = await unaPeticion();
+const memoriaFria = { ...memoria };
+const clasificadorFrio = { llamadas: clasificador.llamadas, enviados: [...clasificador.enviados] };
 const calientes = [];
 const antesDelLote = medirCpu();
 for (let i = 0; i < repeticiones; i++) calientes.push((await unaPeticion()).ms);
@@ -299,7 +397,18 @@ console.log(JSON.stringify({
   ...(fria.mensajeError ? { mensaje_error: fria.mensajeError } : {}),
   eventos_sse: fria.texto.split('\n\n').filter(Boolean).length,
   filas_escritas: filas.length,
+  ...(grupo ? {
+    resultado_fila: filas[0]?.resultado,
+    peticiones_al_clasificador_en_la_fria: clasificadorFrio.llamadas,
+    productos_enviados_al_clasificador: clasificadorFrio.enviados,
+    juicios_guardados_en_la_fria: memoriaFria.juicios,
+    sin_revisar_al_terminar: memoriaFria.pendientes,
+  } : {}),
 }));
+
+if (bandera('--herramienta')) {
+  for (const contenido of recibidas.slice(0, bandera('--dos-grupos') ? 2 : 1)) console.log('herramienta:', contenido);
+}
 
 if (bandera('--fila')) {
   const fila = filas[0];
@@ -307,6 +416,6 @@ if (bandera('--fila')) {
     console.log('fila: (esta versión del código no escribe filas)');
   } else {
     const recorte = (t, n) => (typeof t === 'string' && t.length > n ? `${t.slice(0, n)}… (${t.length} en total)` : t);
-    console.log('fila:', JSON.stringify({ ...fila, respuesta: recorte(fila.respuesta, 60), herramientas: recorte(fila.herramientas, 300) }));
+    console.log('fila:', JSON.stringify({ ...fila, respuesta: recorte(fila.respuesta, 60), herramientas: grupo ? JSON.parse(fila.herramientas) : recorte(fila.herramientas, 300) }));
   }
 }
