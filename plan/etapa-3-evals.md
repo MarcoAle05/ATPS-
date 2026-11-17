@@ -225,6 +225,7 @@ El 2026-11-16, con la etapa 4 ya publicada, el dueño pidió «un apartado para 
     - Revisé las capturas del caso `chicles`, en claro, en oscuro y a 390 px.
     - La entrega precisa algo del encargo: el evaluador sí influye en la calificación, porque los productos que reconoce en las líneas dudosas cuentan como nombrados. La página lo dice; sus explicaciones no cambian nada.
     - Solo se probó en Chromium.
+  - 2026-11-16 · Fusionado a `main` (`73873c0`) con el visto bueno del dueño. No cambia la app, así que no hay publicación. La línea del comando quedó en `CLAUDE.md`.
 
 ## Pendiente
 
