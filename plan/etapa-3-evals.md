@@ -253,6 +253,19 @@ El 2026-11-16 el dueño preguntó si los evals se podían ver en la app publicad
   - El botón «Evals» va junto a «Asistente» y abre el índice en la misma pestaña.
 - **Avance:**
   - 2026-11-17 · El experimento quedó pospuesto, así que esto ya no lo espera. El dueño aprobó el envío, y el encargo se envió a `logperch-95`.
+  - 2026-11-17 · Entrega recibida en `ebf92a2`, sobre `a87edad`, y revisada:
+    - **Código:** leí el diff completo.
+      - `src/evals.js` valida el nombre antes de leer KV y devuelve el HTML con las cinco cabeceras.
+      - El `catch` de `worker.js` da páginas de error solo en `/api/evals`.
+      - `subir.py` escribe en local por omisión, y con `--remoto` se niega mientras siga el id provisional.
+    - **Pruebas de la entrega, que revisé:**
+      - 401, 403 y 404 en páginas, también con nombres inválidos, que no llegan a KV;
+      - la prueba de escape;
+      - `--borrar`;
+      - la cabecera a 390 px, con los tres botones del administrador en su propia línea;
+      - el Worker crece 1.9 KiB comprimido y el CPU del asistente no cambia.
+    - La fusión de prueba no tiene conflictos.
+    - **Wrangler 4.151** crearía el espacio solo si faltara el id. Por eso quedó un id provisional, para que nada se cree sin el visto bueno del dueño.
 
 ## Pendiente
 
